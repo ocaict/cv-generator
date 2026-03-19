@@ -9,6 +9,9 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: <%= cvData.themeColor || '#4f46e5' %>;
+        }
         @page {
             margin: 0;
             padding: 0;
@@ -22,6 +25,12 @@
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
+        /* Dynamic Theme Overrides */
+        .text-indigo-600, .text-indigo-700 { color: var(--primary) !important; }
+        .bg-indigo-50 { background-color: var(--primary) !important; opacity: 0.1; }
+        .bg-indigo-600, .bg-indigo-700 { background-color: var(--primary) !important; }
+        .border-indigo-600, .border-indigo-700 { border-color: var(--primary) !important; }
+
         .quill-content p { margin-bottom: 0.5rem; }
         .quill-content p:last-child { margin-bottom: 0; }
         .quill-content ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }

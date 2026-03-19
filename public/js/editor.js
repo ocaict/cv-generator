@@ -577,7 +577,9 @@ function updatePreview() {
     });
 
     const data = {
-        personalInfo: {
+        templateId: formData.get('templateId') || (typeof TEMPLATE_ID !== 'undefined' ? TEMPLATE_ID : 'modern'),
+        themeColor: formData.get('themeColor') || formData.get('themeColorCustom') || '#4f46e5',
+        personalInfo: { 
             // Explicitly map nested form data (personalInfo.xxx)
             firstName: formData.get('personalInfo.firstName'),
             lastName: formData.get('personalInfo.lastName'),
@@ -598,7 +600,7 @@ function updatePreview() {
             website: formData.get('personalInfo.website'),
             summary: summaryEditor ? summaryEditor.root.innerHTML : formData.get('personalInfo.summary'),
             // Preserve the photo from the existing cvData object if it exists
-            photo: (typeof cvData !== 'undefined') ? cvData.personalInfo.photo : null
+            photo: (typeof cvData !== 'undefined' && cvData.personalInfo) ? cvData.personalInfo.photo : null
         },
         aiTone: formData.get('aiTone') || 'Professional',
         education: educationData,
@@ -689,11 +691,34 @@ if (removePhotoBtn) {
 function renderPreview(data) {
     const fullName = `${data.personalInfo.firstName || ''} ${data.personalInfo.lastName || ''}`.trim() || 'Your Name';
     const locationStr = [data.personalInfo.address, data.personalInfo.city].filter(x => x).join(', ');
+    const primaryColor = data.themeColor || '#4f46e5';
 
-    if (TEMPLATE_ID === 'modern') {
-        previewContent.innerHTML = `
-            <div class="modern-template scale-90 origin-top">
-                <header class="border-b-4 border-indigo-600 pb-8 mb-10 flex justify-between items-end">
+    // Inject Dynamic Theme Style
+    const styleOverride = `
+        <style id="dynamic-theme">
+            :root { --primary: ${primaryColor}; }
+            /* Preview Template Overrides */
+            .modern-template .text-indigo-600, .classic-template .text-indigo-600, .modern-template .text-indigo-700, .classic-template .text-indigo-700 { color: var(--primary) !important; }
+            .modern-template .bg-indigo-600, .classic-template .bg-indigo-600 { background-color: var(--primary) !important; }
+            .modern-template .bg-indigo-50, .classic-template .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; color: var(--primary) !important; }
+            .modern-template .border-indigo-600, .classic-template .border-indigo-600 { border-color: var(--primary) !important; }
+
+            /* App UI Immersion (Buttons & Steppers) */
+            .bg-indigo-600, .next-step-btn, #export-btn, #final-save-btn { background-color: var(--primary) !important; transition: background 0.3s; }
+            .text-indigo-600 { color: var(--primary) !important; }
+            .border-indigo-600 { border-color: var(--primary) !important; }
+            .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; }
+            .step-btn.active div { background-color: var(--primary) !important; shadow-color: rgba(${hexToRgb(primaryColor)}, 0.2) !important; }
+            .step-btn.active span { color: var(--primary) !important; }
+            .ai-gen-btn { color: var(--primary) !important; background-color: rgba(${hexToRgb(primaryColor)}, 0.05) !important; }
+            .ai-gen-btn:hover { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; }
+        </style>
+    `;
+
+    if (data.templateId === 'modern') {
+        previewContent.innerHTML = styleOverride + `
+            <div class="modern-template animate-fade-in origin-top px-12 py-12 min-h-[1123px]">
+                <header class="border-b-2 border-indigo-600 pb-8 mb-10 flex justify-between items-end px-4">
                     <div>
                         <h1 class="text-5xl font-extrabold text-gray-900 mb-1 uppercase tracking-tighter">${fullName}</h1>
                         <p class="text-2xl font-bold text-indigo-600 uppercase tracking-widest leading-none">${data.personalInfo.jobTitle || 'Job Role'}</p>
@@ -800,12 +825,17 @@ function renderPreview(data) {
                         ` : ''}
                     </div>
                 </div>
+
+                <!-- Page Break Indicator (Visual Guide Only) -->
+                <div class="mt-20 border-t-2 border-dashed border-gray-100 flex items-center justify-center relative">
+                    <span class="absolute -top-3 bg-white px-4 text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">Potential Page Break</span>
+                </div>
             </div>
         `;
     } else {
         // Classic
-        previewContent.innerHTML = `
-            <div class="classic-template text-center py-4">
+        previewContent.innerHTML = styleOverride + `
+            <div class="classic-template animate-fade-in text-center px-16 py-16 min-h-[1123px]">
                 ${data.personalInfo.photo ? `
                     <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 shadow-sm mx-auto mb-6">
                         <img src="${data.personalInfo.photo}" class="w-full h-full object-cover">
@@ -873,9 +903,9 @@ function renderPreview(data) {
                                 <p class="text-xs italic text-gray-500">References available on request</p>
                             ` : `
                                 <div class="grid grid-cols-2 gap-4">
-                                    ${data.references.map(ref => `
+                                     ${data.references.map(ref => `
                                         <div>
-                                            <h4 class="text-xs font-bold text-gray-900 font-outfit">${ref.name}</h4>
+                                            <h4 class="text-xs font-bold text-gray-900 font-serif">${ref.name}</h4>
                                             <p class="text-[10px] text-gray-400 font-bold uppercase">${ref.company}</p>
                                             <p class="text-[10px] text-indigo-600 mt-1">${ref.email} ${ref.phone ? '• ' + ref.phone : ''}</p>
                                         </div>
@@ -884,6 +914,11 @@ function renderPreview(data) {
                             `}
                         </section>
                      ` : ''}
+                </div>
+
+                <!-- Page Break Indicator (Visual Guide Only) -->
+                <div class="mt-20 border-t-2 border-dashed border-gray-100 flex items-center justify-center relative">
+                    <span class="absolute -top-3 bg-white px-4 text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">Potential Page Break</span>
                 </div>
             </div>
         `;
@@ -950,7 +985,7 @@ async function performSave() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 title: document.querySelector('h1').innerText,
-                templateId: TEMPLATE_ID,
+                templateId: cvData.templateId || 'modern',
                 data: cvData
             })
         });
@@ -1110,6 +1145,26 @@ document.addEventListener('click', (e) => {
         handleAIGeneration({ currentTarget: aiBtn });
     }
 });
+
+// Helpers
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '79, 70, 229';
+}
+
+// Design Step Listeners
+document.querySelectorAll('input[name="themeColor"], input[name="templateId"]').forEach(input => {
+    input.addEventListener('change', () => updatePreview());
+});
+if (document.getElementById('custom-color-picker')) {
+    document.getElementById('custom-color-picker').addEventListener('input', (e) => {
+        // Debounce custom color picker to prevent preview lag
+        clearTimeout(window.colorTimeout);
+        window.colorTimeout = setTimeout(() => {
+            updatePreview();
+        }, 50);
+    });
+}
 
 // Form Validation Logic
 function validateField(input) {
