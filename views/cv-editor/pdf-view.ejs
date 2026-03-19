@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Export - <%= cv.title %></title>
+    <!-- Tailwind CSS (Static CSS for PDF Reliability) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            margin: 0;
+            padding: 0;
+            size: A4;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .quill-content p { margin-bottom: 0.5rem; }
+        .quill-content p:last-child { margin-bottom: 0; }
+        .quill-content ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+        .quill-content ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+<div class="p-0 m-0">
+    <% if (cv.templateId === 'modern') { %>
+        <!-- Modern Template -->
+        <div class="max-w-4xl mx-auto bg-white min-h-screen">
+            <header class="border-b-4 border-indigo-600 pb-8 mb-10 flex justify-between items-end px-12 pt-12">
+                <div>
+                    <h1 class="text-4xl font-extrabold text-gray-900 mb-1 uppercase tracking-tight"><%= (cvData.personalInfo.firstName || "") + " " + (cvData.personalInfo.lastName || "") %></h1>
+                    <p class="text-xl font-bold text-indigo-600 uppercase tracking-widest leading-none"><%= cvData.personalInfo.jobTitle || 'Profession' %></p>
+                </div>
+                <% if (cvData.personalInfo.photo) { %>
+                    <div class="w-32 h-32 rounded-xl overflow-hidden border-4 border-white shadow-lg">
+                        <img src="<%- cvData.personalInfo.photo %>" class="w-full h-full object-cover">
+                    </div>
+                <% } %>
+            </header>
+
+            <div class="grid grid-cols-3 gap-8 px-12 pb-12">
+                <!-- Sidebar -->
+                <aside class="col-span-1 border-r border-gray-100 pr-8">
+                    <section class="mb-10">
+                        <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">Contact</h2>
+                        <ul class="space-y-3 text-[10px] font-semibold text-gray-700">
+                            <li class="flex items-center">
+                                <span class="mr-2">📧</span>
+                                <span class="break-all"><%= cvData.personalInfo.email %></span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="mr-2">📱</span>
+                                <span><%= cvData.personalInfo.phone %></span>
+                            </li>
+                            <% if (cvData.personalInfo.address || cvData.personalInfo.city) { %>
+                                <li class="flex items-center">
+                                    <span class="mr-2">📍</span>
+                                    <span><%= [cvData.personalInfo.address, cvData.personalInfo.city, cvData.personalInfo.zipCode].filter(x => x).join(', ') %></span>
+                                </li>
+                            <% } %>
+                            <% if (cvData.personalInfo.linkedin) { %>
+                                <li class="flex items-center">
+                                    <span class="mr-2">🔗</span>
+                                    <span><%= cvData.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '') %></span>
+                                </li>
+                            <% } %>
+                            <% if (cvData.personalInfo.website) { %>
+                                <li class="flex items-center">
+                                    <span class="mr-2">🌍</span>
+                                    <span><%= cvData.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '') %></span>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </section>
+
+                    <% if (cvData.personalInfo.dateOfBirth || cvData.personalInfo.nationality || cvData.personalInfo.maritalStatus || cvData.personalInfo.drivingLicense) { %>
+                        <section class="mb-10">
+                            <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">Personal Details</h2>
+                            <ul class="space-y-2 text-[10px] font-medium text-gray-600">
+                                <% if (cvData.personalInfo.dateOfBirth) { %> <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">DOB:</span> <%= cvData.personalInfo.dateOfBirth %></li> <% } %>
+                                <% if (cvData.personalInfo.nationality) { %> <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">Nat:</span> <%= cvData.personalInfo.nationality %></li> <% } %>
+                                <% if (cvData.personalInfo.maritalStatus) { %> <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">Status:</span> <%= cvData.personalInfo.maritalStatus %></li> <% } %>
+                                <% if (cvData.personalInfo.drivingLicense) { %> <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">DL:</span> <%= cvData.personalInfo.drivingLicense %></li> <% } %>
+                            </ul>
+                        </section>
+                    <% } %>
+
+                    <section class="mb-10">
+                        <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">Skills</h2>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <% cvData.skills.technical.forEach(skill => { %>
+                                <span class="px-2 py-1 bg-gray-100 text-[9px] font-bold text-gray-700 rounded uppercase tracking-wider"><%= skill %></span>
+                            <% }) %>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <% cvData.skills.soft.forEach(skill => { %>
+                                <span class="px-2 py-1 bg-indigo-50 text-[9px] font-bold text-indigo-600 rounded uppercase tracking-wider"><%= skill %></span>
+                            <% }) %>
+                        </div>
+                    </section>
+
+                    <section class="mb-10">
+                        <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">Education</h2>
+                        <div class="space-y-5">
+                            <% cvData.education.forEach(edu => { %>
+                                <div>
+                                    <h4 class="text-[11px] font-bold text-gray-900 mb-1"><%= edu.degree %></h4>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase leading-tight"><%= edu.school %></p>
+                                    <p class="text-[9px] text-gray-500 font-bold mt-1"><%= edu.year %></p>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </section>
+                </aside>
+
+                <!-- Main Content -->
+                <div class="col-span-2">
+                    <section class="mb-10">
+                        <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">Profile</h2>
+                        <div class="text-[11px] leading-relaxed text-gray-700 font-medium quill-content"><%- cvData.personalInfo.summary %></div>
+                    </section>
+                    
+                    <section class="mb-10">
+                        <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">Experience</h2>
+                        <div class="space-y-8">
+                            <% cvData.experience.forEach(exp => { %>
+                                <div>
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="text-sm font-bold text-gray-900 tracking-tight"><%= exp.jobTitle %></h4>
+                                        <span class="text-[10px] bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg font-bold"><%= exp.duration %></span>
+                                    </div>
+                                    <p class="text-xs font-bold text-gray-400 uppercase mb-3"><%= exp.company %></p>
+                                    <div class="text-[11px] text-gray-600 leading-relaxed quill-content"><%- exp.responsibilities %></div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </section>
+
+                    <% if (cvData.hobbies && cvData.hobbies.length > 0) { %>
+                        <section class="mb-10">
+                            <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">Interests</h2>
+                            <p class="text-[11px] text-gray-600 font-medium">
+                                <%= cvData.hobbies.join(' • ') %>
+                            </p>
+                        </section>
+                    <% } %>
+
+                    <% if (cvData.referencesOnRequest || (cvData.references && cvData.references.length > 0)) { %>
+                        <section>
+                            <h2 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4">References</h2>
+                            <% if (cvData.referencesOnRequest) { %>
+                                <p class="text-[11px] italic text-gray-500">Professional references available upon request</p>
+                            <% } else { %>
+                                <div class="grid grid-cols-2 gap-8">
+                                    <% cvData.references.forEach(ref => { %>
+                                        <div>
+                                            <h4 class="text-[11px] font-bold text-gray-900 mb-1"><%= ref.name %></h4>
+                                            <p class="text-[9px] text-gray-400 font-bold uppercase mb-2"><%= ref.company %></p>
+                                            <p class="text-[9px] text-indigo-600 font-bold"><%= ref.email %> <%= ref.phone ? ' • ' + ref.phone : '' %></p>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            <% } %>
+                        </section>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    <% } else { %>
+        <!-- Classic Template -->
+        <div class="max-w-4xl mx-auto bg-white min-h-screen px-12 py-12 text-gray-900">
+            <div class="text-center mb-10">
+                <% if (cvData.personalInfo.photo) { %>
+                    <div class="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-100 mx-auto mb-6">
+                        <img src="<%- cvData.personalInfo.photo %>" class="w-full h-full object-cover">
+                    </div>
+                <% } %>
+                <h1 class="text-4xl font-serif font-bold border-b-2 border-gray-900 pb-3 mb-4"><%= (cvData.personalInfo.firstName || "") + " " + (cvData.personalInfo.lastName || "") %></h1>
+                <p class="text-xs text-gray-600 uppercase tracking-widest space-x-2">
+                    <span><%= cvData.personalInfo.email %></span>
+                    <span>|</span>
+                    <span><%= cvData.personalInfo.phone %></span>
+                    <% if (cvData.personalInfo.city) { %>
+                        <span>|</span>
+                        <span><%= cvData.personalInfo.city %>, <%= cvData.personalInfo.zipCode %></span>
+                    <% } %>
+                </p>
+                <% if (cvData.personalInfo.linkedin || cvData.personalInfo.website) { %>
+                    <p class="text-[10px] text-gray-400 mt-2 uppercase tracking-tight">
+                        <%= cvData.personalInfo.linkedin ? `LinkedIn: ${cvData.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}` : '' %>
+                        <%= (cvData.personalInfo.linkedin && cvData.personalInfo.website) ? ' | ' : '' %>
+                        <%= cvData.personalInfo.website ? `Portfolio: ${cvData.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}` : '' %>
+                    </p>
+                <% } %>
+            </div>
+
+            <div class="space-y-10">
+                <section>
+                    <h2 class="text-sm font-bold border-b border-gray-300 pb-1 mb-4 uppercase tracking-widest">Summary</h2>
+                    <div class="text-xs leading-relaxed text-gray-700 font-serif quill-content"><%- cvData.personalInfo.summary %></div>
+                </section>
+
+                <section>
+                    <h2 class="text-sm font-bold border-b border-gray-300 pb-1 mb-4 uppercase tracking-widest">Professional Experience</h2>
+                    <div class="space-y-8">
+                        <% cvData.experience.forEach(exp => { %>
+                            <div>
+                                <div class="flex justify-between items-baseline mb-1">
+                                    <h4 class="text-[13px] font-bold text-gray-900"><%= exp.jobTitle %></h4>
+                                    <span class="text-[11px] font-bold text-gray-600 italic"><%= exp.duration %></span>
+                                </div>
+                                <div class="text-[11px] font-bold text-indigo-700 uppercase mb-3"><%= exp.company %></div>
+                                <div class="text-[11px] leading-relaxed text-gray-700 font-serif quill-content"><%- exp.responsibilities %></div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-sm font-bold border-b border-gray-300 pb-1 mb-4 uppercase tracking-widest">Education</h2>
+                    <div class="space-y-6">
+                        <% cvData.education.forEach(edu => { %>
+                            <div>
+                                <div class="flex justify-between items-baseline mb-1">
+                                    <h4 class="text-[13px] font-bold text-gray-900"><%= edu.degree %></h4>
+                                    <span class="text-[11px] font-bold text-gray-600"><%= edu.year %></span>
+                                </div>
+                                <div class="text-[11px] text-gray-600 italic"><%= edu.school %></div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-sm font-bold border-b border-gray-300 pb-1 mb-4 uppercase tracking-widest">Skills & Expertise</h2>
+                    <div class="grid grid-cols-2 gap-8 text-xs">
+                        <div>
+                            <p class="font-bold text-gray-500 uppercase text-[10px] mb-2 tracking-wide">Technical Skills</p>
+                            <p class="text-gray-700 leading-relaxed"><%= cvData.skills.technical.join(', ') %></p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-500 uppercase text-[10px] mb-2 tracking-wide">Soft Skills</p>
+                            <p class="text-gray-700 leading-relaxed"><%= cvData.skills.soft.join(', ') %></p>
+                        </div>
+                    </div>
+                </section>
+
+                <% if (cvData.hobbies && cvData.hobbies.length > 0) { %>
+                    <section>
+                        <h2 class="text-sm font-bold border-b border-gray-300 pb-1 mb-4 uppercase tracking-widest">Additional Interests</h2>
+                        <p class="text-xs text-gray-700 font-serif"><%= cvData.hobbies.join(', ') %></p>
+                    </section>
+                <% } %>
+
+                <% if (cvData.referencesOnRequest || (cvData.references && cvData.references.length > 0)) { %>
+                    <section>
+                        <h2 class="text-sm font-bold border-b border-gray-300 pb-1 mb-4 uppercase tracking-widest">References</h2>
+                        <% if (cvData.referencesOnRequest) { %>
+                            <p class="text-xs italic text-gray-600 font-serif">Available upon request.</p>
+                        <% } else { %>
+                            <div class="grid grid-cols-2 gap-10">
+                                <% cvData.references.forEach(ref => { %>
+                                    <div>
+                                        <h4 class="text-[12px] font-bold text-gray-900"><%= ref.name %></h4>
+                                        <p class="text-[11px] text-gray-500 italic"><%= ref.company %></p>
+                                        <p class="text-[10px] text-gray-500 mt-1"><%= ref.email %> <%= ref.phone ? ' • ' + ref.phone : '' %></p>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </section>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
+</div>
+</body>
+</html>
+

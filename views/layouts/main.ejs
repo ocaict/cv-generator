@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Pro - Modern Resume Builder</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold font-outfit text-gray-900 tracking-tight">CV<span class="text-indigo-600">Pro</span></span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <% if (user) { %>
+                        <a href="/dashboard" class="text-gray-600 hover:text-indigo-600 font-medium transition-colors">Dashboard</a>
+                        <div class="h-6 w-px bg-gray-200"></div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm font-medium text-gray-700"><%= user.email %></span>
+                            <a href="/auth/logout" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-indigo-100 transition-all">Logout</a>
+                        </div>
+                    <% } else { %>
+                        <a href="/auth/login" class="text-gray-600 hover:text-indigo-600 font-medium transition-colors px-3">Login</a>
+                        <a href="/auth/register" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100">Get Started</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <% if (success_msg && success_msg.length > 0) { %>
+            <div class="max-w-7xl mx-auto px-4 mt-4">
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-md shadow-sm animate-pulse">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-green-800"><%= success_msg %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <% if (error_msg && error_msg.length > 0) { %>
+            <div class="max-w-7xl mx-auto px-4 mt-4">
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-red-800"><%= error_msg %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <%- body %>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-500 text-sm">© 2026 CV Pro. Handcrafted for modern professionals.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

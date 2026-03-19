@@ -1,0 +1,56 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex justify-between items-center mb-12">
+        <div>
+            <h1 class="text-3xl font-bold font-outfit text-gray-900">Your Dashboard</h1>
+            <p class="text-gray-500">Manage and edit your professional CVs.</p>
+        </div>
+        <a href="/cv-editor/create" class="flex items-center space-x-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase tracking-widest text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Create New CV</span>
+        </a>
+    </div>
+
+    <% if (cvs && cvs.length > 0) { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <% cvs.forEach(cv => { %>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all overflow-hidden group">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex -space-x-1">
+                                <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider"><%= cv.templateId %></span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-1 leading-tight group-hover:text-indigo-600 transition-colors"><%= cv.title %></h3>
+                        <p class="text-xs text-gray-400 font-medium mb-6 uppercase tracking-widest">Modified: <%= cv.updatedAt.toLocaleDateString() %></p>
+                        
+                        <div class="flex items-center gap-3">
+                            <a href="/cv-editor/<%= cv.id %>" class="flex-grow bg-indigo-50 text-indigo-700 text-center py-2.5 rounded-lg font-bold text-sm hover:bg-indigo-600 hover:text-white transition-all">Edit CV</a>
+                            <a href="/cv-editor/<%= cv.id %>/delete" title="Delete" class="w-10 h-10 flex items-center justify-center border border-gray-100 text-gray-400 rounded-lg hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } else { %>
+        <div class="text-center py-24 bg-white rounded-3xl border-2 border-dashed border-gray-100">
+            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">No CVs Found</h2>
+            <p class="text-gray-500 mb-8 max-w-sm mx-auto">Create your first professional CV by clicking the button above.</p>
+        </div>
+    <% } %>
+</div>

@@ -1,0 +1,44 @@
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+    <div class="bg-white p-12 rounded-3xl shadow-xl shadow-gray-100 border border-gray-100">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold font-outfit text-gray-900 mb-2">Create New CV</h1>
+            <p class="text-gray-500">Choose a name and template to get started.</p>
+        </div>
+        
+        <form action="/cv-editor/create" method="POST" class="space-y-8">
+            <div>
+                <label for="title" class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-3">CV Title</label>
+                <input type="text" id="title" name="title" required placeholder="e.g. Senior Software Engineer CV" class="w-full px-5 py-4 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none">
+            </div>
+            
+            <div>
+                <span class="block text-sm font-bold text-gray-700 uppercase tracking-widest mb-6">Select Template</span>
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Template radio 1 -->
+                    <label class="relative cursor-pointer group">
+                        <input type="radio" name="templateId" value="modern" checked class="peer sr-only">
+                        <div class="border-2 border-gray-100 rounded-2xl p-4 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 group-hover:bg-gray-50 transition-all text-center">
+                            <div class="aspect-[3/4] bg-gray-100 rounded-lg mb-4 flex items-center justify-center font-bold text-gray-300">Modern</div>
+                            <span class="block text-sm font-bold text-gray-900">Modern Flow</span>
+                        </div>
+                    </label>
+                    
+                    <!-- Template radio 2 -->
+                    <label class="relative cursor-pointer group">
+                        <input type="radio" name="templateId" value="classic" class="peer sr-only">
+                        <div class="border-2 border-gray-100 rounded-2xl p-4 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 group-hover:bg-gray-50 transition-all text-center">
+                            <div class="aspect-[3/4] bg-gray-100 rounded-lg mb-4 flex items-center justify-center font-bold text-gray-300">Classic</div>
+                            <span class="block text-sm font-bold text-gray-900">Executive Edge</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="pt-6">
+                <button type="submit" class="w-full flex justify-center py-5 px-4 border border-transparent text-sm font-bold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-xl shadow-indigo-100 uppercase tracking-widest">
+                    Start Building
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
