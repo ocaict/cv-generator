@@ -171,7 +171,12 @@ function addExperienceItem(data = {}) {
             </div>
 
             <div class="col-span-2 text-left mt-2">
-                <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest">Responsibilities</label>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Responsibilities</label>
+                    <button type="button" class="ai-gen-btn text-[9px] font-bold text-indigo-600 uppercase tracking-tighter hover:scale-105 transition-all flex items-center space-x-1.5 px-3 py-1 bg-indigo-50 rounded-full" data-type="experience">
+                        <span>✨ AI Refine</span>
+                    </button>
+                </div>
                 <div class="quill-editor h-32 bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-inner text-sm"></div>
                 <input type="hidden" data-key="responsibilities" value="${data.responsibilities || ''}">
             </div>
@@ -593,8 +598,9 @@ function updatePreview() {
             website: formData.get('personalInfo.website'),
             summary: summaryEditor ? summaryEditor.root.innerHTML : formData.get('personalInfo.summary'),
             // Preserve the photo from the existing cvData object if it exists
-            photo: (cvData && cvData.personalInfo) ? cvData.personalInfo.photo : null
+            photo: (typeof cvData !== 'undefined') ? cvData.personalInfo.photo : null
         },
+        aiTone: formData.get('aiTone') || 'Professional',
         education: educationData,
         experience: experienceData,
         hobbies: Array.from(document.querySelectorAll('.hobby-item')).map(item => item.querySelector('[data-key="hobby"]').value).filter(x => x),
@@ -1002,6 +1008,93 @@ function triggerAutoSave() {
     }, 2500);
 }
 
+/**
+ * AI Content Generation Handler
+ */
+async function handleAIGeneration(event) {
+    const btn = event.currentTarget;
+    const type = btn.dataset.type;
+    const targetKey = btn.dataset.target;
+    
+    // Find the associated editor container
+    let editorEl;
+    if (targetKey) {
+        editorEl = document.querySelector(`[name="${targetKey}"], [data-key="${targetKey}"]`);
+    }
+    
+    // Fallback: search surrounding area for Quill editors
+    if (!editorEl) {
+        const section = btn.closest('.col-span-2') || btn.closest('.experience-item') || btn.closest('div');
+        editorEl = section ? section.querySelector('.quill-editor, #summary-editor, textarea') : null;
+    }
+    
+    if (!editorEl) {
+        console.error("AI: No target editor element found for", btn);
+        return;
+    }
+    
+    let inputData = "";
+    const isTextarea = editorEl.tagName === 'TEXTAREA';
+    
+    if (isTextarea) {
+        inputData = editorEl.value.trim();
+    } else {
+        const quill = Quill.find(editorEl);
+        if (quill) inputData = quill.getText().trim();
+    }
+
+    // For skills, we allow empty input as it's based on the Job Title
+    if (type !== 'skills' && (!inputData || inputData.length < 5)) {
+        alert("Please write a few words first so the AI has something to improve!");
+        return;
+    }
+
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<span class="animate-pulse px-1">✨</span>';
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+
+    try {
+        const jobTitleInput = document.querySelector('[name="personalInfo.jobTitle"]');
+        const aiToneSelector = document.getElementById('ai-tone-selector');
+        const response = await fetch('/api/ai/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: type,
+                input: inputData || "General responsibilities",
+                context: {
+                    jobTitle: jobTitleInput ? jobTitleInput.value : 'Professional',
+                    targetTone: aiToneSelector ? aiToneSelector.value : 'Professional'
+                }
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.result) {
+            if (isTextarea) {
+                editorEl.value = data.result;
+                editorEl.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                const quill = Quill.find(editorEl);
+                quill.setText('');
+                quill.clipboard.dangerouslyPasteHTML(0, data.result);
+            }
+            updatePreview();
+        } else if (data.error) {
+            alert(data.error);
+        }
+    } catch (error) {
+        console.error("AI Error:", error);
+        alert("Connection to AI assistant failed. Please check your internet.");
+    } finally {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+    }
+}
+
 if (saveBtn) {
     saveBtn.addEventListener('click', performSave);
 }
@@ -1009,6 +1102,14 @@ if (saveBtn) {
 if (exportBtn) {
     exportBtn.addEventListener('click', handleExport);
 }
+
+// Global listener for AI generation buttons (handles dynamic elements)
+document.addEventListener('click', (e) => {
+    const aiBtn = e.target.closest('.ai-gen-btn');
+    if (aiBtn) {
+        handleAIGeneration({ currentTarget: aiBtn });
+    }
+});
 
 // Form Validation Logic
 function validateField(input) {

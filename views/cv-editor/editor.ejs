@@ -136,6 +136,14 @@
                                 <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">City/Town</label>
                                 <input type="text" name="personalInfo.city" value="<%= cvData.personalInfo.city || '' %>" placeholder="e.g. London" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
                             </div>
+                        <div class="col-span-2 pt-4">
+                            <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest">Global AI Writing Tone</label>
+                            <select name="aiTone" id="ai-tone-selector" class="w-full px-4 py-3 bg-indigo-50 border border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 text-xs font-bold text-indigo-700 outline-none cursor-pointer transition-all hover:bg-indigo-100/50">
+                                <option value="Professional" <%= (cvData.aiTone === 'Professional') ? 'selected' : '' %>>🤝 Professional (Balanced & Standard)</option>
+                                <option value="Executive" <%= (cvData.aiTone === 'Executive') ? 'selected' : '' %>>💼 Executive (Strong & Authoritative)</option>
+                                <option value="Creative" <%= (cvData.aiTone === 'Creative') ? 'selected' : '' %>>🎨 Creative (Personal & Narrative)</option>
+                                <option value="Concise" <%= (cvData.aiTone === 'Concise') ? 'selected' : '' %>>⚡ Concise (Sharp & Bullet-focused)</option>
+                            </select>
                         </div>
 
                         <!-- Additional Info Toggle -->
@@ -193,7 +201,12 @@
                         </div>
 
                         <div class="col-span-2 pt-4">
-                            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Professional Summary</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Professional Summary</label>
+                                <button type="button" class="ai-gen-btn text-[10px] font-bold text-indigo-600 uppercase tracking-tighter hover:scale-105 transition-all flex items-center space-x-1.5 px-3 py-1 bg-indigo-50 rounded-full" data-type="summary">
+                                    <span>✨ AI Improve</span>
+                                </button>
+                            </div>
                             <div id="summary-editor" class="h-32 bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-inner text-sm"><%- cvData.personalInfo.summary %></div>
                             <input type="hidden" name="personalInfo.summary" value="<%= cvData.personalInfo.summary %>">
                         </div>
@@ -260,11 +273,21 @@
                     </h3>
                     <div class="space-y-8">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Technical Skills (comma separated)</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Technical Skills</label>
+                                <button type="button" class="ai-gen-btn text-[10px] font-bold text-indigo-600 uppercase tracking-tighter hover:scale-105 transition-all flex items-center space-x-1.5 px-3 py-1 bg-indigo-50 rounded-full" data-type="skills" data-target="skills.technical">
+                                    <span>✨ AI Suggest</span>
+                                </button>
+                            </div>
                             <textarea name="skills.technical" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none h-24 resize-none" placeholder="e.g. JavaScript, Product Design, SQL..."><%= cvData.skills ? cvData.skills.technical.join(', ') : '' %></textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Soft Skills (comma separated)</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Soft Skills</label>
+                                <button type="button" class="ai-gen-btn text-[10px] font-bold text-indigo-600 uppercase tracking-tighter hover:scale-105 transition-all flex items-center space-x-1.5 px-3 py-1 bg-indigo-50 rounded-full" data-type="skills" data-target="skills.soft">
+                                    <span>✨ AI Suggest</span>
+                                </button>
+                            </div>
                             <textarea name="skills.soft" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none h-24 resize-none" placeholder="e.g. Leadership, Team Management..."><%= cvData.skills ? cvData.skills.soft.join(', ') : '' %></textarea>
                         </div>
                     </div>

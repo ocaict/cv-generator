@@ -42,8 +42,10 @@ app.use((req, res, next) => {
 // Routes
 const authRoutes = require('./src/routes/auth');
 const cvRoutes = require('./src/routes/cv');
+const aiRoutes = require('./src/routes/ai');
 
 app.use('/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/', cvRoutes);
 
 // Landing page
