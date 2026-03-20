@@ -21,11 +21,16 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+if (!process.env.SESSION_SECRET) {
+    console.error('\x1b[31m[ERROR]\x1b[0m SESSION_SECRET is not defined. Please set it in your .env file.');
+    process.exit(1);
+}
+
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'cv-secret-key',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Set to true if using HTTPS
+    cookie: { secure: process.env.NODE_ENV === 'production' } // Set to true if using HTTPS
 }));
 
 app.use(flash());
@@ -58,8 +63,13 @@ app.get('/', (req, res) => {
 
 // Error handling
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+    console.error(`\x1b[31m[ERROR]\x1b[0m ${err.stack}`);
+    const statusCode = err.statusCode || 500;
+    const message = process.env.NODE_ENV === 'production' 
+        ? 'Internal Server Error' 
+        : err.message || 'Something broke!';
+    
+    res.status(statusCode).send(message);
 });
 
 app.listen(PORT, () => {

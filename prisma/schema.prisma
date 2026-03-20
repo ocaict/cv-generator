@@ -25,6 +25,9 @@ model CV {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title      String
   templateId String   @default("modern")
+  themeColor String   @default("#4f46e5")
+  fontPairing String  @default("outfit-inter")
+  density    String   @default("standard")
   data       String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

@@ -579,6 +579,8 @@ function updatePreview() {
     const data = {
         templateId: formData.get('templateId') || (typeof TEMPLATE_ID !== 'undefined' ? TEMPLATE_ID : 'modern'),
         themeColor: formData.get('themeColor') || formData.get('themeColorCustom') || '#4f46e5',
+        fontPairing: formData.get('fontPairing') || 'outfit-inter',
+        density: formData.get('density') || 'standard',
         personalInfo: { 
             // Explicitly map nested form data (personalInfo.xxx)
             firstName: formData.get('personalInfo.firstName'),
@@ -692,16 +694,71 @@ function renderPreview(data) {
     const fullName = `${data.personalInfo.firstName || ''} ${data.personalInfo.lastName || ''}`.trim() || 'Your Name';
     const locationStr = [data.personalInfo.address, data.personalInfo.city].filter(x => x).join(', ');
     const primaryColor = data.themeColor || '#4f46e5';
+    
+    // Spacing multiplier logic
+    const spacingMultipliers = { tight: 0.7, standard: 1.0, airy: 1.4 };
+    const sp = spacingMultipliers[data.density] || 1.0;
+
+    // Font definitions
+    const fontPairings = {
+        'inter-inter': { header: "'Inter', sans-serif", body: "'Inter', sans-serif", googleFonts: 'Inter:wght@400;600;700;800' },
+        'outfit-inter': { header: "'Outfit', sans-serif", body: "'Inter', sans-serif", googleFonts: 'Outfit:wght@400;600;700;800&Inter:wght@400;500;600' },
+        'serif-inter': { header: "'EB Garamond', serif", body: "'Inter', sans-serif", googleFonts: 'EB+Garamond:wght@400;600;700;800&Inter:wght@400;500;600' }
+    };
+    const fonts = fontPairings[data.fontPairing] || fontPairings['outfit-inter'];
+
+    // Inject Google Fonts
+    const googleFontsLink = document.getElementById('google-fonts-link');
+    if (googleFontsLink) {
+        googleFontsLink.href = `https://fonts.googleapis.com/css2?family=${fonts.googleFonts}&display=swap`;
+    } else {
+        const link = document.createElement('link');
+        link.id = 'google-fonts-link';
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fonts.googleFonts}&display=swap`;
+        document.head.appendChild(link);
+    }
 
     // Inject Dynamic Theme Style
     const styleOverride = `
         <style id="dynamic-theme">
-            :root { --primary: ${primaryColor}; }
+            :root { 
+                --primary: ${primaryColor}; 
+                --font-header: ${fonts.header};
+                --font-body: ${fonts.body};
+                --spacing-m: ${sp};
+            }
+            .modern-template, .classic-template, .minimalist-template { 
+                font-family: var(--font-body) !important; 
+                line-height: calc(1.5 * var(--spacing-m));
+            }
+            h1, h2, h3, h4, .font-header { font-family: var(--font-header) !important; }
+            section { margin-bottom: calc(2.5rem * var(--spacing-m)) !important; }
+            .space-y-8 > * + * { margin-top: calc(2rem * var(--spacing-m)) !important; }
+            .space-y-6 > * + * { margin-top: calc(1.5rem * var(--spacing-m)) !important; }
+            .space-y-4 > * + * { margin-top: calc(1rem * var(--spacing-m)) !important; }
+            .space-y-2 > * + * { margin-top: calc(0.5rem * var(--spacing-m)) !important; }
+            .mb-10 { margin-bottom: calc(2.5rem * var(--spacing-m)) !important; }
+            .mb-8 { margin-bottom: calc(2rem * var(--spacing-m)) !important; }
+            .mb-6 { margin-bottom: calc(1.5rem * var(--spacing-m)) !important; }
+            .mb-4 { margin-bottom: calc(1rem * var(--spacing-m)) !important; }
+            .mb-2 { margin-bottom: calc(0.5rem * var(--spacing-m)) !important; }
+            .pb-8 { padding-bottom: calc(2rem * var(--spacing-m)) !important; }
+            .pb-2 { padding-bottom: calc(0.5rem * var(--spacing-m)) !important; }
+            .px-12 { padding-left: calc(3rem * var(--spacing-m)) !important; padding-right: calc(3rem * var(--spacing-m)) !important; }
+            .py-12 { padding-top: calc(3rem * var(--spacing-m)) !important; padding-bottom: calc(3rem * var(--spacing-m)) !important; }
+            .px-16 { padding-left: calc(4rem * var(--spacing-m)) !important; padding-right: calc(4rem * var(--spacing-m)) !important; }
+            .py-16 { padding-top: calc(4rem * var(--spacing-m)) !important; padding-bottom: calc(4rem * var(--spacing-m)) !important; }
+            .gap-10 { gap: calc(2.5rem * var(--spacing-m)) !important; }
+            .gap-6 { gap: calc(1.5rem * var(--spacing-m)) !important; }
+            .gap-4 { gap: calc(1rem * var(--spacing-m)) !important; }
+            .gap-2 { gap: calc(0.5rem * var(--spacing-m)) !important; }
+            
             /* Preview Template Overrides */
-            .modern-template .text-indigo-600, .classic-template .text-indigo-600, .modern-template .text-indigo-700, .classic-template .text-indigo-700 { color: var(--primary) !important; }
-            .modern-template .bg-indigo-600, .classic-template .bg-indigo-600 { background-color: var(--primary) !important; }
-            .modern-template .bg-indigo-50, .classic-template .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; color: var(--primary) !important; }
-            .modern-template .border-indigo-600, .classic-template .border-indigo-600 { border-color: var(--primary) !important; }
+            .modern-template .text-indigo-600, .classic-template .text-indigo-600, .modern-template .text-indigo-700, .classic-template .text-indigo-700, .minimalist-template .text-indigo-600 { color: var(--primary) !important; }
+            .modern-template .bg-indigo-600, .classic-template .bg-indigo-600, .minimalist-template .bg-indigo-600 { background-color: var(--primary) !important; }
+            .modern-template .bg-indigo-50, .classic-template .bg-indigo-50, .minimalist-template .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; color: var(--primary) !important; }
+            .modern-template .border-indigo-600, .classic-template .border-indigo-600, .minimalist-template .border-indigo-600 { border-color: var(--primary) !important; }
 
             /* App UI Immersion (Buttons & Steppers) */
             .bg-indigo-600, .next-step-btn, #export-btn, #final-save-btn { background-color: var(--primary) !important; transition: background 0.3s; }
@@ -716,7 +773,16 @@ function renderPreview(data) {
     `;
 
     if (data.templateId === 'modern') {
-        previewContent.innerHTML = styleOverride + `
+        previewContent.innerHTML = styleOverride + renderModernTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'classic') {
+        previewContent.innerHTML = styleOverride + renderClassicTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'minimalist') {
+        previewContent.innerHTML = styleOverride + renderMinimalistTemplate(data, fullName, locationStr);
+    }
+}
+
+function renderModernTemplate(data, fullName, locationStr) {
+    return `
             <div class="modern-template animate-fade-in origin-top px-12 py-12 min-h-[1123px]">
                 <header class="border-b-2 border-indigo-600 pb-8 mb-10 flex justify-between items-end px-4">
                     <div>
@@ -831,10 +897,11 @@ function renderPreview(data) {
                     <span class="absolute -top-3 bg-white px-4 text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">Potential Page Break</span>
                 </div>
             </div>
-        `;
-    } else {
-        // Classic
-        previewContent.innerHTML = styleOverride + `
+    `;
+}
+
+function renderClassicTemplate(data, fullName, locationStr) {
+    return `
             <div class="classic-template animate-fade-in text-center px-16 py-16 min-h-[1123px]">
                 ${data.personalInfo.photo ? `
                     <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 shadow-sm mx-auto mb-6">
@@ -846,17 +913,18 @@ function renderPreview(data) {
                     ${data.personalInfo.email} | ${data.personalInfo.phone}
                     ${locationStr ? ` | ${locationStr}` : ''}
                     ${data.personalInfo.linkedin ? ` | ${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}` : ''}
+                    ${data.personalInfo.website ? ` | ${data.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}` : ''}
                 </p>
                 <div class="text-left space-y-8">
                      <section>
                         <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Summary</h2>
-                        <div class="text-sm leading-relaxed text-gray-700 font-medium">${data.personalInfo.summary || 'Summary...'}</div>
+                        <div class="text-sm leading-relaxed text-gray-700 font-medium font-serif">${data.personalInfo.summary || 'Summary...'}</div>
                      </section>
                      
                      <section>
                          <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Skills</h2>
-                         <p class="text-sm text-gray-700"><strong>Technical:</strong> ${data.skills.technical.join(', ')}</p>
-                         <p class="text-sm text-gray-700 mt-1"><strong>Soft Skills:</strong> ${data.skills.soft.join(', ')}</p>
+                         <p class="text-sm text-gray-700 font-serif"><strong>Technical:</strong> ${data.skills.technical.join(', ')}</p>
+                         <p class="text-sm text-gray-700 mt-1 font-serif"><strong>Soft Skills:</strong> ${data.skills.soft.join(', ')}</p>
                      </section>
 
                      <section>
@@ -869,7 +937,7 @@ function renderPreview(data) {
                                         <span class="text-gray-400 font-outfit">${exp.duration}</span>
                                     </div>
                                     <p class="italic text-sm text-gray-900 mb-2 font-bold">${exp.jobTitle}</p>
-                                    <div class="text-xs text-gray-600 leading-relaxed quill-content">${exp.responsibilities}</div>
+                                    <div class="text-xs text-gray-600 leading-relaxed font-serif quill-content">${exp.responsibilities}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -880,10 +948,10 @@ function renderPreview(data) {
                              ${data.education.map(edu => `
                                  <div>
                                      <div class="flex justify-between text-sm font-bold">
-                                         <span class="text-indigo-600">${edu.school}</span>
+                                         <span class="text-indigo-600 font-serif">${edu.school}</span>
                                          <span class="text-gray-400 font-outfit">${edu.year}</span>
                                      </div>
-                                     <p class="italic text-sm text-gray-900 font-bold">${edu.degree}</p>
+                                     <p class="italic text-sm text-gray-900 font-bold font-serif">${edu.degree}</p>
                                  </div>
                              `).join('')}
                          </div>
@@ -892,7 +960,7 @@ function renderPreview(data) {
                      ${data.hobbies.length > 0 ? `
                         <section>
                             <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Interests</h2>
-                            <p class="text-xs text-gray-700">${data.hobbies.join(', ')}</p>
+                            <p class="text-xs text-gray-700 font-serif">${data.hobbies.join(', ')}</p>
                         </section>
                      ` : ''}
 
@@ -900,7 +968,7 @@ function renderPreview(data) {
                         <section>
                             <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">References</h2>
                             ${data.referencesOnRequest ? `
-                                <p class="text-xs italic text-gray-500">References available on request</p>
+                                <p class="text-xs italic text-gray-500 font-serif">References available on request</p>
                             ` : `
                                 <div class="grid grid-cols-2 gap-4">
                                      ${data.references.map(ref => `
@@ -921,8 +989,91 @@ function renderPreview(data) {
                     <span class="absolute -top-3 bg-white px-4 text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">Potential Page Break</span>
                 </div>
             </div>
-        `;
-    }
+    `;
+}
+
+function renderMinimalistTemplate(data, fullName, locationStr) {
+    return `
+            <div class="minimalist-template animate-fade-in px-20 py-16 min-h-[1123px] text-gray-800">
+                <header class="text-center mb-12">
+                    <h1 class="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">${fullName}</h1>
+                    <p class="text-lg font-bold text-indigo-600 uppercase tracking-widest mb-4">${data.personalInfo.jobTitle || ''}</p>
+                    <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs font-medium text-gray-500">
+                        ${data.personalInfo.email ? `<span>${data.personalInfo.email}</span>` : ''}
+                        ${data.personalInfo.phone ? `<span>•</span> <span>${data.personalInfo.phone}</span>` : ''}
+                        ${locationStr ? `<span>•</span> <span>${locationStr}</span>` : ''}
+                    </div>
+                    <div class="flex justify-center gap-4 mt-2 text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
+                        ${data.personalInfo.linkedin ? `<span>LinkedIn: ${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</span>` : ''}
+                        ${data.personalInfo.website ? `<span>Portfolio: ${data.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}</span>` : ''}
+                    </div>
+                </header>
+
+                <div class="space-y-10 max-w-2xl mx-auto">
+                    <section>
+                        <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">Profile</h2>
+                        <p class="text-sm leading-relaxed font-medium text-gray-600">${data.personalInfo.summary || ''}</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">Experience</h2>
+                        <div class="space-y-8">
+                            ${data.experience.map(exp => `
+                                <div>
+                                    <div class="flex justify-between items-baseline mb-1">
+                                        <h3 class="text-base font-bold text-gray-900">${exp.jobTitle}</h3>
+                                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider">${exp.duration}</span>
+                                    </div>
+                                    <p class="text-sm font-bold text-indigo-600 mb-3">${exp.company}</p>
+                                    <div class="text-xs text-gray-600 leading-relaxed font-medium quill-content">${exp.responsibilities}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+
+                    <section class="grid grid-cols-2 gap-10">
+                        <div>
+                            <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">Education</h2>
+                            <div class="space-y-4">
+                                ${data.education.map(edu => `
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900">${edu.degree}</h4>
+                                        <p class="text-[10px] font-bold text-gray-500 uppercase">${edu.school} • ${edu.year}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">Skills</h2>
+                            <p class="text-[11px] font-bold text-gray-700 leading-loose">
+                                ${[...data.skills.technical, ...data.skills.soft].join(' • ')}
+                            </p>
+                        </div>
+                    </section>
+
+                    ${data.referencesOnRequest || data.references.length > 0 ? `
+                    <section>
+                        <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">References</h2>
+                        ${data.referencesOnRequest ? `<p class="text-xs italic text-gray-400">Available on request</p>` : `
+                            <div class="grid grid-cols-2 gap-6">
+                                ${data.references.map(ref => `
+                                    <div>
+                                        <h4 class="text-xs font-bold text-gray-800">${ref.name}</h4>
+                                        <p class="text-[9px] font-bold text-gray-400 uppercase">${ref.company}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </section>
+                    ` : ''}
+                </div>
+
+                <!-- Page Break Indicator (Visual Guide Only) -->
+                <div class="mt-20 border-t-2 border-dashed border-gray-100 flex items-center justify-center relative">
+                    <span class="absolute -top-3 bg-white px-4 text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">Potential Page Break</span>
+                </div>
+            </div>
+    `;
 }
 
 // Section Addition Buttons
