@@ -15,6 +15,16 @@
     footer { display: none !important; }
     main { padding-top: 0 !important; padding-bottom: 0 !important; }
     #preview-section { scroll-behavior: smooth; }
+    
+    .ai-success-flash {
+        animation: ai-flash 2s ease-out;
+        position: relative;
+    }
+    @keyframes ai-flash {
+        0% { outline: 0px solid transparent; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        20% { outline: 3px solid rgba(74, 222, 128, 0.5); box-shadow: 0 0 0 8px rgba(74, 222, 128, 0.2); }
+        100% { outline: 0px solid transparent; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
 </style>
 <link id="google-fonts-link" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
 <div class="h-[calc(100vh-64px)] flex flex-col lg:flex-row overflow-hidden bg-gray-50 uppercase-tracking-widest">

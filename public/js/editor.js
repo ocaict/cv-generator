@@ -1705,6 +1705,9 @@ async function handleAIGeneration(event) {
     const btn = event.currentTarget;
     const type = btn.dataset.type;
     const targetKey = btn.dataset.target;
+
+    // Prevent double clicking while working or in undo state
+    if (btn.classList.contains('ai-working') || btn.getAttribute('data-state') === 'undo') return;
     
     // Find the associated editor container
     let editorEl;
@@ -1740,9 +1743,11 @@ async function handleAIGeneration(event) {
     }
 
     const originalContent = btn.innerHTML;
-    btn.innerHTML = '<span class="animate-pulse px-1">✨</span>';
+    const previousValue = isTextarea ? editorEl.value : Quill.find(editorEl).root.innerHTML;
+
+    btn.innerHTML = '<span class="flex items-center space-x-1"><span>✨</span><span class="animate-pulse">Thinking...</span></span>';
     btn.disabled = true;
-    btn.classList.add('opacity-50');
+    btn.classList.add('opacity-80', 'bg-indigo-100');
 
     try {
         const jobTitleInput = document.querySelector('[name="personalInfo.jobTitle"]');
@@ -1771,17 +1776,69 @@ async function handleAIGeneration(event) {
                 quill.setText('');
                 quill.clipboard.dangerouslyPasteHTML(0, data.result);
             }
+            
+            // Visual success feedback
+            const container = editorEl.closest('.quill-editor, #summary-editor, textarea');
+            container.classList.add('ai-success-flash');
+            setTimeout(() => container.classList.remove('ai-success-flash'), 2000);
+
+            // Temporarily change button to "Undo"
+            btn.setAttribute('data-state', 'undo');
+            btn.innerHTML = '<span>↩️ Undo AI</span>';
+            btn.classList.remove('bg-indigo-50', 'text-indigo-600', 'bg-indigo-100');
+            btn.classList.add('bg-orange-50', 'text-orange-600');
+            btn.disabled = false;
+            
+            const undoHandler = (e) => {
+                e.stopPropagation();
+                if (isTextarea) {
+                    editorEl.value = previousValue;
+                    editorEl.dispatchEvent(new Event('input', { bubbles: true }));
+                } else {
+                    const quill = Quill.find(editorEl);
+                    quill.setText('');
+                    quill.clipboard.dangerouslyPasteHTML(0, previousValue);
+                }
+                btn.removeAttribute('data-state');
+                btn.innerHTML = originalContent;
+                btn.classList.remove('bg-orange-50', 'text-orange-600');
+                btn.classList.add('bg-indigo-50', 'text-indigo-600');
+                btn.removeEventListener('click', undoHandler);
+                updatePreview();
+            };
+
+            btn.addEventListener('click', undoHandler, { once: true });
+            
+            // Revert button back to original after 10 seconds if not clicked
+            setTimeout(() => {
+                if (btn.getAttribute('data-state') === 'undo') {
+                    btn.removeAttribute('data-state');
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('bg-orange-50', 'text-orange-600');
+                    btn.classList.add('bg-indigo-50', 'text-indigo-600');
+                    btn.removeEventListener('click', undoHandler);
+                }
+            }, 10000);
+
             updatePreview();
+            triggerAutoSave();
         } else if (data.error) {
             alert(data.error);
+            btn.innerHTML = originalContent;
         }
     } catch (error) {
         console.error("AI Error:", error);
         alert("Connection to AI assistant failed. Please check your internet.");
-    } finally {
         btn.innerHTML = originalContent;
-        btn.disabled = false;
-        btn.classList.remove('opacity-50');
+    } finally {
+        if (btn.getAttribute('data-state') !== 'undo') {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+            btn.classList.remove('opacity-80', 'bg-indigo-100');
+        } else {
+             btn.disabled = false;
+             btn.classList.remove('opacity-80', 'bg-indigo-100');
+        }
     }
 }
 

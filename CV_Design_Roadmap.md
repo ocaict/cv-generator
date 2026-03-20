@@ -13,7 +13,7 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
     - [x] **The "Executive"**: A clean, single-column, center-aligned template. (Implemented as "Classic")
     - [x] **The "Minimalist"**: High white-space, very clean lines, no sidebar.
     - [x] **The "Grid"**: Unique 2-column layout for technical/skill-heavy CVs.
-- [ ] **Template Metadata**: Store "modern", "classic", "executive", etc., in the database.
+- [x] **Template Metadata**: Store "modern", "classic", "executive", etc., in the database.
 
 ## 🖋️ Phase 3: Advanced Typography & Spacing
 - [x] **Font Pairing Selector**: Offer curated font sets (e.g., "Sleek", "Academic", "Bold").
@@ -28,4 +28,11 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 ## 🏁 Phase 5: The "Template Marketplace" UI
 - [x] **Template Browser**: A visual gallery where users can see a thumbnail of each template before selecting.
 - [x] **Preset Designs**: One-click "Full Designs" (e.g., "The Startup Guru", "The Wall St Banker").
+
+## 🧠 Phase 6: Professional Intelligence & Multitenancy
+- [x] **AI Bullet Generation**: Integrated Groq (Llama 3.3) to suggest high-impact STAR-method bullet points, professional summaries, and skill lists with "Undo AI" support.
+- [ ] **User Authentication**: Implement secure sign-in (Firebase/Passport) to allow users to save multiple CVs.
+- [ ] **Multi-Format Export**: Support one-click "Export to DOCX" (Word) alongside PDF.
+- [ ] **CV Dashboard**: A user home for managing version control (e.g., "Resume v1 - Senior Dev", "Resume v2 - Project Lead").
+- [ ] **Dark Mode Theme**: Add a sleek "Onyx" dark mode variant for all existing layouts.
 
