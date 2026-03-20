@@ -1,0 +1,42 @@
+<!-- views/templates/partials/contact.ejs -->
+<section class="<%= template === 'modern' ? 'mb-10' : 
+                 template === 'classic' ? 'mb-8' : 
+                 'mb-12 text-center' %> section-contact">
+    <h2 class="<%= template === 'modern' ? 'text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4' : 
+                 template === 'classic' ? 'hidden' : 
+                 'hidden' %> heading-contact">
+        Contact
+    </h2>
+    <div class="<%= template === 'modern' ? 'space-y-3 text-[10px] font-semibold text-gray-700' : 
+                   template === 'classic' ? 'text-[10px] text-gray-500 mb-8 font-serif uppercase tracking-widest' : 
+                   'flex flex-wrap justify-center gap-x-6 gap-y-1 text-xs font-semibold text-gray-400 uppercase tracking-widest' %> contact-content">
+        <% if (template === 'modern') { %>
+            <ul class="space-y-3">
+                <li class="flex items-center">📧 <span class="ml-2 break-all"><%= personalInfo.email %></span></li>
+                <li class="flex items-center">📱 <span class="ml-2"><%= personalInfo.phone %></span></li>
+                <% if (personalInfo.address || personalInfo.city) { %>
+                    <li class="flex items-center">📍 <span class="ml-2"><%= [personalInfo.address, personalInfo.city, personalInfo.zipCode].filter(x => x).join(', ') %></span></li>
+                <% } %>
+                <% if (personalInfo.linkedin) { %>
+                    <li class="flex items-center">🔗 <span class="ml-2"><%= personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '') %></span></li>
+                <% } %>
+                <% if (personalInfo.website) { %>
+                    <li class="flex items-center">🌍 <span class="ml-2"><%= personalInfo.website.replace(/^https?:\/\/(www\.)?/, '') %></span></li>
+                <% } %>
+            </ul>
+        <% } else if (template === 'classic') { %>
+            <span><%= personalInfo.email %></span> | <span><%= personalInfo.phone %></span>
+            <% if (personalInfo.city) { %> | <span><%= personalInfo.city %>, <%= personalInfo.zipCode %></span><% } %>
+            <% if (personalInfo.linkedin) { %> | <span><%= personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '') %></span><% } %>
+            <% if (personalInfo.website) { %> | <span><%= personalInfo.website.replace(/^https?:\/\/(www\.)?/, '') %></span><% } %>
+        <% } else { %>
+            <span><%= personalInfo.email %></span>
+            <% if (personalInfo.phone) { %><span>|</span> <span><%= personalInfo.phone %></span><% } %>
+            <% if (personalInfo.city) { %><span>|</span> <span><%= personalInfo.city %></span><% } %>
+            <div class="w-full flex justify-center gap-6 mt-3 text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
+                <% if (personalInfo.linkedin) { %><span><%= personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '') %></span><% } %>
+                <% if (personalInfo.website) { %><span><%= personalInfo.website.replace(/^https?:\/\/(www\.)?/, '') %></span><% } %>
+            </div>
+        <% } %>
+    </div>
+</section>

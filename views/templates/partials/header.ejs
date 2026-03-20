@@ -1,0 +1,25 @@
+<!-- views/templates/partials/header.ejs -->
+<header class="<%= template === 'modern' ? 'border-b-4 border-indigo-600 pb-8 mb-10 flex justify-between items-end px-12 pt-12' : 
+                 template === 'classic' ? 'text-center mb-10 px-12 pt-12' : 
+                 'text-center mb-16 px-12 pt-12' %>">
+    <div class="<%= template === 'classic' ? 'border-b border-gray-900 pb-2 mb-2' : '' %>">
+        <h1 class="<%= template === 'modern' ? 'text-4xl font-extrabold text-gray-900 mb-1 uppercase tracking-tight' : 
+                     template === 'classic' ? 'text-3xl font-serif font-bold text-gray-900 italic tracking-tighter uppercase tracking-tight' : 
+                     'text-4xl font-extrabold text-gray-900 mb-2 tracking-tight' %>">
+            <%= (personalInfo.firstName || "") + " " + (personalInfo.lastName || "") %>
+        </h1>
+        <p class="<%= template === 'modern' ? 'text-xl font-bold text-indigo-600 uppercase tracking-widest leading-none' : 
+                     template === 'classic' ? 'hidden' : 
+                     'text-lg font-bold text-indigo-600 uppercase tracking-widest mb-6 leading-none' %>">
+            <%= personalInfo.jobTitle || '' %>
+        </p>
+    </div>
+    <% if (personalInfo.photo && (typeof photoStyle === 'undefined' || photoStyle !== 'hidden')) { %>
+        <div class="<%= template === 'modern' ? 'w-32 h-32' : 'w-24 h-24 mx-auto mb-6 order-first' %> 
+                    <%= (typeof photoStyle === 'undefined' || photoStyle === 'rounded') ? 'rounded-xl' : 
+                        photoStyle === 'circle' ? 'rounded-full' : 'rounded-none' %> 
+                    overflow-hidden border-4 border-white shadow-lg">
+            <img src="<%- personalInfo.photo %>" class="w-full h-full object-cover">
+        </div>
+    <% } %>
+</header>

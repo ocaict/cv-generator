@@ -28,6 +28,10 @@ model CV {
   themeColor String   @default("#4f46e5")
   fontPairing String  @default("outfit-inter")
   density    String   @default("standard")
+  sidebarPos String   @default("left")
+  sidebarStyle String @default("minimal")
+  photoStyle String   @default("rounded")
+  showHeaderIcons String @default("text")
   data       String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

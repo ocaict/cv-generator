@@ -1,0 +1,60 @@
+<!-- views/templates/partials/experience.ejs -->
+<section class="<%= template === 'modern' ? 'mb-10 animate-fade-in' : 
+                 template === 'classic' ? 'mb-8 border-t border-gray-200 pt-6' : 
+                 'mb-12 border-b border-gray-100 pb-8 last:border-0' %> section-experience">
+    <% 
+    const headerStyles = {
+        'minimal': 'text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-4',
+        'underline': 'text-[10px] font-black text-indigo-600 uppercase tracking-widest pb-1 border-b-2 border-indigo-600/30 mb-6 inline-block',
+        'pill': 'text-[9px] font-black text-white bg-indigo-600 px-4 py-1.5 rounded-full uppercase tracking-[0.15em] mb-6 inline-block shadow-sm'
+    };
+    const headerClass = (typeof sidebarStyle !== 'undefined' && template === 'modern') ? headerStyles[sidebarStyle] : 
+                        template === 'modern' ? 'text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4' : 
+                        template === 'classic' ? 'text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit' : 
+                        'text-[10px] font-black text-indigo-600 uppercase tracking-[0.35em] mb-8 border-b border-gray-100 pb-3 uppercase';
+    %>
+    <% 
+        const icons = {
+            experience: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>'
+        };
+        const showIcons = (typeof showHeaderIcons !== 'undefined' && showHeaderIcons === 'icons');
+    %>
+    <h2 class="<%= headerClass %> flex items-center gap-2 heading-experience">
+        <% if (showIcons) { %>
+            <span class="opacity-60"><%- icons.experience %></span>
+        <% } %>
+        <span>Experience</span>
+    </h2>
+    <div class="<%= template === 'modern' ? 'space-y-8' : 
+                   template === 'classic' ? 'space-y-6' : 
+                   'space-y-10' %>">
+        <% experience.forEach(exp => { %>
+            <div class="experience-item">
+                <div class="<%= template === 'modern' ? 'flex justify-between items-start mb-2' : 
+                             template === 'classic' ? 'flex justify-between text-sm font-bold' : 
+                             'flex justify-between items-baseline mb-2' %>">
+                    <h4 class="<%= template === 'modern' ? 'text-sm font-bold text-gray-900 tracking-tight' : 
+                                 template === 'classic' ? 'text-gray-900' : 
+                                 'text-base font-bold text-gray-900' %>">
+                        <%= exp.jobTitle %>
+                    </h4>
+                    <span class="<%= template === 'modern' ? 'text-[10px] bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg font-bold' : 
+                                 template === 'classic' ? 'text-gray-400 font-outfit' : 
+                                 'text-[10px] font-black text-gray-300 uppercase tracking-widest font-outfit' %>">
+                        <%= exp.duration %>
+                    </span>
+                </div>
+                <p class="<%= template === 'modern' ? 'text-xs font-bold text-gray-400 uppercase mb-3' : 
+                             template === 'classic' ? 'text-indigo-600 italic text-xs font-bold' : 
+                             'text-sm font-bold text-indigo-600 mb-4 tracking-tight leading-none' %>">
+                    <%= exp.company %>
+                </p>
+                <div class="<%= template === 'modern' ? 'text-[11px] text-gray-600 leading-relaxed quill-content font-medium' : 
+                             template === 'classic' ? 'text-[10px] text-gray-600 leading-relaxed font-serif quill-content' : 
+                             'text-[11px] text-gray-600 leading-relaxed font-serif quill-content' %>">
+                    <%- exp.responsibilities %>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+</section>

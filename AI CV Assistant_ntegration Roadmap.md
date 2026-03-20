@@ -17,6 +17,6 @@
 - [x] Create an "Accept/Reject/Retry" interface for AI suggestions (AI now replaces content instantly)
 
 ## 🛠️ Phase 4: Final Polish & Safety
-- [ ] Implement client-side debounce to prevent API spam
-- [ ] Add a "Tone Selector" (e.g., *Professional*, *Creative*, *Executive*) 
-- [ ] Final testing in the Editor and PDF Output
+- [x] Implement client-side debounce to prevent API spam
+- [x] Add a "Tone Selector" (e.g., *Professional*, *Creative*, *Executive*) 
+- [x] Final testing in the Editor and PDF Output

@@ -109,6 +109,13 @@ exports.postUpdateCV = async (req, res) => {
             data: {
                 title,
                 templateId,
+                themeColor: data.themeColor || '#4f46e5',
+                fontPairing: data.fontPairing || 'outfit-inter',
+                density: data.density || 'standard',
+                sidebarPos: data.sidebarPos || 'left',
+                sidebarStyle: data.sidebarStyle || 'minimal',
+                photoStyle: data.photoStyle || 'rounded',
+                showHeaderIcons: data.showHeaderIcons || 'text',
                 data: JSON.stringify(data)
             }
         });

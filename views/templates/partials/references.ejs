@@ -1,0 +1,52 @@
+<!-- views/templates/partials/references.ejs -->
+<% if (referencesOnRequest || (references && references.length > 0)) { %>
+<section class="<%= template === 'modern' ? 'mb-10 last:mb-0' : 
+                 template === 'classic' ? 'mb-8 border-t border-gray-200 pt-6 last:mb-0' : 
+                 'mb-12 border-b border-gray-100 pb-8 last:border-0 last:mb-0' %> section-references">
+    <% 
+        const icons = {
+            references: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
+        };
+        const showIcons = (typeof showHeaderIcons !== 'undefined' && showHeaderIcons === 'icons');
+    %>
+    <h2 class="<%= template === 'modern' ? 'text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4' : 
+                  template === 'classic' ? 'text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit' : 
+                  'text-[10px] font-black text-indigo-600 uppercase tracking-[0.35em] mb-4 border-b border-gray-100 pb-3' %> flex items-center gap-2 heading-references">
+        <% if (showIcons) { %>
+            <span class="opacity-60"><%- icons.references %></span>
+        <% } %>
+        <span>References</span>
+    </h2>
+    <% if (referencesOnRequest) { %>
+        <p class="<%= template === 'modern' ? 'text-[11px] italic text-gray-500' : 
+                     template === 'classic' ? 'text-xs italic text-gray-500 font-serif' : 
+                     'text-[12px] italic text-gray-400 font-serif' %>">
+            Professional references available upon request
+        </p>
+    <% } else { %>
+        <div class="<%= template === 'modern' ? 'grid grid-cols-2 gap-8' : 
+                       template === 'classic' ? 'grid grid-cols-2 gap-4' : 
+                       'grid grid-cols-2 gap-8' %> references-grid">
+            <% references.forEach(ref => { %>
+                <div class="reference-item">
+                    <h4 class="<%= template === 'modern' ? 'text-[11px] font-bold text-gray-900 mb-1' : 
+                                 template === 'classic' ? 'text-xs font-bold text-gray-900 font-serif' : 
+                                 'text-[11px] font-bold text-gray-800' %>">
+                        <%= ref.name %>
+                    </h4>
+                    <p class="<%= template === 'modern' ? 'text-[9px] text-gray-400 font-bold uppercase mb-2' : 
+                                 template === 'classic' ? 'text-[9px] text-gray-400 font-bold uppercase' : 
+                                 'text-[10px] font-bold text-gray-400 uppercase tracking-tight' %>">
+                        <%= ref.company %>
+                    </p>
+                    <p class="<%= template === 'modern' ? 'text-[9px] text-indigo-600 font-bold' : 
+                                 template === 'classic' ? 'text-[9px] text-indigo-600 mt-1 font-bold tracking-tight' : 
+                                 'text-[10px] text-indigo-600 font-bold mt-1 tracking-tight leading-none' %>">
+                        <%= ref.email %> <%= ref.phone ? ' • ' + ref.phone : '' %>
+                    </p>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</section>
+<% } %>

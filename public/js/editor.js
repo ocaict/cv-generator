@@ -85,6 +85,64 @@ nextBtns.forEach(btn => btn.addEventListener('click', () => goToStep(btn.dataset
 prevBtns.forEach(btn => btn.addEventListener('click', () => goToStep(btn.dataset.prev)));
 stepBtns.forEach(btn => btn.addEventListener('click', () => goToStep(btn.dataset.step)));
 
+function applyPreset(presetName) {
+    const presets = {
+        'startup': {
+            templateId: 'modern',
+            themeColor: '#10b981', // Emerald/Teal
+            fontPairing: 'outfit-inter',
+            density: 'airy'
+        },
+        'executive': {
+            templateId: 'classic',
+            themeColor: '#475569', // Slate
+            fontPairing: 'serif-inter',
+            density: 'standard'
+        },
+        'creative': {
+            templateId: 'grid',
+            themeColor: '#f43f5e', // Rose
+            fontPairing: 'outfit-inter',
+            density: 'airy'
+        }
+    };
+
+    const config = presets[presetName];
+    if (!config) return;
+
+    // Apply values to DOM
+    // 1. Template ID
+    const templateRadio = document.querySelector(`input[name="templateId"][value="${config.templateId}"]`);
+    if (templateRadio) templateRadio.checked = true;
+
+    // 2. Theme Color (both picker and radio)
+    const colorRadio = document.querySelector(`input[name="themeColor"][value="${config.themeColor}"]`);
+    if (colorRadio) {
+        colorRadio.checked = true;
+    } else {
+        const customPicker = document.getElementById('custom-color-picker');
+        if (customPicker) customPicker.value = config.themeColor;
+    }
+
+    // 3. Font Pairing
+    const fontSelect = document.querySelector('select[name="fontPairing"]');
+    if (fontSelect) fontSelect.value = config.fontPairing;
+
+    // 4. Density
+    const densitySelect = document.querySelector('select[name="density"]');
+    if (densitySelect) densitySelect.value = config.density;
+
+    // Trigger updates
+    updatePreview();
+    handleAutoSave();
+    
+    // Smooth scroll to preview top
+    const previewContainer = document.querySelector('.sticky-preview');
+    if (previewContainer) {
+        previewContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
 // Live update listener
 editorForm.addEventListener('input', () => updatePreview());
 
@@ -615,13 +673,17 @@ function updatePreview() {
             email: item.querySelector('[data-key="email"]').value
         })).filter(r => r.name),
         referencesOnRequest: refOnRequestCheckbox ? refOnRequestCheckbox.checked : false,
+        sidebarPos: formData.get('sidebarPos') || 'left',
+        sidebarStyle: formData.get('sidebarStyle') || 'minimal',
+        photoStyle: formData.get('photoStyle') || 'rounded',
+        showHeaderIcons: formData.get('showHeaderIcons') || 'text',
         skills: { 
             technical: (formData.get('skills.technical') || '').split(',').map(s => s.trim()).filter(s => s),
             soft: (formData.get('skills.soft') || '').split(',').map(s => s.trim()).filter(s => s)
         }
     };
     
-    cvData = data;
+    Object.assign(cvData, data);
     renderPreview(cvData);
     triggerAutoSave();
 }
@@ -719,20 +781,32 @@ function renderPreview(data) {
         document.head.appendChild(link);
     }
 
-    // Inject Dynamic Theme Style
+    // Dynamic Variable Injection
+    const spacingMultiplier = {
+        'tight': 0.85,
+        'standard': 1,
+        'airy': 1.2
+    }[cvData.density || 'standard'] || 1;
+
+    const fontStyles = {
+        'outfit-inter': { heading: "'Outfit', sans-serif", body: "'Inter', sans-serif" },
+        'serif-inter': { heading: "'EB Garamond', serif", body: "'Inter', sans-serif" },
+        'inter-inter': { heading: "'Inter', sans-serif", body: "'Inter', sans-serif" }
+    }[cvData.fontPairing || 'outfit-inter'] || { heading: "'Outfit', sans-serif", body: "'Inter', sans-serif" };
+
     const styleOverride = `
-        <style id="dynamic-theme">
+        <style>
             :root { 
-                --primary: ${primaryColor}; 
-                --font-header: ${fonts.header};
-                --font-body: ${fonts.body};
-                --spacing-m: ${sp};
+                --primary: ${primaryColor};
+                --font-header: ${fontStyles.heading};
+                --font-body: ${fontStyles.body};
+                --spacing-m: ${spacingMultiplier};
             }
-            .modern-template, .classic-template, .minimalist-template { 
+            .modern-template, .classic-template, .minimalist-template, .grid-template { 
                 font-family: var(--font-body) !important; 
                 line-height: calc(1.5 * var(--spacing-m));
             }
-            h1, h2, h3, h4, .font-header { font-family: var(--font-header) !important; }
+            h1, h2, h3, h4, .font-heading { font-family: var(--font-header) !important; }
             section { margin-bottom: calc(2.5rem * var(--spacing-m)) !important; }
             .space-y-8 > * + * { margin-top: calc(2rem * var(--spacing-m)) !important; }
             .space-y-6 > * + * { margin-top: calc(1.5rem * var(--spacing-m)) !important; }
@@ -754,11 +828,37 @@ function renderPreview(data) {
             .gap-4 { gap: calc(1rem * var(--spacing-m)) !important; }
             .gap-2 { gap: calc(0.5rem * var(--spacing-m)) !important; }
             
+            /* Section Header Styles */
+            .section-title { 
+                position: relative;
+                width: fit-content;
+                padding-bottom: 2px;
+                margin-bottom: 1rem;
+            }
+            .section-title.underline::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: var(--primary);
+                opacity: 0.6;
+            }
+            .section-title.pill {
+                background-color: var(--primary);
+                color: white !important;
+                padding: 4px 16px;
+                border-radius: 9999px;
+                margin-bottom: 1.5rem;
+                letter-spacing: 0.15em;
+            }
+            
             /* Preview Template Overrides */
-            .modern-template .text-indigo-600, .classic-template .text-indigo-600, .modern-template .text-indigo-700, .classic-template .text-indigo-700, .minimalist-template .text-indigo-600 { color: var(--primary) !important; }
-            .modern-template .bg-indigo-600, .classic-template .bg-indigo-600, .minimalist-template .bg-indigo-600 { background-color: var(--primary) !important; }
-            .modern-template .bg-indigo-50, .classic-template .bg-indigo-50, .minimalist-template .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; color: var(--primary) !important; }
-            .modern-template .border-indigo-600, .classic-template .border-indigo-600, .minimalist-template .border-indigo-600 { border-color: var(--primary) !important; }
+            .modern-template .text-indigo-600, .classic-template .text-indigo-600, .modern-template .text-indigo-700, .classic-template .text-indigo-700, .minimalist-template .text-indigo-600, .grid-template .text-indigo-600 { color: var(--primary) !important; }
+            .modern-template .bg-indigo-600, .classic-template .bg-indigo-600, .minimalist-template .bg-indigo-600, .grid-template .bg-indigo-600 { background-color: var(--primary) !important; }
+            .modern-template .bg-indigo-50, .classic-template .bg-indigo-50, .minimalist-template .bg-indigo-50, .grid-template .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; color: var(--primary) !important; }
+            .modern-template .border-indigo-600, .classic-template .border-indigo-600, .minimalist-template .border-indigo-600, .grid-template .border-indigo-600 { border-color: var(--primary) !important; }
 
             /* App UI Immersion (Buttons & Steppers) */
             .bg-indigo-600, .next-step-btn, #export-btn, #final-save-btn { background-color: var(--primary) !important; transition: background 0.3s; }
@@ -776,119 +876,269 @@ function renderPreview(data) {
         previewContent.innerHTML = styleOverride + renderModernTemplate(data, fullName, locationStr);
     } else if (data.templateId === 'classic') {
         previewContent.innerHTML = styleOverride + renderClassicTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'grid') {
+        previewContent.innerHTML = styleOverride + renderGridTemplate(data, fullName, locationStr);
     } else if (data.templateId === 'minimalist') {
         previewContent.innerHTML = styleOverride + renderMinimalistTemplate(data, fullName, locationStr);
     }
+
+    renderSectionOrderUI();
+}
+
+function renderSectionOrderUI() {
+    const mainList = document.getElementById('main-sections-list');
+    const sidebarList = document.getElementById('sidebar-sections-list');
+    const sbZone = document.getElementById('sidebar-column-zone');
+    const mainLabel = document.getElementById('main-column-label');
+
+    if (!mainList || !sidebarList) return;
+
+    // Adjust visibility based on template
+    const isTwoCol = ['modern', 'grid'].includes(cvData.templateId);
+    if (isTwoCol) {
+        sbZone.classList.remove('hidden');
+        mainLabel.innerText = 'Main Column';
+    } else {
+        sbZone.classList.add('hidden');
+        mainLabel.innerText = 'All Sections (Single Column)';
+    }
+
+    if (mainList.children.length > 0 && mainList.dataset.template === cvData.templateId) return;
+    mainList.dataset.template = cvData.templateId;
+
+    mainList.innerHTML = '';
+    sidebarList.innerHTML = '';
+
+    const sectionLabels = {
+        profile: 'Profile / Summary',
+        experience: 'Work Experience',
+        education: 'Education',
+        skills: 'Skills',
+        contact: 'Contact Info',
+        details: 'Personal Details',
+        interests: 'Interests / Hobbies',
+        references: 'References'
+    };
+
+    const renderItem = (id, parent) => {
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-white border border-gray-100 rounded-xl shadow-sm cursor-move flex items-center justify-between group hover:border-indigo-200 transition-all';
+        div.draggable = true;
+        div.dataset.id = id;
+        div.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+                </svg>
+                <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">${sectionLabels[id] || id}</span>
+            </div>
+        `;
+        
+        div.ondragstart = (e) => {
+            e.dataTransfer.setData('text/plain', id);
+            div.classList.add('opacity-40', 'scale-95');
+        };
+        div.ondragend = () => div.classList.remove('opacity-40', 'scale-95');
+        
+        parent.appendChild(div);
+    };
+
+    cvData.sectionOrder.main.forEach(id => renderItem(id, mainList));
+    cvData.sectionOrder.sidebar.forEach(id => renderItem(id, sidebarList));
+
+    // Handle Drop Zones
+    [mainList, sidebarList].forEach(list => {
+        list.ondragover = (e) => {
+            e.preventDefault();
+            list.classList.add('bg-indigo-50/50', 'border-indigo-200');
+        };
+        list.ondragleave = () => {
+            list.classList.remove('bg-indigo-50/50', 'border-indigo-200');
+        };
+        list.ondrop = (e) => {
+            e.preventDefault();
+            list.classList.remove('bg-indigo-50/50', 'border-indigo-200');
+            const id = e.dataTransfer.getData('text/plain');
+            const toListId = list.id === 'main-sections-list' ? 'main' : 'sidebar';
+            
+            // Remove from whichever list it was in
+            cvData.sectionOrder.main = cvData.sectionOrder.main.filter(x => x !== id);
+            cvData.sectionOrder.sidebar = cvData.sectionOrder.sidebar.filter(x => x !== id);
+            
+            // Find insertion point
+            const afterElement = getDragAfterElement(list, e.clientY);
+            if (afterElement == null) {
+                cvData.sectionOrder[toListId].push(id);
+            } else {
+                const targetId = afterElement.dataset.id;
+                const idx = cvData.sectionOrder[toListId].indexOf(targetId);
+                cvData.sectionOrder[toListId].splice(idx, 0, id);
+            }
+            
+            mainList.dataset.template = ''; // Force redraw
+            updatePreview();
+            triggerAutoSave();
+        };
+    });
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('[draggable]:not(.opacity-40)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
 function renderModernTemplate(data, fullName, locationStr) {
+    const getSectionHeader = (title, iconName) => {
+        const icons = {
+            profile: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
+            experience: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            education: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l9-5-9-5-9 5 9 5zm0 0v6m0-6L3 9m18 0l-9 5"></path></svg>',
+            skills: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>',
+            contact: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            details: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            interests: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>',
+            references: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
+        };
+        const showIcons = data.showHeaderIcons === 'icons';
+        return `
+            <h2 class="section-title ${data.sidebarStyle || 'minimal'} font-heading uppercase text-[11px] font-bold text-indigo-600 tracking-widest flex items-center gap-2">
+                ${showIcons ? `<span class="opacity-60">${icons[iconName] || ''}</span>` : ''}
+                <span>${title}</span>
+            </h2>`;
+    };
+
+    const renderSection = (id) => {
+        if (id === 'profile') return `
+            <section class="mb-10 animate-fade-in origin-top">
+                ${getSectionHeader('Profile', 'profile')}
+                <div class="text-[11px] leading-relaxed text-gray-700 font-medium">${data.personalInfo.summary || 'Summary...'}</div>
+            </section>`;
+        if (id === 'experience') return `
+            <section class="mb-10 animate-fade-in origin-top">
+                ${getSectionHeader('Experience', 'experience')}
+                <div class="space-y-8">
+                    ${data.experience.map(exp => `
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="text-sm font-bold text-gray-900">${exp.jobTitle || 'Role'}</h4>
+                                ${exp.duration ? `<span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">${exp.duration}</span>` : ''}
+                            </div>
+                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">${exp.company || 'Company'}</p>
+                            <div class="text-xs text-gray-600 leading-relaxed quill-content">${exp.responsibilities || ''}</div>
+                        </div>
+                    `).join('')}
+                 </div>
+            </section>`;
+        if (id === 'education') return `
+            <section class="mb-10">
+                ${getSectionHeader('Education', 'education')}
+                <div class="space-y-4">
+                    ${data.education.map(edu => `
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-900">${edu.degree || 'Degree'}</h4>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">${edu.school || 'University'} ${edu.year ? '• ' + edu.year : ''}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>`;
+        if (id === 'skills') return `
+            <section class="mb-10">
+                ${getSectionHeader('Skills', 'skills')}
+                <div class="flex flex-wrap gap-1.5 mb-4">
+                    ${data.skills.technical.map(skill => `<span class="px-2 py-0.5 bg-gray-100 text-[9px] font-bold text-gray-700 rounded uppercase tracking-wider">${skill}</span>`).join('')}
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                    ${data.skills.soft.map(skill => `<span class="px-2 py-0.5 bg-indigo-50 text-[9px] font-bold text-indigo-600 rounded uppercase tracking-wider">${skill}</span>`).join('')}
+                </div>
+            </section>`;
+        if (id === 'contact') return `
+            <section class="mb-10">
+                ${getSectionHeader('Contact', 'contact')}
+                <ul class="space-y-2 text-[10px] font-semibold text-gray-600">
+                    <li class="flex items-center space-x-2">📧 <span>${data.personalInfo.email || 'email@example.com'}</span></li>
+                    <li class="flex items-center space-x-2">📱 <span>${data.personalInfo.phone || '+1 234 567 890'}</span></li>
+                    ${locationStr ? `<li class="flex items-center space-x-2">📍 <span>${locationStr}</span></li>` : ''}
+                    ${data.personalInfo.linkedin ? `<li class="flex items-center space-x-2">🔗 <span>${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</span></li>` : ''}
+                </ul>
+            </section>`;
+        if (id === 'details') return `
+            ${data.personalInfo.dateOfBirth || data.personalInfo.nationality || data.personalInfo.maritalStatus || data.personalInfo.drivingLicense ? `
+            <section class="mb-10">
+                ${getSectionHeader('Details', 'details')}
+                <ul class="space-y-1 text-[9px] text-gray-500 font-bold uppercase">
+                    ${data.personalInfo.dateOfBirth ? `<li>Birth: <span class="text-gray-900">${data.personalInfo.dateOfBirth}</span></li>` : ''}
+                    ${data.personalInfo.nationality ? `<li>Nat: <span class="text-gray-900">${data.personalInfo.nationality}</span></li>` : ''}
+                    ${data.personalInfo.maritalStatus ? `<li>Status: <span class="text-gray-900">${data.personalInfo.maritalStatus}</span></li>` : ''}
+                    ${data.personalInfo.drivingLicense ? `<li>DL: <span class="text-gray-900">${data.personalInfo.drivingLicense}</span></li>` : ''}
+                </ul>
+            </section>
+            ` : ''}`;
+        if (id === 'interests') return `
+            ${data.hobbies.length > 0 ? `
+            <section class="mb-10">
+                ${getSectionHeader('Interests', 'interests')}
+                <div class="flex flex-wrap gap-2 text-xs text-gray-600 font-medium">
+                    ${data.hobbies.join(' • ')}
+                </div>
+            </section>
+            ` : ''}`;
+        if (id === 'references') return `
+            ${data.referencesOnRequest || data.references.length > 0 ? `
+            <section class="mb-10">
+                ${getSectionHeader('References', 'references')}
+                ${data.referencesOnRequest ? `
+                    <p class="text-xs italic text-gray-500">References available on request</p>
+                ` : `
+                    <div class="grid grid-cols-2 gap-6">
+                        ${data.references.map(ref => `
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-900">${ref.name}</h4>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">${ref.company}</p>
+                                <p class="text-[10px] text-indigo-600 mt-1">${ref.email} ${ref.phone ? '• ' + ref.phone : ''}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            </section>
+            ` : ''}`;
+        return '';
+    };
+
+    const photoStyle = data.photoStyle || 'rounded';
+    const photoClasses = {
+        'square': 'rounded-none',
+        'rounded': 'rounded-2xl',
+        'circle': 'rounded-full',
+        'hidden': 'hidden'
+    }[photoStyle] || 'rounded-2xl';
+
     return `
             <div class="modern-template animate-fade-in origin-top px-12 py-12 min-h-[1123px]">
                 <header class="border-b-2 border-indigo-600 pb-8 mb-10 flex justify-between items-end px-4">
                     <div>
-                        <h1 class="text-5xl font-extrabold text-gray-900 mb-1 uppercase tracking-tighter">${fullName}</h1>
-                        <p class="text-2xl font-bold text-indigo-600 uppercase tracking-widest leading-none">${data.personalInfo.jobTitle || 'Job Role'}</p>
+                        <h1 class="text-5xl font-extrabold text-gray-900 mb-1 uppercase tracking-tighter font-heading">${fullName}</h1>
+                        <p class="text-2xl font-bold text-indigo-600 uppercase tracking-widest leading-none font-heading">${data.personalInfo.jobTitle || 'Job Role'}</p>
                     </div>
-                    ${data.personalInfo.photo ? `
-                        <div class="w-24 h-24 rounded-2xl overflow-hidden border-4 border-white shadow-xl mb-[-4px]">
+                    ${data.personalInfo.photo && photoStyle !== 'hidden' ? `
+                        <div class="w-24 h-24 ${photoClasses} overflow-hidden border-4 border-white shadow-xl mb-[-4px]">
                             <img src="${data.personalInfo.photo}" class="w-full h-full object-cover">
                         </div>
                     ` : ''}
                 </header>
                 <div class="grid grid-cols-3 gap-10">
-                    <aside class="col-span-1 border-r border-gray-100 pr-8">
-                        <section class="mb-10">
-                            <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">Contact</h2>
-                            <ul class="space-y-2 text-[10px] font-semibold text-gray-600">
-                                <li class="flex items-center space-x-2">📧 <span>${data.personalInfo.email || 'email@example.com'}</span></li>
-                                <li class="flex items-center space-x-2">📱 <span>${data.personalInfo.phone || '+1 234 567 890'}</span></li>
-                                ${locationStr || data.personalInfo.zipCode ? `<li class="flex items-center space-x-2">📍 <span>${[data.personalInfo.address, data.personalInfo.city, data.personalInfo.zipCode].filter(x => x).join(', ')}</span></li>` : ''}
-                                ${data.personalInfo.linkedin ? `<li class="flex items-center space-x-2">🔗 <span>${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</span></li>` : ''}
-                                ${data.personalInfo.website ? `<li class="flex items-center space-x-2">🌍 <span>${data.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}</span></li>` : ''}
-                            </ul>
-                        </section>
-                        
-                        ${data.personalInfo.dateOfBirth || data.personalInfo.nationality || data.personalInfo.maritalStatus || data.personalInfo.drivingLicense ? `
-                        <section class="mb-10">
-                            <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">Details</h2>
-                            <ul class="space-y-1 text-[9px] text-gray-500 font-bold uppercase">
-                                ${data.personalInfo.dateOfBirth ? `<li>Birth: <span class="text-gray-900">${data.personalInfo.dateOfBirth}</span></li>` : ''}
-                                ${data.personalInfo.nationality ? `<li>Nat: <span class="text-gray-900">${data.personalInfo.nationality}</span></li>` : ''}
-                                ${data.personalInfo.maritalStatus ? `<li>Status: <span class="text-gray-900">${data.personalInfo.maritalStatus}</span></li>` : ''}
-                                ${data.personalInfo.drivingLicense ? `<li>DL: <span class="text-gray-900">${data.personalInfo.drivingLicense}</span></li>` : ''}
-                            </ul>
-                        </section>
-                        ` : ''}
-
-                        <section class="mb-10">
-                            <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">Skills</h2>
-                            <div class="flex flex-wrap gap-1.5 mb-4">
-                                ${data.skills.technical.map(skill => `<span class="px-2 py-0.5 bg-gray-100 text-[9px] font-bold text-gray-700 rounded uppercase tracking-wider">${skill}</span>`).join('')}
-                            </div>
-                            <div class="flex flex-wrap gap-1.5">
-                                ${data.skills.soft.map(skill => `<span class="px-2 py-0.5 bg-indigo-50 text-[9px] font-bold text-indigo-600 rounded uppercase tracking-wider">${skill}</span>`).join('')}
-                            </div>
-                        </section>
-                        <section class="mb-10">
-                            <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">Education</h2>
-                            <div class="space-y-4">
-                                ${data.education.map(edu => `
-                                    <div>
-                                        <h4 class="text-xs font-bold text-gray-900">${edu.degree || 'Degree'}</h4>
-                                        <p class="text-[10px] text-gray-400 font-bold uppercase">${edu.school || 'University'} • ${edu.year || ''}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </section>
+                    <aside class="col-span-1 ${data.sidebarPos === 'right' ? 'order-last border-l pl-8' : 'border-r pr-8'} border-gray-100">
+                        ${data.sectionOrder.sidebar.map(renderSection).join('')}
                     </aside>
                     <div class="col-span-2">
-                        <section class="mb-10">
-                            <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">Profile</h2>
-                            <div class="text-sm leading-relaxed text-gray-700 font-medium animate-fade-in">${data.personalInfo.summary || 'Summary...'}</div>
-                        </section>
-                        <section class="mb-10">
-                             <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">Experience</h2>
-                             <div class="space-y-8">
-                                ${data.experience.map(exp => `
-                                    <div>
-                                        <div class="flex justify-between items-start mb-1">
-                                            <h4 class="text-sm font-bold text-gray-900">${exp.jobTitle || 'Role'}</h4>
-                                            <span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">${exp.duration || ''}</span>
-                                        </div>
-                                        <p class="text-xs font-bold text-gray-400 uppercase mb-2">${exp.company || 'Company'}</p>
-                                        <div class="text-xs text-gray-600 leading-relaxed quill-content">${exp.responsibilities || ''}</div>
-                                    </div>
-                                `).join('')}
-                             </div>
-                        </section>
-
-                        ${data.hobbies.length > 0 ? `
-                        <section class="mb-10">
-                            <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">Interests</h2>
-                            <div class="flex flex-wrap gap-2 text-xs text-gray-600 font-medium">
-                                ${data.hobbies.join(' • ')}
-                            </div>
-                        </section>
-                        ` : ''}
-
-                        ${data.referencesOnRequest || data.references.length > 0 ? `
-                        <section class="mb-10">
-                            <h2 class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-4">References</h2>
-                            ${data.referencesOnRequest ? `
-                                <p class="text-xs italic text-gray-500">References available on request</p>
-                            ` : `
-                                <div class="grid grid-cols-2 gap-6">
-                                    ${data.references.map(ref => `
-                                        <div>
-                                            <h4 class="text-xs font-bold text-gray-900">${ref.name}</h4>
-                                            <p class="text-[10px] text-gray-400 font-bold uppercase">${ref.company}</p>
-                                            <p class="text-[10px] text-indigo-600 mt-1">${ref.email} ${ref.phone ? '• ' + ref.phone : ''}</p>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `}
-                        </section>
-                        ` : ''}
+                        ${data.sectionOrder.main.map(renderSection).join('')}
                     </div>
                 </div>
 
@@ -901,6 +1151,111 @@ function renderModernTemplate(data, fullName, locationStr) {
 }
 
 function renderClassicTemplate(data, fullName, locationStr) {
+    const getSectionHeader = (title, iconName) => {
+        const icons = {
+            profile: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
+            experience: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            education: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l9-5-9-5-9 5 9 5zm0 0v6m0-6L3 9m18 0l-9 5"></path></svg>',
+            skills: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>',
+            contact: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            details: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            interests: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>',
+            references: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
+        };
+        const showIcons = data.showHeaderIcons === 'icons';
+        return `
+            <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit flex items-center gap-2">
+                ${showIcons ? `<span class="opacity-60">${icons[iconName] || ''}</span>` : ''}
+                <span>${title}</span>
+            </h2>`;
+    };
+
+    const renderSection = (id) => {
+        if (id === 'profile') return `
+             <section class="section-profile">
+                ${getSectionHeader('Summary', 'profile')}
+                <div class="text-sm leading-relaxed text-gray-700 font-medium font-serif">${data.personalInfo.summary || 'Summary...'}</div>
+             </section>`;
+        if (id === 'experience') return `
+             <section class="section-experience">
+                ${getSectionHeader('Experience', 'experience')}
+                <div class="space-y-6">
+                    ${data.experience.map(exp => `
+                        <div>
+                            <div class="flex justify-between text-sm font-bold">
+                                <span class="text-indigo-600">${exp.company}</span>
+                                <span class="text-gray-400 font-outfit">${exp.duration}</span>
+                            </div>
+                            <p class="italic text-sm text-gray-900 mb-2 font-bold">${exp.jobTitle}</p>
+                            <div class="text-xs text-gray-600 leading-relaxed font-serif quill-content">${exp.responsibilities}</div>
+                        </div>
+                    `).join('')}
+                </div>
+             </section>`;
+        if (id === 'education') return `
+             <section class="section-education">
+                 ${getSectionHeader('Education', 'education')}
+                 <div class="space-y-4">
+                     ${data.education.map(edu => `
+                         <div>
+                             <div class="flex justify-between text-sm font-bold">
+                                 <span class="text-indigo-600 font-serif">${edu.school}</span>
+                                 <span class="text-gray-400 font-outfit">${edu.year}</span>
+                             </div>
+                             <p class="italic text-sm text-gray-900 font-bold font-serif">${edu.degree}</p>
+                         </div>
+                     `).join('')}
+                 </div>
+             </section>`;
+        if (id === 'skills') return `
+             <section class="section-skills">
+                 ${getSectionHeader('Skills', 'skills')}
+                 <p class="text-sm text-gray-700 font-serif"><strong>Technical:</strong> ${data.skills.technical.join(', ')}</p>
+                 <p class="text-sm text-gray-700 mt-1 font-serif"><strong>Soft Skills:</strong> ${data.skills.soft.join(', ')}</p>
+             </section>`;
+        if (id === 'details') return `
+             ${data.personalInfo.dateOfBirth || data.personalInfo.nationality || data.personalInfo.maritalStatus || data.personalInfo.drivingLicense ? `
+             <section class="section-details pt-4 border-t border-gray-100">
+                ${getSectionHeader('Details', 'details')}
+                <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 font-serif">
+                    ${data.personalInfo.dateOfBirth ? `<li>Birth: <span class="text-gray-900">${data.personalInfo.dateOfBirth}</span></li>` : ''}
+                    ${data.personalInfo.nationality ? `<li>Nat: <span class="text-gray-900">${data.personalInfo.nationality}</span></li>` : ''}
+                    ${data.personalInfo.maritalStatus ? `<li>Status: <span class="text-gray-900">${data.personalInfo.maritalStatus}</span></li>` : ''}
+                    ${data.personalInfo.drivingLicense ? `<li>DL: <span class="text-gray-900">${data.personalInfo.drivingLicense}</span></li>` : ''}
+                </div>
+             </section>
+             ` : ''}`;
+        if (id === 'interests') return `
+             ${data.hobbies.length > 0 ? `
+                <section class="section-interests">
+                    ${getSectionHeader('Interests', 'interests')}
+                    <p class="text-xs text-gray-700 font-serif">${data.hobbies.join(', ')}</p>
+                </section>
+             ` : ''}`;
+        if (id === 'references') return `
+             ${data.referencesOnRequest || data.references.length > 0 ? `
+                <section class="section-references">
+                    ${getSectionHeader('References', 'references')}
+                    ${data.referencesOnRequest ? `
+                        <p class="text-xs italic text-gray-500 font-serif">References available on request</p>
+                    ` : `
+                        <div class="grid grid-cols-2 gap-4">
+                             ${data.references.map(ref => `
+                                <div>
+                                    <h4 class="text-xs font-bold text-gray-900 font-serif">${ref.name}</h4>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">${ref.company}</p>
+                                    <p class="text-[10px] text-indigo-600 mt-1">${ref.email} ${ref.phone ? '• ' + ref.phone : ''}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </section>
+             ` : ''}`;
+        return '';
+    };
+
+    const combinedOrder = [...data.sectionOrder.sidebar, ...data.sectionOrder.main].filter(id => id !== 'contact');
+
     return `
             <div class="classic-template animate-fade-in text-center px-16 py-16 min-h-[1123px]">
                 ${data.personalInfo.photo ? `
@@ -916,72 +1271,7 @@ function renderClassicTemplate(data, fullName, locationStr) {
                     ${data.personalInfo.website ? ` | ${data.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}` : ''}
                 </p>
                 <div class="text-left space-y-8">
-                     <section>
-                        <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Summary</h2>
-                        <div class="text-sm leading-relaxed text-gray-700 font-medium font-serif">${data.personalInfo.summary || 'Summary...'}</div>
-                     </section>
-                     
-                     <section>
-                         <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Skills</h2>
-                         <p class="text-sm text-gray-700 font-serif"><strong>Technical:</strong> ${data.skills.technical.join(', ')}</p>
-                         <p class="text-sm text-gray-700 mt-1 font-serif"><strong>Soft Skills:</strong> ${data.skills.soft.join(', ')}</p>
-                     </section>
-
-                     <section>
-                        <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Experience</h2>
-                        <div class="space-y-6">
-                            ${data.experience.map(exp => `
-                                <div>
-                                    <div class="flex justify-between text-sm font-bold">
-                                        <span class="text-indigo-600">${exp.company}</span>
-                                        <span class="text-gray-400 font-outfit">${exp.duration}</span>
-                                    </div>
-                                    <p class="italic text-sm text-gray-900 mb-2 font-bold">${exp.jobTitle}</p>
-                                    <div class="text-xs text-gray-600 leading-relaxed font-serif quill-content">${exp.responsibilities}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                     </section>
-                     <section>
-                         <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Education</h2>
-                         <div class="space-y-4">
-                             ${data.education.map(edu => `
-                                 <div>
-                                     <div class="flex justify-between text-sm font-bold">
-                                         <span class="text-indigo-600 font-serif">${edu.school}</span>
-                                         <span class="text-gray-400 font-outfit">${edu.year}</span>
-                                     </div>
-                                     <p class="italic text-sm text-gray-900 font-bold font-serif">${edu.degree}</p>
-                                 </div>
-                             `).join('')}
-                         </div>
-                     </section>
-
-                     ${data.hobbies.length > 0 ? `
-                        <section>
-                            <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">Interests</h2>
-                            <p class="text-xs text-gray-700 font-serif">${data.hobbies.join(', ')}</p>
-                        </section>
-                     ` : ''}
-
-                     ${data.referencesOnRequest || data.references.length > 0 ? `
-                        <section>
-                            <h2 class="text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit">References</h2>
-                            ${data.referencesOnRequest ? `
-                                <p class="text-xs italic text-gray-500 font-serif">References available on request</p>
-                            ` : `
-                                <div class="grid grid-cols-2 gap-4">
-                                     ${data.references.map(ref => `
-                                        <div>
-                                            <h4 class="text-xs font-bold text-gray-900 font-serif">${ref.name}</h4>
-                                            <p class="text-[10px] text-gray-400 font-bold uppercase">${ref.company}</p>
-                                            <p class="text-[10px] text-indigo-600 mt-1">${ref.email} ${ref.phone ? '• ' + ref.phone : ''}</p>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `}
-                        </section>
-                     ` : ''}
+                    ${combinedOrder.map(renderSection).join('')}
                 </div>
 
                 <!-- Page Break Indicator (Visual Guide Only) -->
@@ -992,9 +1282,248 @@ function renderClassicTemplate(data, fullName, locationStr) {
     `;
 }
 
-function renderMinimalistTemplate(data, fullName, locationStr) {
+function renderGridTemplate(data, fullName, locationStr) {
+    const getSectionHeader = (title, iconName) => {
+        const icons = {
+            profile: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
+            experience: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            education: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l9-5-9-5-9 5 9 5zm0 0v6m0-6L3 9m18 0l-9 5"></path></svg>',
+            skills: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>',
+            contact: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            details: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            interests: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>',
+            references: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
+        };
+        const showIcons = data.showHeaderIcons === 'icons';
+        return `
+            <h2 class="section-title ${data.sidebarStyle || 'minimal'} font-heading uppercase text-[11px] font-bold text-indigo-600 tracking-widest flex items-center gap-2">
+                ${showIcons ? `<span class="opacity-60">${icons[iconName] || ''}</span>` : ''}
+                <span>${title}</span>
+            </h2>`;
+    };
+
+    const renderSection = (id) => {
+        if (id === 'profile') return `
+            <section class="mb-10">
+                ${getSectionHeader('Profile', 'profile')}
+                <div class="text-xs leading-relaxed text-gray-700 font-medium">${data.personalInfo.summary || ''}</div>
+            </section>`;
+        if (id === 'experience') return `
+            <section class="mb-10">
+                ${getSectionHeader('Experience', 'experience')}
+                <div class="space-y-8">
+                    ${data.experience.map(exp => `
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="text-xs font-bold text-gray-900">${exp.jobTitle || ''}</h4>
+                                <span class="text-[9px] text-gray-400 font-bold uppercase">${exp.duration || ''}</span>
+                            </div>
+                            <p class="text-[10px] font-bold text-indigo-600 uppercase mb-2">${exp.company || ''}</p>
+                            <div class="text-[10px] text-gray-600 leading-relaxed quill-content">${exp.responsibilities || ''}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>`;
+        if (id === 'education') return `
+            <section class="mb-10">
+                ${getSectionHeader('Education', 'education')}
+                <div class="space-y-4">
+                    ${data.education.map(edu => `
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-900">${edu.degree}</h4>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase">${edu.school} • ${edu.year}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>`;
+        if (id === 'skills') return `
+            <section class="mb-10">
+                ${getSectionHeader('Skills', 'skills')}
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Technical</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${data.skills.technical.map(skill => `<span class="px-2 py-0.5 bg-gray-100 text-[9px] font-bold text-gray-700 rounded">${skill}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Soft Skills</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${data.skills.soft.map(skill => `<span class="px-2 py-0.5 bg-indigo-50 text-[9px] font-bold text-indigo-600 rounded">${skill}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            </section>`;
+        if (id === 'contact') return `
+            <section class="mb-10">
+                ${getSectionHeader('Contact', 'contact')}
+                <ul class="space-y-2 text-[10px] font-semibold text-gray-600">
+                    <li>📧 ${data.personalInfo.email}</li>
+                    <li>📱 ${data.personalInfo.phone}</li>
+                    ${locationStr ? `<li>📍 ${locationStr}</li>` : ''}
+                    ${data.personalInfo.linkedin ? `<li>🔗 ${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</li>` : ''}
+                </ul>
+            </section>`;
+        if (id === 'interests') return `
+            ${data.hobbies.length > 0 ? `
+            <section class="mb-10">
+                ${getSectionHeader('Interests', 'interests')}
+                <div class="flex flex-wrap gap-2 text-[10px] text-gray-600 font-medium">
+                    ${data.hobbies.join(' • ')}
+                </div>
+            </section>
+            ` : ''}`;
+        if (id === 'references') return `
+            ${data.referencesOnRequest || data.references.length > 0 ? `
+            <section class="mb-10">
+                ${getSectionHeader('References', 'references')}
+                ${data.referencesOnRequest ? `
+                    <p class="text-xs italic text-gray-500">Available on request</p>
+                ` : `
+                    <div class="space-y-4">
+                        ${data.references.map(ref => `
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-900">${ref.name}</h4>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">${ref.company}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            </section>
+            ` : ''}`;
+        return '';
+    };
+
+    const photoStyle = data.photoStyle || 'rounded';
+    const photoClasses = {
+        'square': 'rounded-none',
+        'rounded': 'rounded-2xl',
+        'circle': 'rounded-full',
+        'hidden': 'hidden'
+    }[photoStyle] || 'rounded-2xl';
+
     return `
-            <div class="minimalist-template animate-fade-in px-20 py-16 min-h-[1123px] text-gray-800">
+            <div class="grid-template animate-fade-in origin-top px-12 py-12 min-h-[1123px] text-gray-900">
+                <header class="mb-10 border-b-2 border-gray-100 pb-8 flex justify-between items-center px-4">
+                    <div>
+                        <h1 class="text-4xl font-extrabold text-gray-900 mb-1 uppercase tracking-tight font-heading">${fullName}</h1>
+                        <p class="text-lg font-bold text-indigo-600 uppercase tracking-widest leading-none font-heading">${data.personalInfo.jobTitle || ''}</p>
+                    </div>
+                    ${data.personalInfo.photo && photoStyle !== 'hidden' ? `
+                        <div class="w-20 h-20 ${photoClasses} overflow-hidden border-2 border-gray-100">
+                            <img src="${data.personalInfo.photo}" class="w-full h-full object-cover">
+                        </div>
+                    ` : ''}
+                </header>
+                
+                <div class="grid grid-cols-2 gap-12 mt-10">
+                    <div class="space-y-10 ${data.sidebarPos === 'right' ? 'order-first' : 'order-last'}">
+                        ${data.sectionOrder.main.map(renderSection).join('')}
+                    </div>
+                    <div class="space-y-10 ${data.sidebarPos === 'right' ? 'order-last' : 'order-first'}">
+                        ${data.sectionOrder.sidebar.map(renderSection).join('')}
+                    </div>
+                </div>
+                
+                <!-- Page Break Indicator -->
+                <div class="mt-20 border-t-2 border-dashed border-gray-100 flex items-center justify-center relative">
+                    <span class="absolute -top-3 bg-white px-4 text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">Potential Page Break</span>
+                </div>
+            </div>
+    `;
+}
+
+function renderMinimalistTemplate(data, fullName, locationStr) {
+    const getSectionHeader = (title, iconName) => {
+        const icons = {
+            profile: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
+            experience: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            education: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z M12 14l9-5-9-5-9 5 9 5zm0 0v6m0-6L3 9m18 0l-9 5"></path></svg>',
+            skills: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>',
+            contact: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+            details: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            interests: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>',
+            references: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
+        };
+        const showIcons = data.showHeaderIcons === 'icons';
+        return `
+            <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2 flex items-center gap-2">
+                ${showIcons ? `<span class="opacity-60">${icons[iconName] || ''}</span>` : ''}
+                <span>${title}</span>
+            </h2>`;
+    };
+
+    const renderSection = (id) => {
+        if (id === 'profile') return `
+            <section>
+                ${getSectionHeader('Profile', 'profile')}
+                <p class="text-sm leading-relaxed font-medium text-gray-600">${data.personalInfo.summary || ''}</p>
+            </section>`;
+        if (id === 'experience') return `
+            <section>
+                ${getSectionHeader('Experience', 'experience')}
+                <div class="space-y-8">
+                    ${data.experience.map(exp => `
+                        <div>
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h3 class="text-base font-bold text-gray-900">${exp.jobTitle}</h3>
+                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider">${exp.duration}</span>
+                            </div>
+                            <p class="text-sm font-bold text-indigo-600 mb-3">${exp.company}</p>
+                            <div class="text-xs text-gray-600 leading-relaxed font-medium quill-content">${exp.responsibilities}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>`;
+        if (id === 'education') return `
+            <section>
+                ${getSectionHeader('Education', 'education')}
+                <div class="space-y-4">
+                    ${data.education.map(edu => `
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-900">${edu.degree}</h4>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase">${edu.school} • ${edu.year}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>`;
+        if (id === 'skills') return `
+            <section>
+                ${getSectionHeader('Skills', 'skills')}
+                <p class="text-[11px] font-bold text-gray-700 leading-loose">
+                    ${[...data.skills.technical, ...data.skills.soft].join(' • ')}
+                </p>
+            </section>`;
+        if (id === 'references') return `
+            ${data.referencesOnRequest || data.references.length > 0 ? `
+            <section>
+                ${getSectionHeader('References', 'references')}
+                ${data.referencesOnRequest ? `<p class="text-xs italic text-gray-400">Available on request</p>` : `
+                    <div class="grid grid-cols-2 gap-6">
+                        ${data.references.map(ref => `
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-800">${ref.name}</h4>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase">${ref.company}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            </section>
+            ` : ''}`;
+        if (id === 'interests') return `
+            ${data.hobbies.length > 0 ? `
+                <section>
+                    ${getSectionHeader('Interests', 'interests')}
+                    <p class="text-xs text-gray-700">${data.hobbies.join(', ')}</p>
+                </section>
+            ` : ''}`;
+        return '';
+    };
+
+    const combinedOrder = [...data.sectionOrder.main, ...data.sectionOrder.sidebar].filter(id => id !== 'contact');
+
+    return `
+            <div class="minimalist-template animate-fade-in px-20 py-16 min-h-[1123px] text-gray-800 font-outfit">
                 <header class="text-center mb-12">
                     <h1 class="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">${fullName}</h1>
                     <p class="text-lg font-bold text-indigo-600 uppercase tracking-widest mb-4">${data.personalInfo.jobTitle || ''}</p>
@@ -1010,62 +1539,7 @@ function renderMinimalistTemplate(data, fullName, locationStr) {
                 </header>
 
                 <div class="space-y-10 max-w-2xl mx-auto">
-                    <section>
-                        <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">Profile</h2>
-                        <p class="text-sm leading-relaxed font-medium text-gray-600">${data.personalInfo.summary || ''}</p>
-                    </section>
-
-                    <section>
-                        <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">Experience</h2>
-                        <div class="space-y-8">
-                            ${data.experience.map(exp => `
-                                <div>
-                                    <div class="flex justify-between items-baseline mb-1">
-                                        <h3 class="text-base font-bold text-gray-900">${exp.jobTitle}</h3>
-                                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider">${exp.duration}</span>
-                                    </div>
-                                    <p class="text-sm font-bold text-indigo-600 mb-3">${exp.company}</p>
-                                    <div class="text-xs text-gray-600 leading-relaxed font-medium quill-content">${exp.responsibilities}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </section>
-
-                    <section class="grid grid-cols-2 gap-10">
-                        <div>
-                            <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">Education</h2>
-                            <div class="space-y-4">
-                                ${data.education.map(edu => `
-                                    <div>
-                                        <h4 class="text-sm font-bold text-gray-900">${edu.degree}</h4>
-                                        <p class="text-[10px] font-bold text-gray-500 uppercase">${edu.school} • ${edu.year}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        <div>
-                            <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">Skills</h2>
-                            <p class="text-[11px] font-bold text-gray-700 leading-loose">
-                                ${[...data.skills.technical, ...data.skills.soft].join(' • ')}
-                            </p>
-                        </div>
-                    </section>
-
-                    ${data.referencesOnRequest || data.references.length > 0 ? `
-                    <section>
-                        <h2 class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-4 border-b border-gray-100 pb-2">References</h2>
-                        ${data.referencesOnRequest ? `<p class="text-xs italic text-gray-400">Available on request</p>` : `
-                            <div class="grid grid-cols-2 gap-6">
-                                ${data.references.map(ref => `
-                                    <div>
-                                        <h4 class="text-xs font-bold text-gray-800">${ref.name}</h4>
-                                        <p class="text-[9px] font-bold text-gray-400 uppercase">${ref.company}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `}
-                    </section>
-                    ` : ''}
+                    ${combinedOrder.map(renderSection).join('')}
                 </div>
 
                 <!-- Page Break Indicator (Visual Guide Only) -->
@@ -1107,8 +1581,38 @@ if (addHobbyBtn) addHobbyBtn.addEventListener('click', () => addHobbyItem());
 if (addReferenceBtn) addReferenceBtn.addEventListener('click', () => addReferenceItem());
 if (refOnRequestCheckbox) refOnRequestCheckbox.addEventListener('change', () => updatePreview());
 
+const fontSelector = document.querySelector('[name="fontPairing"]');
+const densitySelector = document.querySelector('[name="density"]');
+
+['sidebarPos', 'sidebarStyle', 'photoStyle', 'showHeaderIcons'].forEach(name => {
+    document.querySelectorAll(`[name="${name}"]`).forEach(el => {
+        el.addEventListener('change', () => {
+            updatePreview();
+            triggerAutoSave();
+        });
+    });
+});
+
+if (fontSelector) fontSelector.addEventListener('change', (e) => {
+    cvData.fontPairing = e.target.value;
+    updatePreview();
+    triggerAutoSave();
+});
+
+if (densitySelector) densitySelector.addEventListener('change', (e) => {
+    cvData.density = e.target.value;
+    updatePreview();
+    triggerAutoSave();
+});
+
 // Initialize with existing data from cvData
 if (typeof cvData !== 'undefined') {
+    if (!cvData.sectionOrder) {
+        cvData.sectionOrder = {
+            main: ['profile', 'experience', 'interests', 'references'],
+            sidebar: ['contact', 'details', 'skills', 'education']
+        };
+    }
     if (cvData.experience) cvData.experience.forEach(exp => addExperienceItem(exp));
     if (cvData.education) cvData.education.forEach(edu => addEducationItem(edu));
     if (cvData.hobbies) cvData.hobbies.forEach(hobby => addHobbyItem(hobby));
@@ -1299,8 +1803,22 @@ document.addEventListener('click', (e) => {
 
 // Helpers
 function hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '79, 70, 229';
+    // Remove '#' if present
+    hex = hex.startsWith('#') ? hex.slice(1) : hex;
+
+    if (hex.length === 3) { // e.g., #abc
+        const r = parseInt(hex[0] + hex[0], 16);
+        const g = parseInt(hex[1] + hex[1], 16);
+        const b = parseInt(hex[2] + hex[2], 16);
+        return `${r}, ${g}, ${b}`;
+    } else if (hex.length === 6) { // e.g., #aabbcc
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return `${r}, ${g}, ${b}`;
+    }
+    // Default or error case
+    return '79, 70, 229'; // A default color if hex is invalid
 }
 
 // Design Step Listeners

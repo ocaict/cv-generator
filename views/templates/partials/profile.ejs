@@ -1,0 +1,24 @@
+<!-- views/templates/partials/profile.ejs -->
+<section class="<%= template === 'modern' ? 'mb-10' : 
+                 template === 'classic' ? 'mb-8 border-t border-gray-200 pt-6' : 
+                 'mb-12 border-b border-gray-100 pb-8 last:border-0' %> section-profile">
+    <% 
+        const icons = {
+            profile: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>'
+        };
+        const showIcons = (typeof showHeaderIcons !== 'undefined' && showHeaderIcons === 'icons');
+    %>
+    <h2 class="<%= template === 'modern' ? 'text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4' : 
+                  template === 'classic' ? 'text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit' : 
+                  'text-[10px] font-black text-indigo-600 uppercase tracking-[0.35em] mb-4 border-b border-gray-100 pb-3' %> flex items-center gap-2 heading-profile">
+        <% if (showIcons) { %>
+            <span class="opacity-60"><%- icons.profile %></span>
+        <% } %>
+        <span>Profile</span>
+    </h2>
+    <div class="<%= template === 'modern' ? 'text-[11px] leading-relaxed text-gray-700 font-medium quill-content' : 
+                   template === 'classic' ? 'text-xs leading-relaxed text-gray-700 font-serif quill-content' : 
+                   'text-[12px] leading-relaxed font-medium text-gray-600 quill-content font-serif' %>">
+        <%- summary %>
+    </div>
+</section>

@@ -1,0 +1,51 @@
+<!-- views/templates/partials/skills.ejs -->
+<section class="<%= template === 'modern' ? 'mb-10 animate-fade-in' : 
+                 template === 'classic' ? 'mb-8 border-t border-gray-200 pt-6' : 
+                 'mb-12 border-b border-gray-100 pb-8 last:border-0' %> section-skills">
+    <% 
+    const headerStyles = {
+        'minimal': 'text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-4',
+        'underline': 'text-[10px] font-black text-indigo-600 uppercase tracking-widest pb-1 border-b-2 border-indigo-600/30 mb-6 inline-block',
+        'pill': 'text-[9px] font-black text-white bg-indigo-600 px-4 py-1.5 rounded-full uppercase tracking-[0.15em] mb-6 inline-block shadow-sm'
+    };
+    const headerClass = (typeof sidebarStyle !== 'undefined' && template === 'modern') ? headerStyles[sidebarStyle] : 
+                        template === 'modern' ? 'text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4' : 
+                        template === 'classic' ? 'text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit' : 
+                        'text-[10px] font-black text-indigo-600 uppercase tracking-[0.35em] mb-6 border-b border-gray-100 pb-3';
+    %>
+    <% 
+        const icons = {
+            skills: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>'
+        };
+        const showIcons = (typeof showHeaderIcons !== 'undefined' && showHeaderIcons === 'icons');
+    %>
+    <h2 class="<%= headerClass %> flex items-center gap-2 heading-skills">
+        <% if (showIcons) { %>
+            <span class="opacity-60"><%- icons.skills %></span>
+        <% } %>
+        <span>Skills</span>
+    </h2>
+    <div class="<%= template === 'modern' ? 'space-y-4' : 
+                   template === 'classic' ? '' : 
+                   'space-y-4' %>">
+        <% if (template === 'classic') { %>
+            <p class="text-xs text-gray-700 font-serif"><strong>Technical:</strong> <%= skills.technical.join(', ') %></p>
+            <p class="text-xs text-gray-700 mt-1 font-serif"><strong>Soft Skills:</strong> <%= skills.soft.join(', ') %></p>
+        <% } else if (template === 'minimalist') { %>
+            <p class="text-[11px] font-bold text-gray-800 leading-loose">
+                <%= [...skills.technical, ...skills.soft].join(' • ') %>
+            </p>
+        <% } else { %>
+            <div class="flex flex-wrap gap-2 mb-4">
+                <% skills.technical.forEach(skill => { %>
+                    <span class="px-2 py-1 bg-gray-100 text-[9px] font-bold text-gray-700 rounded uppercase tracking-wider"><%= skill %></span>
+                <% }) %>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <% skills.soft.forEach(skill => { %>
+                    <span class="px-2 py-1 bg-indigo-50 text-[9px] font-bold text-indigo-600 rounded uppercase tracking-wider"><%= skill %></span>
+                <% }) %>
+            </div>
+        <% } %>
+    </div>
+</section>

@@ -1,0 +1,28 @@
+<!-- views/templates/partials/details.ejs -->
+<% if (personalInfo.dateOfBirth || personalInfo.nationality || personalInfo.maritalStatus || personalInfo.drivingLicense) { %>
+<section class="<%= template === 'modern' ? 'mb-10' : 
+                 template === 'classic' ? 'mb-8 border-t border-gray-200 pt-6' : 
+                 'mb-12 border-b border-gray-100 pb-8 last:border-0' %> section-details">
+    <h2 class="<%= template === 'modern' ? 'text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4' : 
+                 template === 'classic' ? 'text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit' : 
+                 'text-[10px] font-black text-indigo-600 uppercase tracking-[0.35em] mb-4 border-b border-gray-100 pb-3' %> heading-details">
+        Personal Details
+    </h2>
+    <ul class="<%= template === 'modern' ? 'space-y-2 text-[10px] font-medium text-gray-600' : 
+                   template === 'classic' ? 'space-y-1 text-xs text-gray-700 font-serif' : 
+                   'grid grid-cols-2 gap-4 text-xs font-medium text-gray-600' %>">
+        <% if (personalInfo.dateOfBirth) { %> 
+            <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">DOB:</span> <%= personalInfo.dateOfBirth %></li> 
+        <% } %>
+        <% if (personalInfo.nationality) { %> 
+            <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">Nat:</span> <%= personalInfo.nationality %></li> 
+        <% } %>
+        <% if (personalInfo.maritalStatus) { %> 
+            <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">Status:</span> <%= personalInfo.maritalStatus %></li> 
+        <% } %>
+        <% if (personalInfo.drivingLicense) { %> 
+            <li><span class="text-gray-400 font-bold uppercase tracking-tighter mr-1">DL:</span> <%= personalInfo.drivingLicense %></li> 
+        <% } %>
+    </ul>
+</section>
+<% } %>
