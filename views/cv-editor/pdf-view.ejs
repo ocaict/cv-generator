@@ -90,8 +90,9 @@
             <div class="grid grid-cols-3 gap-8 px-12 pb-12">
                 <!-- Sidebar -->
                 <aside class="col-span-1 <%= cvData.sidebarPos === 'right' ? 'order-last border-l pl-8' : 'border-r pr-8' %> border-gray-100">
+                    <% order.sidebar.forEach(sid => { if (sectionMap[sid]) { %>
                         <%- include('../templates/partials/' + sectionMap[sid].path, { ...sectionMap[sid].data, template: 'modern', sidebarStyle: cvData.sidebarStyle, showHeaderIcons: cvData.showHeaderIcons }) %>
-<% }}) %>
+                    <% }}) %>
                 </aside>
                 
                 <!-- Main Content -->
@@ -110,6 +111,7 @@
             
             <% // Single column: combine sidebar and main into one sequence %>
             <div class="space-y-10">
+                <% [...order.main, ...order.sidebar].forEach(sid => { if (sectionMap[sid] && sid !== 'contact') { %>
                     <%- include('../templates/partials/' + sectionMap[sid].path, { ...sectionMap[sid].data, template: 'classic', showHeaderIcons: cvData.showHeaderIcons }) %>
                 <% }}) %>
             </div>
@@ -122,10 +124,12 @@
             
             <div class="grid grid-cols-2 gap-12 mt-10">
                 <div class="space-y-10">
+                    <% order.main.forEach(sid => { if (sectionMap[sid]) { %>
                         <%- include('../templates/partials/' + sectionMap[sid].path, { ...sectionMap[sid].data, template: 'grid', showHeaderIcons: cvData.showHeaderIcons }) %>
                     <% }}) %>
                 </div>
                 <div class="space-y-10">
+                    <% order.sidebar.forEach(sid => { if (sectionMap[sid]) { %>
                         <%- include('../templates/partials/' + sectionMap[sid].path, { ...sectionMap[sid].data, template: 'grid', showHeaderIcons: cvData.showHeaderIcons }) %>
                     <% }}) %>
                 </div>
@@ -139,7 +143,7 @@
             <%- include('../templates/partials/contact', { personalInfo: cvData.personalInfo, template: 'minimalist' }) %>
 
             <div class="space-y-12 max-w-3xl mx-auto px-12">
-                <% [...order.main, ...order.sidebar].filter(s => s !== 'contact').forEach(sid => { if (sectionMap[sid]) { %>
+                <% [...order.main, ...order.sidebar].filter(s => s !== 'contact' && s !== 'profile').forEach(sid => { if (sectionMap[sid]) { %>
                     <%- include('../templates/partials/' + sectionMap[sid].path, { ...sectionMap[sid].data, template: 'minimalist' }) %>
                 <% }}) %>
             </div>

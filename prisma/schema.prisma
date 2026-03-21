@@ -1,5 +1,3 @@
-
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,25 +12,25 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  cvs       CV[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  cvs       CV[]
 }
 
 model CV {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title      String
-  templateId String   @default("modern")
-  themeColor String   @default("#4f46e5")
-  fontPairing String  @default("outfit-inter")
-  density    String   @default("standard")
-  sidebarPos String   @default("left")
-  sidebarStyle String @default("minimal")
-  photoStyle String   @default("rounded")
-  showHeaderIcons String @default("text")
-  data       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  title           String
+  templateId      String   @default("modern")
+  themeColor      String   @default("#4f46e5")
+  fontPairing     String   @default("outfit-inter")
+  density         String   @default("standard")
+  sidebarPos      String   @default("left")
+  sidebarStyle    String   @default("minimal")
+  photoStyle      String   @default("rounded")
+  showHeaderIcons String   @default("text")
+  data            String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

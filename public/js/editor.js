@@ -16,6 +16,7 @@ const toggleIcon = document.getElementById('toggle-icon');
 const saveStatusText = document.getElementById('save-status-text');
 const saveStatusIndicator = document.getElementById('save-status-indicator');
 const exportBtn = document.getElementById('export-btn');
+const exportDocxBtn = document.getElementById('export-docx-btn');
 let autoSaveTimeout;
 
 function updateSaveStatus(status) {
@@ -1690,6 +1691,38 @@ async function handleExport() {
     }
 }
 
+async function handleDOCXExport() {
+    const exportBtn = document.getElementById('export-docx-btn');
+    if (!exportBtn) return;
+    
+    const originalContent = exportBtn.innerHTML;
+    exportBtn.innerHTML = '<span>Syncing...</span>';
+    exportBtn.disabled = true;
+    exportBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+    // Force a save
+    const saved = await performSave();
+    
+    if (saved) {
+        exportBtn.innerHTML = '<span>Exporting...</span>';
+        // Open export in new tab
+        window.open(`/cv-editor/${CV_ID}/export/docx`, '_blank');
+        
+        setTimeout(() => {
+            exportBtn.innerHTML = originalContent;
+            exportBtn.disabled = false;
+            exportBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+        }, 2000);
+    } else {
+        exportBtn.innerHTML = '<span>Save Failed</span>';
+        setTimeout(() => {
+            exportBtn.innerHTML = originalContent;
+            exportBtn.disabled = false;
+            exportBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+        }, 3000);
+    }
+}
+
 function triggerAutoSave() {
     updateSaveStatus('unsaved');
     clearTimeout(autoSaveTimeout);
@@ -1942,5 +1975,7 @@ if (togglePreviewBtn) {
     });
 }
 
-// Initial status
 updateSaveStatus('saved');
+if (saveBtn) saveBtn.addEventListener('click', performSave);
+if (exportBtn) exportBtn.addEventListener('click', handleExport);
+if (exportDocxBtn) exportDocxBtn.addEventListener('click', handleDOCXExport);

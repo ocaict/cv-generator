@@ -11,4 +11,9 @@ router.post('/login', forwardAuthenticated, authController.postLogin);
 
 router.get('/logout', authController.logout);
 
+// Supabase Google OAuth Routes
+router.get('/google/login', authController.supabaseGoogleLogin);
+router.get('/supabase/callback', authController.supabaseCallback);
+router.post('/supabase/verify', authController.supabaseVerify);
+
 module.exports = router;

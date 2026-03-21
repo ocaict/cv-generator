@@ -7,11 +7,27 @@ exports.getDashboard = async (req, res) => {
             where: { userId },
             orderBy: { updatedAt: 'desc' }
         });
-        res.render('dashboard/index', { cvs });
+        const cvsWithTime = cvs.map(cv => ({
+            ...cv,
+            relativeTime: getRelativeTime(cv.updatedAt)
+        }));
+        res.render('dashboard/index', { cvs: cvsWithTime });
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
     }
+};
+
+const getRelativeTime = (date) => {
+    const diff = new Date() - new Date(date);
+    const min = Math.floor(diff / 60000);
+    const hr = Math.floor(min / 60);
+    const day = Math.floor(hr / 24);
+
+    if (day > 0) return day === 1 ? 'Yesterday' : `${day}d ago`;
+    if (hr > 0) return `${hr}h ago`;
+    if (min > 0) return `${min}m ago`;
+    return 'Just now';
 };
 
 exports.getCreateCV = (req, res) => {
@@ -138,6 +154,45 @@ exports.deleteCV = async (req, res) => {
         res.redirect('/dashboard');
     } catch (error) {
         console.error(error);
+        res.redirect('/dashboard');
+    }
+};
+
+exports.duplicateCV = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.session.user.id;
+
+    try {
+        const original = await prisma.cV.findFirst({
+            where: { id: parseInt(id), userId }
+        });
+
+        if (!original) {
+            req.flash('error_msg', 'Original CV not found');
+            return res.redirect('/dashboard');
+        }
+
+        await prisma.cV.create({
+            data: {
+                userId,
+                title: `${original.title} (Copy)`,
+                templateId: original.templateId,
+                themeColor: original.themeColor,
+                fontPairing: original.fontPairing,
+                density: original.density,
+                sidebarPos: original.sidebarPos,
+                sidebarStyle: original.sidebarStyle,
+                photoStyle: original.photoStyle,
+                showHeaderIcons: original.showHeaderIcons,
+                data: original.data
+            }
+        });
+
+        req.flash('success_msg', 'CV duplicated successfully');
+        res.redirect('/dashboard');
+    } catch (error) {
+        console.error(error);
+        req.flash('error_msg', 'Failed to duplicate CV');
         res.redirect('/dashboard');
     }
 };

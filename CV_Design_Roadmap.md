@@ -31,8 +31,16 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 
 ## 🧠 Phase 6: Professional Intelligence & Multitenancy
 - [x] **AI Bullet Generation**: Integrated Groq (Llama 3.3) to suggest high-impact STAR-method bullet points, professional summaries, and skill lists with "Undo AI" support.
-- [ ] **User Authentication**: Implement secure sign-in (Firebase/Passport) to allow users to save multiple CVs.
-- [ ] **Multi-Format Export**: Support one-click "Export to DOCX" (Word) alongside PDF.
-- [ ] **CV Dashboard**: A user home for managing version control (e.g., "Resume v1 - Senior Dev", "Resume v2 - Project Lead").
-- [ ] **Dark Mode Theme**: Add a sleek "Onyx" dark mode variant for all existing layouts.
+- [x] **User Authentication**: Implemented Supabase Authentication for secure email/password logins and Google OAuth (social login) with automatic session bridging.
+- [x] **Multi-Format Export**: Implemented clean, structured Microsoft Word (.docx) export using the `docx` library.
+- [x] **CV Dashboard**: Refined the user home with smart "Duplicate" functionality, relative timestamps (e.g., "2h ago"), and polished UI cards.
+## 🌗 Phase 7: Theme Selection & Dark Mode (Onyx)
+- [ ] **Dark Mode Support**: Implement a sitewide dark mode for the editor and dashboard.
+- [ ] **Onyx CV Theme**: Create a specialized high-contrast dark theme for the CV output itself.
+- [ ] **Custom Section Visibility**: Allow users to toggle entire sections (e.g., hide "References" without deleting data).
+
+## 🌐 Phase 8: Social & Public Sharing
+- [ ] **Public Share Links**: Generate unique, hashed public URLs (e.g., `/view/alex-rivers-2024`) so users can share their live CV online.
+- [ ] **QR Code Generator**: Add a "Scan to View" QR code to the CV header for recruiters to instantly access the digital version.
+- [ ] **LinkedIn Sync**: Explore basic LinkedIn profile import to pre-populate CV data.
 
