@@ -28,7 +28,7 @@ function sanitizeField(raw, maxLen = 100) {
  * Main Controller for AI-Powered CV Enhancements
  */
 exports.generateAI = async (req, res) => {
-    const { type, input, context } = req.body;
+    const { type, input, context, jobTitle } = req.body;
 
     if (!input) {
         return res.status(400).json({ error: "No input provided for AI generation" });
@@ -36,7 +36,7 @@ exports.generateAI = async (req, res) => {
 
     // --- Sanitize all inputs ---
     const safeInput = sanitizeInput(input);
-    const safeJobTitle = sanitizeField(context?.jobTitle || 'Professional');
+    const safeJobTitle = sanitizeInput(jobTitle || context?.jobTitle || 'Professional', 6000);
     const safeTone = sanitizeField(context?.targetTone || 'Professional');
     const safeArea = sanitizeField(context?.targetArea || 'General');
 
