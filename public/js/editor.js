@@ -9,7 +9,23 @@ const addReferenceBtn = document.getElementById('add-reference');
 const refOnRequestCheckbox = document.getElementById('references-on-request');
 const editorForm = document.getElementById('editor-form');
 const saveBtn = document.getElementById('save-btn');
+const cvTitle = document.getElementById('cv-title');
 const previewContent = document.getElementById('preview-content');
+
+// --- CV Title Edits ---
+if (cvTitle) {
+    cvTitle.addEventListener('input', () => {
+        triggerAutoSave();
+    });
+    
+    // Prevent new lines in title
+    cvTitle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            cvTitle.blur();
+        }
+    });
+}
 const toggleBtn = document.getElementById('toggle-additional-info');
 const additionalPanel = document.getElementById('additional-info-panel');
 const toggleIcon = document.getElementById('toggle-icon');
@@ -19,6 +35,113 @@ const exportBtn = document.getElementById('export-btn');
 const exportDocxBtn = document.getElementById('export-docx-btn');
 
 let autoSaveTimeout;
+
+const preFillBtn = document.getElementById('pre-fill-btn');
+if (preFillBtn) {
+    preFillBtn.addEventListener('click', () => {
+        if (confirm('This will replace your current data with sample content. Continue?')) {
+            fillSampleData();
+        }
+    });
+}
+
+function fillSampleData() {
+    const sample = {
+        personalInfo: {
+            firstName: "Alex",
+            lastName: "Rivers",
+            email: "alex.rivers@example.com",
+            phone: "+1 (555) 000-1122",
+            address: "123 Innovation Drive",
+            city: "San Francisco",
+            zipCode: "94103",
+            jobTitle: "Senior Cloud Architect",
+            summary: "<p>Strategic Cloud Architect with 12+ years of experience in designing and scaling distributed systems. Proven track record of reducing infrastructure costs by 40% while improving system reliability. Expert in Kubernetes, AWS, and serverless architectures.</p>"
+        },
+        experience: [
+            {
+                jobTitle: "Senior Cloud Architect",
+                company: "Global Tech Solutions",
+                startMonth: "Jan",
+                startYear: "2020",
+                isPresent: true,
+                responsibilities: "<ul><li>Led the migration of 200+ microservices to a multi-region Kubernetes cluster.</li><li>Architected an AI-driven monitoring system that reduced mean-time-to-recovery (MTTR) by 60%.</li><li>Mentored a team of 15 engineers in cloud-native best practices.</li></ul>"
+            },
+            {
+                jobTitle: "Lead Full Stack Developer",
+                company: "Innovate AI",
+                startMonth: "Mar",
+                startYear: "2016",
+                endMonth: "Dec",
+                endYear: "2019",
+                responsibilities: "<ul><li>Developed a real-time data processing engine using Node.js and Redis.</li><li>Implemented CI/CD pipelines that reduced deployment time from 2 hours to 10 minutes.</li><li>Spearheaded the redesign of the core product dashboard using React and GraphQL.</li></ul>"
+            }
+        ],
+        education: [
+            {
+                degree: "M.S. in Computer Science",
+                school: "Stanford University",
+                year: "2015",
+                description: "<p>Specialization in Distributed Systems and Artificial Intelligence. Recipient of the Academic Excellence Award.</p>"
+            }
+        ],
+        skills: {
+            technical: ["AWS", "Kubernetes", "Docker", "Terraform", "Node.js", "Python", "React", "GraphQL", "Redis", "PostgreSQL"],
+            soft: ["Strategic Leadership", "Cross-functional Collaboration", "Public Speaking", "Problem Solving", "Agile Mentoring"]
+        },
+        hobbies: [
+            { name: "Mountain Biking", description: "Exploring trails in the Tahoe area." },
+            { name: "Open Source", description: "Contributing to Kubernetes and Terraform providers." }
+        ],
+        references: [
+            { name: "Sarah Chen", position: "CTO at Global Tech", contact: "sarah.chen@example.com" }
+        ],
+        referencesOnRequest: false,
+        themeColor: "#4f46e5",
+        fontPairing: "outfit-inter",
+        density: "airy",
+        templateId: "modern"
+    };
+
+    // 1. Update global cvData
+    Object.assign(cvData, sample);
+
+    // 2. Clear UI lists
+    experienceList.innerHTML = '';
+    educationList.innerHTML = '';
+    hobbiesList.innerHTML = '';
+    referencesList.innerHTML = '';
+
+    // 3. Fill Personal Info Inputs
+    Object.keys(sample.personalInfo).forEach(key => {
+        const input = document.querySelector(`[name="personalInfo.${key}"]`);
+        if (input) input.value = sample.personalInfo[key];
+    });
+    
+    // Set Summary Quill
+    const summaryQuillContainer = document.querySelector('[name="personalInfo.summary"]')?.closest('section')?.querySelector('.quill-editor');
+    if (summaryQuillContainer) {
+        const quill = Quill.find(summaryQuillContainer);
+        if (quill) quill.root.innerHTML = sample.personalInfo.summary;
+    }
+
+    // 4. Fill Lists
+    sample.experience.forEach(exp => addExperienceItem(exp));
+    sample.education.forEach(edu => addEducationItem(edu));
+    sample.hobbies.forEach(hobby => addHobbyItem(hobby.name));
+    sample.references.forEach(ref => addReferenceItem(ref));
+
+    // 5. Update Design Controls
+    const templateRadio = document.querySelector(`input[name="templateId"][value="${sample.templateId}"]`);
+    if (templateRadio) templateRadio.checked = true;
+
+    // 6. Final Refresh
+    updatePreview();
+    triggerAutoSave();
+    
+    // Notify user
+    alert('✨ Sample data loaded successfully!');
+}
 
 function updateSaveStatus(status) {
     if (!saveStatusText || !saveStatusIndicator) return;
@@ -44,9 +167,49 @@ const stepBtns = document.querySelectorAll('.step-btn');
 const formSteps = document.querySelectorAll('.step-form');
 const nextBtns = document.querySelectorAll('.next-step-btn');
 const prevBtns = document.querySelectorAll('.prev-step-btn');
+const tabContentBtn = document.getElementById('tab-content-btn');
+const tabDesignBtn = document.getElementById('tab-design-btn');
+const contentStepper = document.getElementById('content-stepper');
+
+if (tabContentBtn && tabDesignBtn) {
+    tabContentBtn.addEventListener('click', () => switchToTab('content'));
+    tabDesignBtn.addEventListener('click', () => switchToTab('design'));
+}
+
+const goToDesignBtn = document.getElementById('go-to-design-btn');
+if (goToDesignBtn) {
+    goToDesignBtn.addEventListener('click', () => switchToTab('design'));
+}
+
+const returnToContentBtn = document.getElementById('return-to-content-btn');
+if (returnToContentBtn) {
+    returnToContentBtn.addEventListener('click', () => switchToTab('content'));
+}
+
+function switchToTab(tab) {
+    if (tab === 'content') {
+        tabContentBtn.className = 'flex-1 sm:flex-none px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400 transition-all';
+        tabDesignBtn.className = 'flex-1 sm:flex-none px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all';
+        contentStepper.classList.remove('hidden');
+        goToStep(currentStep); // Resume last content step
+    } else {
+        tabDesignBtn.className = 'flex-1 sm:flex-none px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400 transition-all';
+        tabContentBtn.className = 'flex-1 sm:flex-none px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all';
+        contentStepper.classList.add('hidden');
+        
+        // Hide all steps, show only Design (6)
+        formSteps.forEach(section => section.classList.add('hidden'));
+        document.getElementById('step-form-6').classList.remove('hidden');
+    }
+}
 
 function goToStep(step) {
     currentStep = parseInt(step);
+    
+    if (currentStep === 6) {
+        switchToTab('design');
+        return;
+    }
     
     // Update Stepper UI
     stepBtns.forEach(btn => {
@@ -1717,7 +1880,7 @@ async function performSave() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                title: document.querySelector('h1').innerText,
+                title: document.getElementById('cv-title')?.innerText || 'Untitled CV',
                 templateId: cvData.templateId || 'modern',
                 data: cvData
             })
