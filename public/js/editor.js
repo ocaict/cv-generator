@@ -2190,3 +2190,102 @@ if (shareBtn) {
         }
     });
 }
+
+// --- AI Interview Prep Logic ---
+const ipOpenBtn = document.getElementById('interview-prep-btn');
+const ipModal = document.getElementById('interview-prep-modal');
+const ipBackdrop = document.getElementById('interview-prep-backdrop');
+const ipCloseBtn = document.getElementById('interview-prep-close-btn');
+const ipRunBtn = document.getElementById('interview-prep-run-btn');
+const ipResetBtn = document.getElementById('interview-prep-reset-btn');
+const ipJobDesc = document.getElementById('interview-prep-job-desc');
+const ipInputSec = document.getElementById('interview-prep-input-section');
+const ipLoading = document.getElementById('interview-prep-loading');
+const ipResults = document.getElementById('interview-prep-results');
+const ipContainer = document.getElementById('interview-questions-container');
+
+function openIpModal() { ipModal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+function closeIpModal() { ipModal.classList.add('hidden'); document.body.style.overflow = ''; }
+
+async function runInterviewPrep() {
+    const jd = ipJobDesc.value.trim();
+    if (!jd) { alert('Please paste a job description first.'); return; }
+
+    updatePreview(); // Fresh CV Data
+    ipInputSec.classList.add('hidden');
+    ipLoading.classList.remove('hidden');
+    ipResults.classList.add('hidden');
+    ipContainer.innerHTML = '';
+
+    const cvText = [
+        `[SUMMARY]\n${(cvData.personalInfo?.summary || '').replace(/<[^>]+>/g, '')}`,
+        `[EXPERIENCE]\n${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${(e.responsibilities || '').replace(/<[^>]+>/g, ' ')}`).join(' | ')}`,
+        `[SKILLS]\n${(cvData.skills?.technical || []).concat(cvData.skills?.soft || []).join(', ')}`,
+        `[EDUCATION]\n${(cvData.education || []).map(e => `${e.degree} at ${e.school}`).join(' | ')}`
+    ].join('\n\n');
+
+    try {
+        const res = await fetch('/api/ai/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'interview-prep',
+                input: cvText,
+                jobTitle: jd // We'll pass the JD as jobTitle to the controller
+            })
+        });
+
+        const data = await res.json();
+        if (!data.result) throw new Error('No result');
+
+        const lines = data.result.split('\n').filter(l => l.trim());
+        const questions = [];
+        let current = null;
+
+        lines.forEach(line => {
+            if (line.startsWith('Q:')) {
+                if (current) questions.push(current);
+                current = { q: line.replace('Q:', '').trim(), a: '', t: 'General' };
+            } else if (line.startsWith('A:') && current) {
+                current.a = line.replace('A:', '').trim();
+            } else if (line.startsWith('T:') && current) {
+                current.t = line.replace('T:', '').trim();
+            }
+        });
+        if (current) questions.push(current);
+
+        ipContainer.innerHTML = questions.map(q => `
+            <div class="p-6 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-3xl shadow-sm hover:shadow-md transition-all group text-left">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase tracking-widest rounded-full">${q.t}</span>
+                </div>
+                <h4 class="text-xs font-extrabold text-gray-900 dark:text-white leading-relaxed mb-4">${q.q}</h4>
+                <div class="pl-4 border-l-2 border-indigo-100 dark:border-slate-700">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center">
+                        <span class="mr-1">🧠</span> Coaching Framework
+                    </p>
+                    <p class="text-[11px] text-gray-600 dark:text-slate-400 leading-relaxed italic">${q.a}</p>
+                </div>
+            </div>
+        `).join('');
+
+        ipLoading.classList.add('hidden');
+        ipResults.classList.remove('hidden');
+
+    } catch (e) {
+        console.error(e);
+        alert('Could not generate questions. Please try again.');
+        ipLoading.classList.add('hidden');
+        ipInputSec.classList.remove('hidden');
+    }
+}
+
+ipOpenBtn?.addEventListener('click', openIpModal);
+ipCloseBtn?.addEventListener('click', closeIpModal);
+ipBackdrop?.addEventListener('click', closeIpModal);
+ipRunBtn?.addEventListener('click', runInterviewPrep);
+ipResetBtn?.addEventListener('click', () => {
+    ipResults.classList.add('hidden');
+    ipInputSec.classList.remove('hidden');
+    ipJobDesc.value = '';
+});

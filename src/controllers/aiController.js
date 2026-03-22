@@ -206,6 +206,32 @@ CRITICAL:
 3. If text exists under [SECTION: SOFT SKILLS], DO NOT say "Limited soft skills".
 Output ONLY the structured lines. NO preamble.`;
             break;
+            
+        case 'interview-prep':
+            prompt = `As an expert career coach, generate 5-6 highly relevant interview questions for the candidate based on their CV and the job description provided.
+            
+CV Data:
+${safeInput}
+
+Target Job Description:
+${safeJobTitle} (Note: This field contains the full JD text)
+
+Categories:
+- Behavioral: Focused on past experiences (STAR method).
+- Technical: Focused on specific skills (hard skills).
+- Situational: Focused on how they would handle future scenarios.
+
+Format:
+Q: [Question text]
+A: [Framing tip: How should the candidate use their specific experience to answer this?]
+T: [Type: Behavioral | Technical | Situational]
+
+RULES:
+- Questions must be SPECIFIC to the candidate's provided experience.
+- DO NOT use generic questions like "Tell me about yourself".
+- Provide concrete "A:" tips referencing items from their CV.
+- Return ONLY the Q:, A:, T: blocks. No other text.`;
+            break;
 
         case 'cover-letter':
             const companyName = sanitizeField(context?.companyName || 'the company', 120);

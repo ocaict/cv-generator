@@ -59,6 +59,10 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     <span>Cover Letter</span>
                 </button>
+                <button id="interview-prep-btn" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-blue-100 dark:shadow-none hover:bg-blue-700 transition-all flex items-center space-x-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                    <span>Interview Prep</span>
+                </button>
                 <button id="cv-review-btn" class="bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-emerald-100 dark:shadow-none hover:bg-emerald-600 transition-all flex items-center space-x-2">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Review CV</span>
@@ -934,6 +938,62 @@
                 <!-- Re-scan button -->
                 <button id="ats-rescan-btn" class="w-full border-2 border-amber-400 text-amber-600 dark:text-amber-400 font-bold text-xs py-3 rounded-2xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
                     ↩ Scan a Different Job Description
+                </button>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- AI Interview Prep Modal                                     -->
+<!-- ============================================================ -->
+<div id="interview-prep-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div id="interview-prep-backdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+
+    <!-- Panel -->
+    <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 90vh;">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-8 py-6 border-b border-gray-100 dark:border-slate-800 bg-blue-50/30 dark:bg-blue-900/10 text-left">
+            <div>
+                <h2 class="text-lg font-extrabold text-gray-900 dark:text-white font-outfit">AI Interview Coach</h2>
+                <p class="text-xs text-gray-400 dark:text-slate-400 mt-0.5">Generate tailored interview questions based on your CV and a job description</p>
+            </div>
+            <button id="interview-prep-close-btn" class="w-8 h-8 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Scrollable body -->
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+            <!-- Stage 1: Input -->
+            <div id="interview-prep-input-section">
+                <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest mb-2 text-left">Target Job Description</label>
+                <textarea id="interview-prep-job-desc" rows="8" placeholder="Paste the job description you're preparing for..." class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs text-gray-700 dark:text-slate-300 leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all"></textarea>
+                <button id="interview-prep-run-btn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-4 rounded-2xl transition-all shadow-lg shadow-blue-100 dark:shadow-none flex items-center justify-center space-x-2 group">
+                    <span class="group-hover:scale-110 transition-transform">🎓</span>
+                    <span>Generate Interview Questions</span>
+                </button>
+            </div>
+
+            <!-- Stage 2: Loading -->
+            <div id="interview-prep-loading" class="hidden flex flex-col items-center justify-center py-16 space-y-4">
+                <div class="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">Analysing CV & Job Requirements...</p>
+            </div>
+
+            <!-- Stage 3: Results -->
+            <div id="interview-prep-results" class="hidden space-y-8 pb-4">
+                <div class="space-y-6" id="interview-questions-container">
+                    <!-- Questions will be injected here -->
+                </div>
+
+                <!-- Footer Tip -->
+                <div class="p-6 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-3xl">
+                    <h4 class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2 text-left">💡 Coaching Tip</h4>
+                    <p class="text-xs text-indigo-900 dark:text-indigo-300 leading-relaxed text-left">Use the <strong class="font-bold text-indigo-900 dark:text-white">STAR Method</strong> (Situation, Task, Action, Result) for behavioral questions. Quantify your results just like you did in your bullet points!</p>
+                </div>
+
+                <button id="interview-prep-reset-btn" class="w-full py-3 text-[10px] font-bold text-gray-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
+                    Generate for another job
                 </button>
             </div>
         </div>
