@@ -54,8 +54,15 @@ exports.generateAI = async (req, res) => {
     // Auto-inject blockContext inline to the input data explicitly if missing from input
     let enrichedInput = safeInput;
     if (safeBlockContext) {
-        enrichedInput = `[${safeBlockContext}]\\n${safeInput}`;
+        enrichedInput = `[${safeBlockContext}]\n${safeInput}`;
     }
+
+    console.log("=== AI GENERATION DEBUG ===");
+    console.log("TYPE:", type);
+    console.log("RAW INPUT Sliced:", input.slice(0, 500));
+    console.log("ENRICHED INPUT Sliced:", enrichedInput.slice(0, 500));
+    console.log("CONTEXT:", JSON.stringify(context).slice(0, 500));
+    console.log("===========================");
 
     if (!safeInput && type !== 'skills') {
         return res.status(400).json({ error: "Input is empty after sanitization." });
@@ -183,12 +190,12 @@ Target Role / Industry: ${safeJobTitle}
 
 Scoring Criteria (weight each):
 - Impact & Quantification (25%): Are achievements measurable? Do bullet points show results?
-- Completeness (20%): Are all key sections present (summary, experience, skills, education)?
+- Completeness (20%): Are all key sections present? DO NOT say a section is missing if it is listed above under a header like "EDUCATION:", "TECHNICAL SKILLS:", or "SOFT SKILLS:" with actual content.
 - Relevance & ATS Compatibility (20%): Is language targeted, keyword-rich, and modern?
 - Clarity & Structure (20%): Is the CV easy to scan? Are sections clearly defined?
 - Professional Tone (15%): Is the language confident, active-voice, and typo-free?
 
-CRITICAL: Follow the EXACT format above. Output ONLY the structured lines. No extra explanation.`;
+CRITICAL: Follow the EXACT format above. Output ONLY the structured lines. If "TECHNICAL SKILLS:" or "EDUCATION:" sections have content, DO NOT claim they are missing. No extra explanation.`;
             break;
 
         case 'cover-letter':

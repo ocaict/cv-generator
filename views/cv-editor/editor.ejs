@@ -1349,6 +1349,7 @@
     }
 
     async function runCvReview() {
+        updatePreview(); // Ensure cvData is fresh
         reviewLoading.classList.remove('hidden');
         reviewResults.classList.add('hidden');
 
@@ -1362,7 +1363,7 @@
             `TECHNICAL SKILLS: ${(cvData.skills?.technical || []).join(', ') || 'None'}`,
             `SOFT SKILLS: ${(cvData.skills?.soft || []).join(', ') || 'None'}`,
             `EDUCATION: ${(cvData.education || []).map(e => `${e.degree} from ${e.school} (${e.year || ''}) - ${(e.description || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`
-        ].join('\\n\\n').slice(0, 15000);
+        ].join('\n\n').slice(0, 15000);
 
         try {
             const res = await fetch('/api/ai/generate', {
