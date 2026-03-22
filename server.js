@@ -1,3 +1,4 @@
+setInterval(() => {}, 1000); // Keep-alive hack for debugging
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -70,6 +71,18 @@ app.use((err, req, res, next) => {
         : err.message || 'Something broke!';
     
     res.status(statusCode).send(message);
+});
+
+process.on('exit', (code) => {
+    console.log(`\x1b[31m[DEBUG]\x1b[0m Process is exiting with code: ${code}`);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error(`\x1b[31m[DEBUG]\x1b[0m Uncaught Exception:`, err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error(`\x1b[31m[DEBUG]\x1b[0m Unhandled Rejection at:`, promise, 'reason:', reason);
 });
 
 app.listen(PORT, () => {
