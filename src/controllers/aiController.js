@@ -59,9 +59,9 @@ exports.generateAI = async (req, res) => {
 
     console.log("=== AI GENERATION DEBUG ===");
     console.log("TYPE:", type);
-    console.log("RAW INPUT Sliced:", input.slice(0, 500));
-    console.log("ENRICHED INPUT Sliced:", enrichedInput.slice(0, 500));
-    console.log("CONTEXT:", JSON.stringify(context).slice(0, 500));
+    console.log("RAW INPUT Sliced:", (input || "").slice(0, 500));
+    console.log("ENRICHED INPUT Sliced:", (enrichedInput || "").slice(0, 500));
+    console.log("CONTEXT:", context ? JSON.stringify(context).slice(0, 500) : "N/A");
     console.log("===========================");
 
     if (!safeInput && type !== 'skills') {
