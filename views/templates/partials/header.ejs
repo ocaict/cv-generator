@@ -22,4 +22,22 @@
             <img src="<%- personalInfo.photo %>" class="w-full h-full object-cover">
         </div>
     <% } %>
+    <% if (template === 'modern' && typeof showQrCode !== 'undefined' && showQrCode && typeof publicSlug !== 'undefined' && publicSlug) { %>
+        <div class="flex flex-col items-center ml-4 flex-shrink-0">
+            <div id="cv-qr-code" class="w-16 h-16"></div>
+            <p class="text-[7px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Scan to view</p>
+            <script>
+                (function() {
+                    if (typeof QRCode !== 'undefined') {
+                        new QRCode(document.getElementById('cv-qr-code'), {
+                            text: window.location.origin + '/p/<%= publicSlug %>',
+                            width: 64, height: 64,
+                            colorDark: '#1e293b', colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    }
+                })();
+            </script>
+        </div>
+    <% } %>
 </header>

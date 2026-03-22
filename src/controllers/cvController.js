@@ -196,3 +196,65 @@ exports.duplicateCV = async (req, res) => {
         res.redirect('/dashboard');
     }
 };
+
+const crypto = require('crypto');
+
+exports.togglePublic = async (req, res) => {
+    const { id } = req.params;
+    const { isPublic } = req.body;
+    const userId = req.session.user.id;
+
+    try {
+        const cv = await prisma.cV.findFirst({
+            where: { id: parseInt(id), userId }
+        });
+
+        if (!cv) {
+            return res.status(404).json({ success: false, error: 'CV not found' });
+        }
+
+        let publicSlug = cv.publicSlug;
+        if (isPublic && !publicSlug) {
+            // Create a slug like firstname-lastname-hash or just a clean hash
+            const titleSlug = cv.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            publicSlug = `${titleSlug}-${crypto.randomBytes(4).toString('hex')}`;
+        }
+
+        const updated = await prisma.cV.updateMany({
+            where: { id: parseInt(id), userId },
+            data: { isPublic: Boolean(isPublic), publicSlug }
+        });
+
+        res.json({ success: true, isPublic: Boolean(isPublic), publicSlug });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Failed to toggle public status' });
+    }
+};
+
+exports.getPublicCV = async (req, res) => {
+    const { slug } = req.params;
+
+    try {
+        const cv = await prisma.cV.findUnique({
+            where: { publicSlug: slug }
+        });
+
+        if (!cv || !cv.isPublic) {
+            return res.status(404).render('errors/404', { message: 'This CV is either private or does not exist.' });
+        }
+
+        const cvData = JSON.parse(cv.data || '{}');
+        
+        // Render a public view utilizing the pdf-view EJS layout but with standard HTML wrapper
+        res.render('cv-editor/public-view', { 
+            cv, 
+            cvData,
+            fullName: `${cvData.personalInfo?.firstName || ''} ${cvData.personalInfo?.lastName || ''}`.trim(),
+            locationStr: [cvData.personalInfo?.city, cvData.personalInfo?.nationality].filter(Boolean).join(', ')
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+};

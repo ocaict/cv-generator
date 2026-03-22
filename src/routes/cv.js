@@ -14,5 +14,7 @@ router.get('/cv-editor/:id/duplicate', ensureAuthenticated, cvController.duplica
 router.get('/cv-editor/:id/delete', ensureAuthenticated, cvController.deleteCV);
 router.get('/cv-editor/:id/export', ensureAuthenticated, exportController.exportPDF);
 router.get('/cv-editor/:id/export/docx', ensureAuthenticated, exportController.exportDOCX);
+router.post('/cv-editor/:id/public', ensureAuthenticated, cvController.togglePublic);
+router.get('/p/:slug', cvController.getPublicCV);
 
 module.exports = router;

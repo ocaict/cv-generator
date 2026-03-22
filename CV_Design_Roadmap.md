@@ -35,12 +35,11 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 - [x] **Multi-Format Export**: Implemented clean, structured Microsoft Word (.docx) export using the `docx` library.
 - [x] **CV Dashboard**: Refined the user home with smart "Duplicate" functionality, relative timestamps (e.g., "2h ago"), and polished UI cards.
 ## 🌗 Phase 7: Theme Selection & Dark Mode (Onyx)
-- [ ] **Dark Mode Support**: Implement a sitewide dark mode for the editor and dashboard.
-- [ ] **Onyx CV Theme**: Create a specialized high-contrast dark theme for the CV output itself.
-- [ ] **Custom Section Visibility**: Allow users to toggle entire sections (e.g., hide "References" without deleting data).
+- [x] **Dark Mode Support**: Implement a sitewide dark mode for the editor and dashboard.
+- [x] **Onyx CV Theme**: Create a specialized high-contrast dark theme for the CV output itself.
+- [x] **Custom Section Visibility**: Allow users to toggle entire sections (e.g., hide "References" without deleting data).
 
 ## 🌐 Phase 8: Social & Public Sharing
-- [ ] **Public Share Links**: Generate unique, hashed public URLs (e.g., `/view/alex-rivers-2024`) so users can share their live CV online.
-- [ ] **QR Code Generator**: Add a "Scan to View" QR code to the CV header for recruiters to instantly access the digital version.
-- [ ] **LinkedIn Sync**: Explore basic LinkedIn profile import to pre-populate CV data.
-
+- [x] **Public Share Links**: Generate unique, hashed public URLs (e.g., `/view/alex-rivers-2024`) so users can share their live CV online.
+- [x] **QR Code Generator**: Add a "Scan to View" QR code to the CV header for recruiters to instantly access the digital version.
+- [ ] **LinkedIn Sync** *(Future Feature — Pending)*: Explore basic LinkedIn profile import to pre-populate CV data. Requires LinkedIn OAuth or manual export parsing.

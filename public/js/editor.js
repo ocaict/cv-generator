@@ -17,6 +17,7 @@ const saveStatusText = document.getElementById('save-status-text');
 const saveStatusIndicator = document.getElementById('save-status-indicator');
 const exportBtn = document.getElementById('export-btn');
 const exportDocxBtn = document.getElementById('export-docx-btn');
+
 let autoSaveTimeout;
 
 function updateSaveStatus(status) {
@@ -681,6 +682,14 @@ function updatePreview() {
         skills: { 
             technical: (formData.get('skills.technical') || '').split(',').map(s => s.trim()).filter(s => s),
             soft: (formData.get('skills.soft') || '').split(',').map(s => s.trim()).filter(s => s)
+        },
+        sectionVisibility: {
+            profile: document.querySelector('input[name="sectionVisibility.profile"]')?.checked ?? true,
+            experience: document.querySelector('input[name="sectionVisibility.experience"]')?.checked ?? true,
+            education: document.querySelector('input[name="sectionVisibility.education"]')?.checked ?? true,
+            skills: document.querySelector('input[name="sectionVisibility.skills"]')?.checked ?? true,
+            interests: document.querySelector('input[name="sectionVisibility.interests"]')?.checked ?? true,
+            references: document.querySelector('input[name="sectionVisibility.references"]')?.checked ?? true
         }
     };
     
@@ -870,10 +879,29 @@ function renderPreview(data) {
             .step-btn.active span { color: var(--primary) !important; }
             .ai-gen-btn { color: var(--primary) !important; background-color: rgba(${hexToRgb(primaryColor)}, 0.05) !important; }
             .ai-gen-btn:hover { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; }
+            
+            ${data.templateId === 'onyx' ? `
+            .modern-template {
+                background-color: #020617 !important; /* slate-950 */
+                color: #e2e8f0 !important; /* slate-200 */
+            }
+            .modern-template .text-gray-900 { color: #ffffff !important; }
+            .modern-template .text-gray-800 { color: #f8fafc !important; }
+            .modern-template .text-gray-700 { color: #e2e8f0 !important; }
+            .modern-template .text-gray-600 { color: #94a3b8 !important; /* slate-400 */ }
+            .modern-template .text-gray-500 { color: #64748b !important; /* slate-500 */ }
+            .modern-template .text-gray-400 { color: #475569 !important; /* slate-600 */ }
+            .modern-template .border-gray-100 { border-color: #1e293b !important; /* slate-800 */ }
+            .modern-template .border-gray-200 { border-color: #334155 !important; /* slate-700 */ }
+            .modern-template .bg-white { background-color: transparent !important; }
+            .modern-template .bg-gray-50 { background-color: rgba(255,255,255,0.03) !important; }
+            .modern-template .bg-gray-100 { background-color: rgba(255,255,255,0.06) !important; }
+            .modern-template .bg-gray-200 { background-color: rgba(255,255,255,0.1) !important; }
+            ` : ''}
         </style>
     `;
 
-    if (data.templateId === 'modern') {
+    if (data.templateId === 'modern' || data.templateId === 'onyx') {
         previewContent.innerHTML = styleOverride + renderModernTemplate(data, fullName, locationStr);
     } else if (data.templateId === 'classic') {
         previewContent.innerHTML = styleOverride + renderClassicTemplate(data, fullName, locationStr);
@@ -881,6 +909,21 @@ function renderPreview(data) {
         previewContent.innerHTML = styleOverride + renderGridTemplate(data, fullName, locationStr);
     } else if (data.templateId === 'minimalist') {
         previewContent.innerHTML = styleOverride + renderMinimalistTemplate(data, fullName, locationStr);
+    }
+
+    // Render QR code into preview slot if showQrCode is enabled
+    const qrSlot = document.getElementById('preview-qr-slot');
+    if (qrSlot && data.showQrCode && typeof QRCode !== 'undefined') {
+        const slug = document.getElementById('share-btn')?.dataset.slug;
+        if (slug) {
+            qrSlot.innerHTML = '';
+            new QRCode(qrSlot, {
+                text: window.location.origin + '/p/' + slug,
+                width: 64, height: 64,
+                colorDark: '#1e293b', colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
     }
 
     renderSectionOrderUI();
@@ -895,7 +938,7 @@ function renderSectionOrderUI() {
     if (!mainList || !sidebarList) return;
 
     // Adjust visibility based on template
-    const isTwoCol = ['modern', 'grid'].includes(cvData.templateId);
+    const isTwoCol = ['modern', 'grid', 'onyx'].includes(cvData.templateId);
     if (isTwoCol) {
         sbZone.classList.remove('hidden');
         mainLabel.innerText = 'Main Column';
@@ -1017,6 +1060,7 @@ function renderModernTemplate(data, fullName, locationStr) {
     };
 
     const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
         if (id === 'profile') return `
             <section class="mb-10 animate-fade-in origin-top">
                 ${getSectionHeader('Profile', 'profile')}
@@ -1128,11 +1172,19 @@ function renderModernTemplate(data, fullName, locationStr) {
                         <h1 class="text-5xl font-extrabold text-gray-900 mb-1 uppercase tracking-tighter font-heading">${fullName}</h1>
                         <p class="text-2xl font-bold text-indigo-600 uppercase tracking-widest leading-none font-heading">${data.personalInfo.jobTitle || 'Job Role'}</p>
                     </div>
-                    ${data.personalInfo.photo && photoStyle !== 'hidden' ? `
-                        <div class="w-24 h-24 ${photoClasses} overflow-hidden border-4 border-white shadow-xl mb-[-4px]">
-                            <img src="${data.personalInfo.photo}" class="w-full h-full object-cover">
-                        </div>
-                    ` : ''}
+                    <div class="flex items-end space-x-4">
+                        ${data.personalInfo.photo && photoStyle !== 'hidden' ? `
+                            <div class="w-24 h-24 ${photoClasses} overflow-hidden border-4 border-white shadow-xl mb-[-4px]">
+                                <img src="${data.personalInfo.photo}" class="w-full h-full object-cover">
+                            </div>
+                        ` : ''}
+                        ${data.showQrCode && document.getElementById('share-btn')?.dataset.slug ? `
+                            <div class="flex flex-col items-center flex-shrink-0 mb-[-4px]">
+                                <div id="preview-qr-slot" class="w-16 h-16"></div>
+                                <p class="text-[7px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Scan to view</p>
+                            </div>
+                        ` : ''}
+                    </div>
                 </header>
                 <div class="grid grid-cols-3 gap-10">
                     <aside class="col-span-1 ${data.sidebarPos === 'right' ? 'order-last border-l pl-8' : 'border-r pr-8'} border-gray-100">
@@ -1172,6 +1224,7 @@ function renderClassicTemplate(data, fullName, locationStr) {
     };
 
     const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
         if (id === 'profile') return `
              <section class="section-profile">
                 ${getSectionHeader('Summary', 'profile')}
@@ -1304,6 +1357,7 @@ function renderGridTemplate(data, fullName, locationStr) {
     };
 
     const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
         if (id === 'profile') return `
             <section class="mb-10">
                 ${getSectionHeader('Profile', 'profile')}
@@ -1455,6 +1509,7 @@ function renderMinimalistTemplate(data, fullName, locationStr) {
     };
 
     const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
         if (id === 'profile') return `
             <section>
                 ${getSectionHeader('Profile', 'profile')}
@@ -1591,6 +1646,13 @@ const densitySelector = document.querySelector('[name="density"]');
             updatePreview();
             triggerAutoSave();
         });
+    });
+});
+
+document.querySelectorAll('input[name^="sectionVisibility."]').forEach(el => {
+    el.addEventListener('change', () => {
+        updatePreview();
+        triggerAutoSave();
     });
 });
 
@@ -1979,3 +2041,40 @@ updateSaveStatus('saved');
 if (saveBtn) saveBtn.addEventListener('click', performSave);
 if (exportBtn) exportBtn.addEventListener('click', handleExport);
 if (exportDocxBtn) exportDocxBtn.addEventListener('click', handleDOCXExport);
+
+// --- Share Button ---
+const shareBtn = document.getElementById('share-btn');
+if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+        const isPublic = shareBtn.dataset.public === 'true';
+        const newStatus = !isPublic;
+        try {
+            const res = await fetch(`/cv-editor/${CV_ID}/public`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPublic: newStatus })
+            });
+            const result = await res.json();
+            if (result.success) {
+                shareBtn.dataset.public = result.isPublic;
+                shareBtn.dataset.slug = result.publicSlug;
+                if (result.isPublic) {
+                    const url = `${window.location.origin}/p/${result.publicSlug}`;
+                    alert(`Public link created and copied to clipboard!\n${url}`);
+                    navigator.clipboard.writeText(url);
+                    shareBtn.classList.remove('bg-violet-600', 'shadow-violet-100', 'hover:bg-violet-700');
+                    shareBtn.classList.add('bg-green-600', 'shadow-green-100', 'hover:bg-green-700');
+                    shareBtn.querySelector('span').innerText = 'Shared';
+                } else {
+                    alert('Your CV is now private and restricted.');
+                    shareBtn.classList.remove('bg-green-600', 'shadow-green-100', 'hover:bg-green-700');
+                    shareBtn.classList.add('bg-violet-600', 'shadow-violet-100', 'hover:bg-violet-700');
+                    shareBtn.querySelector('span').innerText = 'Share';
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            alert('An error occurred while changing sharing status.');
+        }
+    });
+}

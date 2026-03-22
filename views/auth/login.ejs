@@ -1,10 +1,10 @@
-<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl shadow-gray-100 border border-gray-100">
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+    <div class="max-w-md w-full space-y-8 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl shadow-gray-100 dark:shadow-none border border-gray-100 dark:border-slate-700 transition-colors duration-300">
         <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 font-outfit">Welcome Back!</h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white font-outfit">Welcome Back!</h2>
+            <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                 Or
-                <a href="/auth/register" class="font-medium text-indigo-600 hover:text-indigo-500">
+                <a href="/auth/register" class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">
                     create a new account
                 </a>
             </p>
@@ -13,31 +13,31 @@
             <div class="rounded-md shadow-sm -space-y-px">
                 <div class="group relative z-10">
                     <label for="email" class="sr-only">Email address</label>
-                    <input id="email" name="email" type="email" required class="appearance-none rounded-none relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-xl focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Email address">
+                    <input id="email" name="email" type="email" required class="appearance-none rounded-none relative block w-full px-3 py-4 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 rounded-t-xl focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors duration-300" placeholder="Email address">
                 </div>
                 <div class="group relative">
                     <label for="password" class="sr-only">Password</label>
-                    <input id="password" name="password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-4 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-xl focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password">
+                    <input id="password" name="password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-4 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 rounded-b-xl focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-colors duration-300" placeholder="Password">
                 </div>
             </div>
 
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                    <label for="remember-me" class="ml-2 block text-sm text-gray-900">
+                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-600 dark:bg-slate-700 rounded transition-colors duration-300">
+                    <label for="remember-me" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                         Remember me
                     </label>
                 </div>
 
                 <div class="text-sm">
-                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    <a href="#" class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">
                         Forgot your password?
                     </a>
                 </div>
             </div>
 
             <div>
-                <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-100 uppercase tracking-widest">
+                <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-100 dark:shadow-none uppercase tracking-widest">
                     Sign in
                 </button>
             </div>
@@ -46,15 +46,15 @@
         <div class="mt-6">
             <div class="relative">
                 <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200"></div>
+                    <div class="w-full border-t border-gray-200 dark:border-slate-700 transition-colors duration-300"></div>
                 </div>
                 <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-white text-gray-500">Or continue with</span>
+                    <span class="px-2 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors duration-300">Or continue with</span>
                 </div>
             </div>
 
             <div class="mt-6">
-                <a href="/auth/google/login" class="w-full inline-flex justify-center py-3 px-4 border border-gray-200 rounded-xl bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all shadow-sm hover:shadow-md">
+                <a href="/auth/google/login" class="w-full inline-flex justify-center py-3 px-4 border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 transition-all shadow-sm hover:shadow-md">
                     <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
