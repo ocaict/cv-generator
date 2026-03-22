@@ -191,12 +191,20 @@ ${safeInput}
 
 Scoring Criteria (weight each):
 - Impact & Quantification (25%): Are achievements measurable? Do bullet points show results?
-- Completeness (20%): Are all key sections present? DO NOT say a section is missing if it is listed above under a header like "[SECTION: EDUCATION]", "[SECTION: TECHNICAL SKILLS]", or "[SECTION: SOFT SKILLS]" with actual content.
+- Completeness (20%): Are all key sections present? 
+  * IMPORTANT: Look for the [SECTION: ...] headers in the provided text.
+  * If [SECTION: EDUCATION] contains degrees and descriptions, it is COMPLETE.
+  * If [SECTION: TECHNICAL SKILLS] or [SECTION: SOFT SKILLS] contain lists, they are COMPLETE.
+  * If the overall score is >80, do not list "Missing sections" as a primary weakness unless something major is truly gone.
 - Relevance & ATS Compatibility (20%): Is language targeted, keyword-rich, and modern?
 - Clarity & Structure (20%): Is the CV easy to scan? Are sections clearly defined?
 - Professional Tone (15%): Is the language confident, active-voice, and typo-free?
 
-CRITICAL: Follow the EXACT format above. Output ONLY the structured lines. If "[SECTION: TECHNICAL SKILLS]" or "[SECTION: EDUCATION]" sections have content that is not "None", DO NOT claim they are missing. No extra explanation.`;
+CRITICAL: 
+1. Check the [SECTION: ...] tags carefully. 
+2. If text exists under [SECTION: EDUCATION], DO NOT say "Lack of education details". 
+3. If text exists under [SECTION: SOFT SKILLS], DO NOT say "Limited soft skills".
+Output ONLY the structured lines. NO preamble.`;
             break;
 
         case 'cover-letter':

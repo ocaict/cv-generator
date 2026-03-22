@@ -1358,11 +1358,13 @@
         document.getElementById('review-score-value').textContent = '0';
 
         const cvText = [
-            `[SECTION: SUMMARY]\n${cvData.personalInfo?.summary || 'None'}`,
+            `[SECTION: SUMMARY]\n${(cvData.personalInfo?.summary || 'None').replace(/<[^>]+>/g, '')}`,
             `[SECTION: EXPERIENCE]\n${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${(e.responsibilities || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`,
             `[SECTION: TECHNICAL SKILLS]\n${(cvData.skills?.technical || []).join(', ') || 'None'}`,
             `[SECTION: SOFT SKILLS]\n${(cvData.skills?.soft || []).join(', ') || 'None'}`,
-            `[SECTION: EDUCATION]\n${(cvData.education || []).map(e => `${e.degree} from ${e.school} (${e.year || ''}) - ${(e.description || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`
+            `[SECTION: EDUCATION]\n${(cvData.education || []).map(e => `${e.degree} from ${e.school} (${e.year || ''}) - ${(e.description || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`,
+            `[SECTION: HOBBIES]\n${(cvData.hobbies || []).join(', ') || 'None'}`,
+            `[SECTION: REFERENCES]\n${cvData.referencesOnRequest ? 'Available on request' : (cvData.references || []).map(r => `${r.name} (${r.company})`).join(', ') || 'None'}`
         ].join('\n\n').slice(0, 15000);
 
         console.log("=== CV REVIEW DEBUG ===");
