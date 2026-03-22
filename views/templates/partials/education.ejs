@@ -43,6 +43,13 @@
                 <% if (template === 'modern') { %>
                     <p class="text-[9px] text-gray-500 font-bold mt-1"><%= edu.year %></p>
                 <% } %>
+                <% if (edu.description) { %>
+                    <div class="<%= template === 'modern' ? 'text-[10px] text-gray-600 leading-relaxed mt-1 quill-content' : 
+                                   template === 'classic' ? 'text-xs text-gray-600 leading-relaxed font-serif mt-2 quill-content' : 
+                                   'text-[11px] text-gray-600 leading-relaxed font-medium mt-2 quill-content' %>">
+                        <%- edu.description %>
+                    </div>
+                <% } %>
             </div>
         <% }) %>
     </div>

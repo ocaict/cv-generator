@@ -472,7 +472,8 @@ function addEducationItem(data = {}) {
             degree: item.querySelector('[data-key="degree"]').value,
             school: item.querySelector('[data-key="school"]').value,
             endMonth: item.querySelector('[data-key="endMonth"]').value,
-            endYear: item.querySelector('[data-key="endYear"]').value
+            endYear: item.querySelector('[data-key="endYear"]').value,
+            description: item.querySelector('[data-key="description"]')?.value || ''
         };
         addEducationItem(currentData);
         updatePreview();
@@ -640,6 +641,7 @@ function updatePreview() {
         return {
             school: item.querySelector('[data-key="school"]').value,
             degree: item.querySelector('[data-key="degree"]').value,
+            description: item.querySelector('[data-key="description"]')?.value || '',
             endMonth, endYear,
             year: `${endMonth} ${endYear}`.trim() // combined for preview
         };
@@ -1098,7 +1100,8 @@ function renderModernTemplate(data, fullName, locationStr) {
                     ${data.education.map(edu => `
                         <div>
                             <h4 class="text-xs font-bold text-gray-900">${edu.degree || 'Degree'}</h4>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase">${edu.school || 'University'} ${edu.year ? '• ' + edu.year : ''}</p>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">${edu.school || 'University'} ${edu.year ? '• ' + edu.year : ''}</p>
+                            ${edu.description ? `<div class="text-[10px] text-gray-600 leading-relaxed quill-content">${edu.description}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -1265,7 +1268,8 @@ function renderClassicTemplate(data, fullName, locationStr) {
                                  <span class="text-indigo-600 font-serif">${edu.school}</span>
                                  <span class="text-gray-400 font-outfit">${edu.year}</span>
                              </div>
-                             <p class="italic text-sm text-gray-900 font-bold font-serif">${edu.degree}</p>
+                             <p class="italic text-sm text-gray-900 font-bold font-serif mb-1">${edu.degree}</p>
+                             ${edu.description ? `<div class="text-xs text-gray-600 leading-relaxed font-serif quill-content">${edu.description}</div>` : ''}
                          </div>
                      `).join('')}
                  </div>
@@ -1395,7 +1399,8 @@ function renderGridTemplate(data, fullName, locationStr) {
                     ${data.education.map(edu => `
                         <div>
                             <h4 class="text-xs font-bold text-gray-900">${edu.degree}</h4>
-                            <p class="text-[9px] text-gray-400 font-bold uppercase">${edu.school} • ${edu.year}</p>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase mb-1">${edu.school} • ${edu.year}</p>
+                            ${edu.description ? `<div class="text-[10px] text-gray-600 leading-relaxed quill-content">${edu.description}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -1547,7 +1552,8 @@ function renderMinimalistTemplate(data, fullName, locationStr) {
                     ${data.education.map(edu => `
                         <div>
                             <h4 class="text-sm font-bold text-gray-900">${edu.degree}</h4>
-                            <p class="text-[10px] font-bold text-gray-500 uppercase">${edu.school} • ${edu.year}</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase mb-2">${edu.school} • ${edu.year}</p>
+                            ${edu.description ? `<div class="text-xs text-gray-600 leading-relaxed font-medium quill-content">${edu.description}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>

@@ -176,9 +176,18 @@ exports.exportDOCX = async (req, res) => {
                     }),
                     new Paragraph({
                         children: [new TextRun({ text: gradDate, size: 18, color: "555555" })],
-                        spacing: { after: 100 }
+                        spacing: { after: edu.description ? 100 : 200 }
                     })
                 );
+                
+                if (edu.description) {
+                    children.push(
+                        new Paragraph({
+                            children: [new TextRun({ text: edu.description.replace(/<[^>]*>/g, ''), size: 21, font: "Arial" })],
+                            spacing: { after: 200 }
+                        })
+                    );
+                }
             });
         }
 
