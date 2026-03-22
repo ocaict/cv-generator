@@ -9,7 +9,7 @@ const aiLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 15,
     keyGenerator: (req) => req.session?.user?.id || req.ip,
-    validate: { ip: false }, // Explicitly tell rate-limit we know what we're doing with req.ip
+    validate: false, // Disable all validations to prevent crash on initialization
     handler: (req, res) => {
         res.status(429).json({ error: 'You are generating too quickly. Please wait a moment before trying again.' });
     },
