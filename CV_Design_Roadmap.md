@@ -43,3 +43,10 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 - [x] **Public Share Links**: Generate unique, hashed public URLs (e.g., `/view/alex-rivers-2024`) so users can share their live CV online.
 - [x] **QR Code Generator**: Add a "Scan to View" QR code to the CV header for recruiters to instantly access the digital version.
 - [ ] **LinkedIn Sync** *(Future Feature — Pending)*: Explore basic LinkedIn profile import to pre-populate CV data. Requires LinkedIn OAuth or manual export parsing.
+
+## 🤖 Phase 9: Advanced AI Career Tools
+- [ ] **Cover Letter Generator**: One-click cover letter creation using the full CV data + a pasted job description. Output is a formatted, ready-to-send letter exportable as PDF or Word.
+- [ ] **Full CV Review Mode**: A dedicated AI panel that analyses the entire CV and returns an overall quality score (1–100), highlights 3 strengths, identifies 3 weaknesses, and offers a one-click "Apply All Suggestions" button.
+- [ ] **Streaming AI Responses**: Replace the current blocking AI calls with token-by-token streaming (SSE/ReadableStream) so users see text appear in real time instead of waiting for the full response.
+- [ ] **Industry-Specific Tone Presets**: Expand the tone selector to include domain-aware presets — **Tech/Startup**, **Law/Finance**, **Healthcare**, **Academic** — each pre-configured with vocabulary, keyword density, and sentence structure tuned for that field.
+- [ ] **AI Interview Prep**: Based on the CV and a target job description, generate a tailored list of likely interview questions (behavioural, technical, situational) with suggested answer frameworks.
