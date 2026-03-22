@@ -53,6 +53,27 @@ exports.generateAI = async (req, res) => {
         return res.status(400).json({ error: "Input is empty after sanitization." });
     }
 
+    let toneInstructions = "";
+    switch (safeTone) {
+        case 'Executive':
+            toneInstructions = "Use strong, authoritative language focusing on leadership, P&L, strategic vision, and bottom-line impact."; break;
+        case 'Creative':
+            toneInstructions = "Use narrative-driven language, showing personal brand, innovation, and out-of-the-box thinking."; break;
+        case 'Concise':
+            toneInstructions = "Use extremely sharp, brief, bullet-focused language. No fluff, just facts."; break;
+        case 'Tech/Startup':
+            toneInstructions = "Use metric-driven, agile, scale-focused language. Highlight 'shipping features', 'MRR', 'optimization', 'sprints', and product velocity."; break;
+        case 'Law/Finance':
+            toneInstructions = "Use formal, precise, and compliant language. Emphasise 'due diligence', 'risk mitigation', 'fiduciary responsibility', 'ROI', and rigorous accuracy."; break;
+        case 'Healthcare':
+            toneInstructions = "Use clinical yet empathetic language. Focus on 'patient outcomes', 'regulatory compliance' (e.g., HIPAA/CQC), 'evidence-based care', and clinical excellence."; break;
+        case 'Academic':
+            toneInstructions = "Use thorough, formal, research-focused language. Highlight 'methodologies', 'peer-reviewed publications', 'pedagogical', 'grants', and rigorous analysis."; break;
+        case 'Professional':
+        default:
+            toneInstructions = "Use balanced, standard, and highly professional corporate language."; break;
+    }
+
     let prompt = "";
     const systemPrompt = `You are a strict, professional CV writer. 
     CRITICAL RULES:
@@ -60,7 +81,11 @@ exports.generateAI = async (req, res) => {
     2. ABSOLUTELY NO conversational filler (NO "Here is...", NO "Certainly!", NO "Alternatively...").
     3. NO explanations, NO notes, and NO postambles.
     4. If enhancing an experience, return RAW HTML <ul><li> list only.
-    5. Never make up facts — only work with what the user gives you.`;
+    5. Never make up facts — only work with what the user gives you.
+    
+    TONE & STYLE ENFORCEMENT:
+    ${toneInstructions}
+    Make sure EVERY word reflects this specific style without sounding robotic.`;
 
     switch (type) {
         case 'summary':
