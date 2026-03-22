@@ -1357,12 +1357,12 @@
         document.getElementById('review-score-value').textContent = '0';
 
         const cvText = [
-            cvData.personalInfo?.summary || '',
-            (cvData.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${(e.responsibilities || '').replace(/<[^>]+>/g, ' ')}`).join(' '),
-            (cvData.skills?.technical || []).join(', '),
-            (cvData.skills?.soft || []).join(', '),
-            (cvData.education || []).map(e => `${e.degree} from ${e.school}`).join(', ')
-        ].join(' ').replace(/\s+/g, ' ').slice(0, 3000);
+            `SUMMARY: ${cvData.personalInfo?.summary || 'None'}`,
+            `EXPERIENCE: ${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${(e.responsibilities || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`,
+            `TECHNICAL SKILLS: ${(cvData.skills?.technical || []).join(', ') || 'None'}`,
+            `SOFT SKILLS: ${(cvData.skills?.soft || []).join(', ') || 'None'}`,
+            `EDUCATION: ${(cvData.education || []).map(e => `${e.degree} from ${e.school} (${e.year || ''}) - ${(e.description || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`
+        ].join('\\n\\n').slice(0, 3500);
 
         try {
             const res = await fetch('/api/ai/generate', {
