@@ -16,5 +16,7 @@ router.get('/cv-editor/:id/export', ensureAuthenticated, exportController.export
 router.get('/cv-editor/:id/export/docx', ensureAuthenticated, exportController.exportDOCX);
 router.post('/cv-editor/:id/public', ensureAuthenticated, cvController.togglePublic);
 router.get('/p/:slug', cvController.getPublicCV);
+router.post('/cv-editor/:id/cover-letter/export/pdf', ensureAuthenticated, exportController.exportCoverLetterPDF);
+router.post('/cv-editor/:id/cover-letter/export/docx', ensureAuthenticated, exportController.exportCoverLetterDOCX);
 
 module.exports = router;

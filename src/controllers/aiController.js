@@ -126,6 +126,34 @@ exports.generateAI = async (req, res) => {
             TIP: [one specific, actionable improvement sentence]`;
             break;
 
+        case 'cover-letter':
+            const companyName = sanitizeField(context?.companyName || 'the company', 120);
+            const hiringManager = sanitizeField(context?.hiringManager || '', 80);
+            const jobTitle = sanitizeField(context?.jobTitle || 'this position', 100);
+            const jobDesc = sanitizeInput(context?.jobDescription || '', 2000);
+            const greeting = hiringManager ? `Dear ${hiringManager}` : 'Dear Hiring Manager';
+
+            prompt = `Write a professional, compelling cover letter for the following applicant applying to the stated position.
+
+Applicant CV Summary:
+${safeInput}
+
+Target Role: ${jobTitle}
+Target Company: ${companyName}
+Job Description Highlights: ${jobDesc || 'Not provided'}
+
+Requirements:
+- Start with: "${greeting},"
+- Opening paragraph: Express genuine enthusiasm for the specific role and company. Mention the job title by name.
+- Middle paragraph(s): Connect 2-3 specific achievements/skills from the CV to the key requirements of the job. Be concrete and use numbers where the CV provides them.
+- Closing paragraph: Reiterate interest, express readiness to discuss further, and close professionally.
+- Sign off with: "Yours sincerely," followed by a blank line for the name.
+- Total length: 3-4 paragraphs, approximately 250-320 words.
+- Tone: ${safeTone}, polished, human — NOT robotic or generic.
+
+CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subject line. NO address header. NO explanations. NO alternatives.`;
+            break;
+
         default:
             prompt = `Improve this text for a top-tier professional CV, focusing on clarity, impact, and professional tone. Target Role: ${safeJobTitle}. Text: ${safeInput}`;
     }
