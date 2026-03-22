@@ -126,13 +126,16 @@ exports.generateAI = async (req, res) => {
             break;
 
         case 'skills':
-            prompt = `Based on the career profile below, suggest a modern, high-marketability list of 8-10 skills.
+            const isSoft = context?.blockContext?.includes('Soft Skills');
+            const isTechnical = context?.blockContext?.includes('Technical Skills');
+            
+            prompt = `Based on the career profile below, suggest a modern, high-marketability list of 8-10 ${isSoft ? 'SOFT' : isTechnical ? 'TECHNICAL' : ''} skills.
             Job Title: ${safeJobTitle}
             Current Skills / Experience: ${safeInput || 'None provided'}
             ${experienceContext ? `Recent Experience: ${experienceContext}` : ''}
-            Focus Area: ${safeArea}
+            Type: ${isSoft ? 'SOFT SKILLS (Interpersonal, Leadership, Communication)' : 'TECHNICAL SKILLS (Hard skills, Tools, Software, Industry knowledge)'}
             Tone: ${safeTone}
-            RULES: Return a comma-separated list of skills ONLY (e.g. "Project Management, Agile, SQL"). NO intro text. NO bullet points. NO explanations.`;
+            RULES: Return a comma-separated list of skills ONLY (e.g. "Project Management, Agile, SQL"). NO intro text. NO bullet points. NO explanations. NO PREAMBLE.`;
             break;
 
         case 'education':
@@ -186,16 +189,14 @@ VERDICT: [one motivating sentence summarising the CV overall readiness for the j
 CV Content to Analyse:
 ${safeInput}
 
-Target Role / Industry: ${safeJobTitle}
-
 Scoring Criteria (weight each):
 - Impact & Quantification (25%): Are achievements measurable? Do bullet points show results?
-- Completeness (20%): Are all key sections present? DO NOT say a section is missing if it is listed above under a header like "EDUCATION:", "TECHNICAL SKILLS:", or "SOFT SKILLS:" with actual content.
+- Completeness (20%): Are all key sections present? DO NOT say a section is missing if it is listed above under a header like "[SECTION: EDUCATION]", "[SECTION: TECHNICAL SKILLS]", or "[SECTION: SOFT SKILLS]" with actual content.
 - Relevance & ATS Compatibility (20%): Is language targeted, keyword-rich, and modern?
 - Clarity & Structure (20%): Is the CV easy to scan? Are sections clearly defined?
 - Professional Tone (15%): Is the language confident, active-voice, and typo-free?
 
-CRITICAL: Follow the EXACT format above. Output ONLY the structured lines. If "TECHNICAL SKILLS:" or "EDUCATION:" sections have content, DO NOT claim they are missing. No extra explanation.`;
+CRITICAL: Follow the EXACT format above. Output ONLY the structured lines. If "[SECTION: TECHNICAL SKILLS]" or "[SECTION: EDUCATION]" sections have content that is not "None", DO NOT claim they are missing. No extra explanation.`;
             break;
 
         case 'cover-letter':

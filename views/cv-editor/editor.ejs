@@ -1358,12 +1358,22 @@
         document.getElementById('review-score-value').textContent = '0';
 
         const cvText = [
-            `SUMMARY: ${cvData.personalInfo?.summary || 'None'}`,
-            `EXPERIENCE: ${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${(e.responsibilities || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`,
-            `TECHNICAL SKILLS: ${(cvData.skills?.technical || []).join(', ') || 'None'}`,
-            `SOFT SKILLS: ${(cvData.skills?.soft || []).join(', ') || 'None'}`,
-            `EDUCATION: ${(cvData.education || []).map(e => `${e.degree} from ${e.school} (${e.year || ''}) - ${(e.description || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`
+            `[SECTION: SUMMARY]\n${cvData.personalInfo?.summary || 'None'}`,
+            `[SECTION: EXPERIENCE]\n${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${(e.responsibilities || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`,
+            `[SECTION: TECHNICAL SKILLS]\n${(cvData.skills?.technical || []).join(', ') || 'None'}`,
+            `[SECTION: SOFT SKILLS]\n${(cvData.skills?.soft || []).join(', ') || 'None'}`,
+            `[SECTION: EDUCATION]\n${(cvData.education || []).map(e => `${e.degree} from ${e.school} (${e.year || ''}) - ${(e.description || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`
         ].join('\n\n').slice(0, 15000);
+
+        console.log("=== CV REVIEW DEBUG ===");
+        console.log("Sections count:", {
+            exp: (cvData.experience || []).length,
+            edu: (cvData.education || []).length,
+            tech: (cvData.skills?.technical || []).length,
+            soft: (cvData.skills?.soft || []).length
+        });
+        console.log("Payload sent to AI:\n", cvText);
+        console.log("=======================");
 
         try {
             const res = await fetch('/api/ai/generate', {

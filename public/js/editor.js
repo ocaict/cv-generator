@@ -447,7 +447,7 @@ function addEducationItem(data = {}) {
     if (data.endMonth) item.querySelector('[data-key="endMonth"]').value = data.endMonth;
     if (data.endYear) item.querySelector('[data-key="endYear"]').value = data.endYear;
 
-    item.querySelectorAll('input, select').forEach(el => {
+    item.querySelectorAll('input, select, textarea').forEach(el => {
         el.addEventListener('input', (e) => {
             if (e.target.dataset.key === 'degree') titleText.innerText = e.target.value || 'New Degree';
             if (e.target.dataset.key === 'school') subtitleText.innerText = (e.target.value || 'University Name').toUpperCase();
@@ -1877,6 +1877,10 @@ async function handleAIGeneration(event) {
             const currentRole = expContainer.querySelector('[data-key="jobTitle"]')?.value || 'Role';
             const currentCompany = expContainer.querySelector('[data-key="company"]')?.value || 'Company';
             blockContext = `For Role: ${currentRole} at ${currentCompany}`;
+        }
+
+        if (type === 'skills') {
+            blockContext = targetKey === 'skills.technical' ? 'Technical Skills' : 'Soft Skills';
         }
 
         // Build richer context from current cvData
