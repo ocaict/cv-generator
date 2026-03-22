@@ -948,7 +948,7 @@
     const TEMPLATE_ID = "<%= cv.templateId %>";
     let cvData = <%- JSON.stringify(cvData) %>;
 </script>
-<script src="/js/editor.js"></script>
+<script src="/js/editor.js?v=<%= Date.now() %>"></script>
 <script>
     // --- QR Code Toggle Logic ---
     const qrToggle = document.getElementById('show-qr-toggle');
@@ -1362,7 +1362,7 @@
             `TECHNICAL SKILLS: ${(cvData.skills?.technical || []).join(', ') || 'None'}`,
             `SOFT SKILLS: ${(cvData.skills?.soft || []).join(', ') || 'None'}`,
             `EDUCATION: ${(cvData.education || []).map(e => `${e.degree} from ${e.school} (${e.year || ''}) - ${(e.description || '').replace(/<[^>]+>/g, ' ')}`).join(' | ') || 'None'}`
-        ].join('\\n\\n').slice(0, 3500);
+        ].join('\\n\\n').slice(0, 15000);
 
         try {
             const res = await fetch('/api/ai/generate', {
