@@ -1196,6 +1196,7 @@
                 body: JSON.stringify({
                     type: 'cover-letter',
                     input: cvText,
+                    stream: true,
                     context: {
                         companyName: company || 'the company',
                         hiringManager: manager,
@@ -1213,15 +1214,48 @@
                 return;
             }
 
-            const data = await res.json();
-            if (!data.result) throw new Error('Empty result');
-
-            clLetterText.value = data.result;
-            clMetaRole.textContent = jobTitle;
-            clMetaCompany.textContent = company || '—';
-
             clLoading.classList.add('hidden');
             clResultSec.classList.remove('hidden');
+            
+            clMetaRole.textContent = jobTitle;
+            clMetaCompany.textContent = company || '—';
+            clLetterText.value = '';
+
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await res.json();
+                if (data.result) clLetterText.value = data.result;
+            } else {
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    let newlineIndex;
+
+                    while ((newlineIndex = buffer.indexOf('\n\n')) >= 0) {
+                        const currentEvent = buffer.slice(0, newlineIndex);
+                        buffer = buffer.slice(newlineIndex + 2);
+
+                        const dataLine = currentEvent.split('\n').find(l => l.startsWith('data: '));
+                        if (dataLine) {
+                            const dataStr = dataLine.slice(6);
+                            if (dataStr === '[DONE]') break;
+                            try {
+                                const parsed = JSON.parse(dataStr);
+                                if (parsed.text) {
+                                    clLetterText.value += parsed.text;
+                                    clLetterText.scrollTop = clLetterText.scrollHeight;
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+            }
 
         } catch (err) {
             console.error('Cover letter error:', err);

@@ -191,6 +191,7 @@ CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subje
     }
 
     try {
+        const isStreaming = req.body.stream === true;
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: systemPrompt },
@@ -200,8 +201,23 @@ CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subje
             temperature: 0.65,
             max_tokens: 800,
             top_p: 1,
-            stream: false,
+            stream: isStreaming,
         });
+
+        if (isStreaming) {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+
+            for await (const chunk of chatCompletion) {
+                const content = chunk.choices[0]?.delta?.content || "";
+                if (content) {
+                    res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+                }
+            }
+            res.write('data: [DONE]\n\n');
+            return res.end();
+        }
 
         const raw = chatCompletion.choices[0]?.message?.content || "No content generated";
 
@@ -220,7 +236,7 @@ CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subje
     } catch (error) {
         console.error("AI Generation Error:", error.message);
 
-        // Try fallback model on overload/timeout
+        // Try fallback model on overload/timeout (no streaming for fallback to keep it simple)
         if (error.status === 503 || error.status === 500) {
             try {
                 const fallback = await groq.chat.completions.create({

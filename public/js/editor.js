@@ -1869,6 +1869,7 @@ async function handleAIGeneration(event) {
             body: JSON.stringify({
                 type: type,
                 input: inputData || "General responsibilities",
+                stream: true,
                 context: {
                     jobTitle: jobTitleInput ? jobTitleInput.value : (cvData.personalInfo?.jobTitle || 'Professional'),
                     targetTone: aiToneSelector ? aiToneSelector.value : 'Professional',
@@ -1886,16 +1887,74 @@ async function handleAIGeneration(event) {
             return;
         }
 
-        const data = await response.json();
-        
-        if (data.result) {
+        const contentType = response.headers.get('content-type');
+        let finalResult = '';
+
+        if (contentType && contentType.includes('application/json')) {
+            // Handled as JSON (e.g. fallback to smaller model or error)
+            const data = await response.json();
+            if (data.result) {
+                finalResult = data.result;
+            } else if (data.error) {
+                throw new Error(data.error);
+            }
+        } else {
+            // Handled as Text/Event-Stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+
+            if (!isTextarea) {
+                const quill = Quill.find(editorEl);
+                quill.setText('');
+            } else {
+                editorEl.value = '';
+            }
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                let newlineIndex;
+
+                while ((newlineIndex = buffer.indexOf('\n\n')) >= 0) {
+                    const currentEvent = buffer.slice(0, newlineIndex);
+                    buffer = buffer.slice(newlineIndex + 2);
+
+                    const dataLine = currentEvent.split('\n').find(l => l.startsWith('data: '));
+                    if (dataLine) {
+                        const dataStr = dataLine.slice(6);
+                        if (dataStr === '[DONE]') break;
+                        try {
+                            const parsed = JSON.parse(dataStr);
+                            if (parsed.text) {
+                                finalResult += parsed.text;
+                                if (isTextarea) {
+                                    editorEl.value = finalResult;
+                                    editorEl.scrollTop = editorEl.scrollHeight;
+                                } else {
+                                    const quill = Quill.find(editorEl);
+                                    // Inject raw HTML gently (it updates constantly, so root.innerHTML is fast but strict)
+                                    quill.root.innerHTML = finalResult;
+                                }
+                            }
+                        } catch (e) {
+                            // incomplete parsing chunk silently ignored until next buffer pass
+                        }
+                    }
+                }
+            }
+        }
+
+        if (finalResult) {
             if (isTextarea) {
-                editorEl.value = data.result;
+                editorEl.value = finalResult;
                 editorEl.dispatchEvent(new Event('input', { bubbles: true }));
             } else {
                 const quill = Quill.find(editorEl);
                 quill.setText('');
-                quill.clipboard.dangerouslyPasteHTML(0, data.result);
+                quill.clipboard.dangerouslyPasteHTML(0, finalResult);
             }
             
             // Visual success feedback
