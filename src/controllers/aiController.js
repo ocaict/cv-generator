@@ -1,7 +1,28 @@
 const Groq = require("groq-sdk");
 
-// Initialize Groq with the API key from environment variables
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+/**
+ * Sanitize raw user input before injecting into prompts.
+ * Truncates to maxLen chars and strips prompt-injection-prone characters.
+ */
+function sanitizeInput(raw, maxLen = 2000) {
+    if (!raw || typeof raw !== 'string') return '';
+    return raw
+        .replace(/[\r\n]+/g, ' ')      // Collapse line breaks to single space
+        .replace(/\s{2,}/g, ' ')        // Collapse multiple spaces
+        .replace(/[<>]/g, '')           // Strip angle brackets
+        .trim()
+        .slice(0, maxLen);
+}
+
+/**
+ * Sanitize context strings (short fields like job title, tone)
+ */
+function sanitizeField(raw, maxLen = 100) {
+    if (!raw || typeof raw !== 'string') return '';
+    return raw.replace(/[^a-zA-Z0-9 ,.\-&/()]/g, '').trim().slice(0, maxLen);
+}
 
 /**
  * Main Controller for AI-Powered CV Enhancements
@@ -13,90 +34,159 @@ exports.generateAI = async (req, res) => {
         return res.status(400).json({ error: "No input provided for AI generation" });
     }
 
+    // --- Sanitize all inputs ---
+    const safeInput = sanitizeInput(input);
+    const safeJobTitle = sanitizeField(context?.jobTitle || 'Professional');
+    const safeTone = sanitizeField(context?.targetTone || 'Professional');
+    const safeArea = sanitizeField(context?.targetArea || 'General');
+
+    // Sanitize optional experience context (array of recent jobs)
+    let experienceContext = '';
+    if (Array.isArray(context?.recentExperience)) {
+        experienceContext = context.recentExperience
+            .map(e => sanitizeField(e, 120))
+            .slice(0, 3)
+            .join('; ');
+    }
+
+    if (!safeInput && type !== 'skills') {
+        return res.status(400).json({ error: "Input is empty after sanitization." });
+    }
+
     let prompt = "";
-    let systemPrompt = `You are a strict, professional CV writer. 
+    const systemPrompt = `You are a strict, professional CV writer. 
     CRITICAL RULES:
     1. Output ONLY the requested content. 
-    2. ABSOLUTELY NO Conversational filler (NO "Here is...", NO "Certainly!", NO "Alternatively...").
-    3. NO Explanations, NO Notes, and NO Postambles.
-    4. If enhancing an experience, return RAW HTML <ul><li> list only.`;
+    2. ABSOLUTELY NO conversational filler (NO "Here is...", NO "Certainly!", NO "Alternatively...").
+    3. NO explanations, NO notes, and NO postambles.
+    4. If enhancing an experience, return RAW HTML <ul><li> list only.
+    5. Never make up facts — only work with what the user gives you.`;
 
-    // Define prompts based on the requested enhancement type
     switch (type) {
         case 'summary':
-            prompt = `As an expert CV writer, craft a high-impact Professional Summary (3-4 sentences approx 50-60 words).
-            Input Data/Experience: ${input}
-            Target Role: ${context?.jobTitle || 'Professional'}
-            Desired Tone: ${context?.targetTone || 'Professional'}
+            prompt = `As an expert CV writer, craft a high-impact Professional Summary (3-4 sentences, approx 50-60 words).
+            Input Data/Experience: ${safeInput}
+            Target Role: ${safeJobTitle}
+            Desired Tone: ${safeTone}
             Guidelines: Start with a strong noun (e.g., "Results-driven...", "Senior..."). Focus on quantifiable achievements and key value propositions. 
             RULES: NO INTRO. NO QUOTES. OUTPUT ONLY THE SUMMARY TEXT.`;
             break;
 
         case 'experience':
             prompt = `Transform the following job responsibilities into high-impact, results-driven bullet points using the STAR method (Situation, Task, Action, Result).
-            Original Content: ${input}
-            Target Role: ${context?.jobTitle || 'this position'}
-            Tone: ${context?.targetTone || 'Professional'}
+            Original Content: ${safeInput}
+            Target Role: ${safeJobTitle}
+            Tone: ${safeTone}
+            ${experienceContext ? `Career Context: ${experienceContext}` : ''}
             Guidelines: 
-            - Use strong action verbs (Spearheaded, Optimized, Orchestrated).
+            - Use strong action verbs (Spearheaded, Optimized, Orchestrated, Delivered).
             - Focus on measurable results where possible.
-            - Ensure ATS compatibility by using relevant keywords.
+            - Ensure ATS compatibility by using relevant industry keywords.
             RULES: Return a RAW HTML <ul> list with 3-5 high-impact <li> items. NO PREAMBLE. NO ALTERNATIVES. NO CONVERSATIONAL FILLER.`;
             break;
 
         case 'skills':
-            prompt = `Based on the career profile for a "${context?.jobTitle || 'Professional'}", suggest a modern, high-marketability list of 8-10 skills.
-            Current Input: ${input}
-            Focus Area: ${context?.targetArea || 'General'}
-            Tone: ${context?.targetTone || 'Professional'}
-            RULES: Return a comma-separated list of skills ONLY. DO NOT add "Here are..." or any notes.`;
+            prompt = `Based on the career profile below, suggest a modern, high-marketability list of 8-10 skills.
+            Job Title: ${safeJobTitle}
+            Current Skills / Experience: ${safeInput || 'None provided'}
+            ${experienceContext ? `Recent Experience: ${experienceContext}` : ''}
+            Focus Area: ${safeArea}
+            Tone: ${safeTone}
+            RULES: Return a comma-separated list of skills ONLY (e.g. "Project Management, Agile, SQL"). NO intro text. NO bullet points. NO explanations.`;
+            break;
+
+        case 'education':
+            prompt = `Rewrite the following education entry to sound polished and impactful on a professional CV.
+            Original Text: ${safeInput}
+            Target Role Context: ${safeJobTitle}
+            Guidelines:
+            - Keep it concise (1-2 sentences max).
+            - Highlight academic achievements, honours, or relevant coursework if mentioned.
+            - Use active, professional language.
+            RULES: Output only the refined education description. NO preamble. NO quotes.`;
             break;
 
         case 'tone':
-            prompt = `Rewrite the following text to perfectly match a "${context?.targetTone || 'Professional'}" professional tone, optimized for a modern CV.
-            Original Text: ${input}
-            Context: ${context?.jobTitle || 'Career Content'}`;
+            prompt = `Rewrite the following CV text to perfectly match a "${safeTone}" professional tone, optimised for a modern CV.
+            Original Text: ${safeInput}
+            Target Role: ${safeJobTitle}
+            RULES: Output only the rewritten text. NO explanations.`;
+            break;
+
+        case 'ats':
+            // ATS Keyword Scan: compare CV content against a job description
+            prompt = `You are an ATS (Applicant Tracking System) expert. Analyse the following CV content against the provided job description.
+            CV Content: ${safeInput}
+            Job Description: ${sanitizeInput(context?.jobDescription || '', 2000)}
+            
+            Respond in this EXACT format (no other text):
+            SCORE: [number 0-100]
+            MATCHED: [comma-separated matched keywords]
+            MISSING: [comma-separated important missing keywords]
+            TIP: [one specific, actionable improvement sentence]`;
             break;
 
         default:
-            prompt = `Improve this text for a top-tier professional CV, focusing on clarity, impact, and professional tone: ${input}`;
+            prompt = `Improve this text for a top-tier professional CV, focusing on clarity, impact, and professional tone. Target Role: ${safeJobTitle}. Text: ${safeInput}`;
     }
 
     try {
-        // Use Llama 3.3 70B Versatile for state-of-the-art results (Free tier on Groq)
-        // Alternative: llama-3.1-8b-instant (even faster, slightly less reasoning)
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: prompt }
             ],
             model: "llama-3.3-70b-versatile",
-            temperature: 0.7,
-            max_tokens: 500,
+            temperature: 0.65,
+            max_tokens: 600,
             top_p: 1,
             stream: false,
         });
 
-        const result = chatCompletion.choices[0]?.message?.content || "No content generated";
-        
-        // Final "Chatter" filter (Clean up common AI slips)
-        const cleanResult = result
-            .replace(/^["']|["']$/g, '')           // Strip starting/ending quotes
-            .replace(/^Certainly!.*?\n/i, '')      // Strip "Certainly!"
-            .replace(/^Here is.*?\n/i, '')         // Strip "Here is..."
-            .replace(/\nNote:.*$/is, '')           // Strip any trailing notes
-            .replace(/\nAlternatively:.*$/is, '')  // Strip alternatives
+        const raw = chatCompletion.choices[0]?.message?.content || "No content generated";
+
+        // Final "chatter" filter
+        const cleanResult = raw
+            .replace(/^[\"']|[\"']$/g, '')
+            .replace(/^Certainly!.*?\n/i, '')
+            .replace(/^Here is.*?\n/i, '')
+            .replace(/^Sure[,!].*?\n/i, '')
+            .replace(/\nNote:.*$/is, '')
+            .replace(/\nAlternatively:.*$/is, '')
             .trim();
 
         res.json({ result: cleanResult });
+
     } catch (error) {
         console.error("AI Generation Error:", error.message);
-        
-        // Specific handling for rate limits or key issues
+
+        // Try fallback model on overload/timeout
+        if (error.status === 503 || error.status === 500) {
+            try {
+                const fallback = await groq.chat.completions.create({
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: prompt }
+                    ],
+                    model: "llama-3.1-8b-instant",
+                    temperature: 0.65,
+                    max_tokens: 600,
+                    stream: false,
+                });
+                const fallbackResult = fallback.choices[0]?.message?.content?.trim() || '';
+                return res.json({ result: fallbackResult, fallback: true });
+            } catch (fallbackErr) {
+                console.error("Fallback model also failed:", fallbackErr.message);
+            }
+        }
+
         if (error.status === 413) {
             return res.status(413).json({ error: "Input is too long for the AI assistant." });
         }
-        
-        res.status(500).json({ error: "The AI assistant is currently unavailable. Please try again in a moment." });
+        if (error.status === 429) {
+            return res.status(429).json({ error: "AI service is busy. Please try again in a moment." });
+        }
+
+        res.status(500).json({ error: "The AI assistant is currently unavailable. Please try again shortly." });
     }
 };

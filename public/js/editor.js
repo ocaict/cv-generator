@@ -416,6 +416,15 @@ function addEducationItem(data = {}) {
                     <select data-key="endYear" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-xs outline-none">${getYearOptions()}</select>
                 </div>
             </div>
+            <div class="col-span-2 text-left mt-2">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Description / Achievements</label>
+                    <button type="button" class="ai-gen-btn text-[9px] font-bold text-indigo-600 uppercase tracking-tighter hover:scale-105 transition-all flex items-center space-x-1.5 px-3 py-1 bg-indigo-50 rounded-full" data-type="education">
+                        <span>✨ AI Refine</span>
+                    </button>
+                </div>
+                <textarea data-key="description" placeholder="e.g. First Class Honours, Dean's List, thesis on machine learning..." class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-xs outline-none resize-none h-16">${data.description || ''}</textarea>
+            </div>
         </div>
     `;
     educationList.appendChild(item);
@@ -1847,6 +1856,13 @@ async function handleAIGeneration(event) {
     try {
         const jobTitleInput = document.querySelector('[name="personalInfo.jobTitle"]');
         const aiToneSelector = document.getElementById('ai-tone-selector');
+
+        // Build richer context from current cvData
+        const recentExperience = (cvData.experience || [])
+            .slice(0, 3)
+            .map(e => `${e.jobTitle || ''} at ${e.company || ''}`.trim())
+            .filter(Boolean);
+
         const response = await fetch('/api/ai/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1854,11 +1870,21 @@ async function handleAIGeneration(event) {
                 type: type,
                 input: inputData || "General responsibilities",
                 context: {
-                    jobTitle: jobTitleInput ? jobTitleInput.value : 'Professional',
-                    targetTone: aiToneSelector ? aiToneSelector.value : 'Professional'
+                    jobTitle: jobTitleInput ? jobTitleInput.value : (cvData.personalInfo?.jobTitle || 'Professional'),
+                    targetTone: aiToneSelector ? aiToneSelector.value : 'Professional',
+                    recentExperience: recentExperience,
+                    targetArea: cvData.personalInfo?.jobTitle || ''
                 }
             })
         });
+
+        if (response.status === 429) {
+            alert('You\'re generating too quickly! Please wait a moment before trying again.');
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+            btn.classList.remove('opacity-80', 'bg-indigo-100');
+            return;
+        }
 
         const data = await response.json();
         

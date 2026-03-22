@@ -51,6 +51,10 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                     <span><%= cv.isPublic ? 'Shared' : 'Share' %></span>
                 </button>
+                <button id="ats-scan-btn" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-amber-100 dark:shadow-none hover:bg-amber-600 transition-all flex items-center space-x-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span>ATS Score</span>
+                </button>
             </div>
             <!-- Status & QR row -->
             <div class="flex items-center space-x-4">
@@ -658,6 +662,92 @@
     </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- ATS Score Modal                                             -->
+<!-- ============================================================ -->
+<div id="ats-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div id="ats-backdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+
+    <!-- Panel -->
+    <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 90vh;">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-8 py-6 border-b border-gray-100 dark:border-slate-800">
+            <div>
+                <h2 class="text-lg font-extrabold text-gray-900 dark:text-white font-outfit">ATS Score Checker</h2>
+                <p class="text-xs text-gray-400 dark:text-slate-400 mt-0.5">Paste a job description to see how well your CV matches it</p>
+            </div>
+            <button id="ats-close-btn" class="w-8 h-8 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Scrollable body -->
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+            <!-- Job description input -->
+            <div id="ats-input-section">
+                <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase tracking-widest mb-2">Paste Job Description</label>
+                <textarea id="ats-job-description" rows="8" placeholder="Paste the full job description here — include requirements, responsibilities, and skills listed..." class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs text-gray-700 dark:text-slate-300 leading-relaxed focus:ring-2 focus:ring-amber-400 outline-none resize-none transition-all"></textarea>
+                <button id="ats-run-btn" class="mt-3 w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm py-3 rounded-2xl transition-all shadow-lg shadow-amber-100 dark:shadow-none flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Analyse My CV</span>
+                </button>
+            </div>
+
+            <!-- Loading state -->
+            <div id="ats-loading" class="hidden flex flex-col items-center justify-center py-12 space-y-4">
+                <div class="relative w-16 h-16">
+                    <svg class="w-16 h-16 animate-spin text-amber-400" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                </div>
+                <p class="text-sm font-bold text-gray-500 dark:text-slate-400 animate-pulse">Scanning your CV against the job...</p>
+            </div>
+
+            <!-- Results -->
+            <div id="ats-results" class="hidden space-y-6">
+                <!-- Score ring -->
+                <div class="flex items-center justify-center">
+                    <div class="relative w-36 h-36">
+                        <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#f3f4f6" stroke-width="10"/>
+                            <circle id="ats-score-ring" cx="60" cy="60" r="50" fill="none" stroke="#f59e0b" stroke-width="10"
+                                stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"
+                                style="transition: stroke-dashoffset 1.2s ease-in-out;"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="ats-score-value" class="text-4xl font-extrabold text-gray-900 dark:text-white">0</span>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">/ 100</span>
+                        </div>
+                    </div>
+                </div>
+                <p id="ats-score-label" class="text-center text-sm font-bold"></p>
+
+                <!-- Matched keywords -->
+                <div>
+                    <label class="block text-[10px] font-bold text-green-600 uppercase tracking-widest mb-2">✅ Keywords Found in Your CV</label>
+                    <div id="ats-matched-keywords" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Missing keywords -->
+                <div>
+                    <label class="block text-[10px] font-bold text-red-500 uppercase tracking-widest mb-2">❌ Keywords Missing from Your CV</label>
+                    <div id="ats-missing-keywords" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Tip -->
+                <div id="ats-tip-box" class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-4">
+                    <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1">💡 Top Recommendation</p>
+                    <p id="ats-tip-text" class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed"></p>
+                </div>
+
+                <!-- Re-scan button -->
+                <button id="ats-rescan-btn" class="w-full border-2 border-amber-400 text-amber-600 dark:text-amber-400 font-bold text-xs py-3 rounded-2xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
+                    ↩ Scan a Different Job Description
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -686,7 +776,6 @@
         qrPreviewMini.classList.remove('hidden');
     }
 
-    // Render mini QR on load if already enabled
     if (qrToggle && qrToggle.checked) {
         const slug = document.getElementById('share-btn')?.dataset.slug;
         if (slug) renderMiniQr(slug);
@@ -696,23 +785,17 @@
         qrToggle.addEventListener('change', async () => {
             const enabled = qrToggle.checked;
             const slug = document.getElementById('share-btn')?.dataset.slug;
-            
-            // Update cvData in memory and trigger preview refresh
             cvData.showQrCode = enabled;
             updatePreview();
-
             if (enabled && slug) {
                 renderMiniQr(slug);
             } else {
                 if (qrPreviewMini) qrPreviewMini.classList.add('hidden');
             }
-
-            // Persist via auto-save
             autoSave();
         });
     }
 
-    // Show QR panel after share button activates
     const shareBtnEl = document.getElementById('share-btn');
     if (shareBtnEl) {
         const observer = new MutationObserver(() => {
@@ -723,4 +806,148 @@
         });
         observer.observe(shareBtnEl, { attributes: true, attributeFilter: ['data-public'] });
     }
+
+    // ============================================================
+    // ATS Score Modal Logic
+    // ============================================================
+    const atsModal       = document.getElementById('ats-modal');
+    const atsBackdrop    = document.getElementById('ats-backdrop');
+    const atsScanBtn     = document.getElementById('ats-scan-btn');
+    const atsCloseBtn    = document.getElementById('ats-close-btn');
+    const atsRunBtn      = document.getElementById('ats-run-btn');
+    const atsRescanBtn   = document.getElementById('ats-rescan-btn');
+    const atsJobDesc     = document.getElementById('ats-job-description');
+    const atsLoading     = document.getElementById('ats-loading');
+    const atsResults     = document.getElementById('ats-results');
+    const atsInputSec    = document.getElementById('ats-input-section');
+    const atsScoreRing   = document.getElementById('ats-score-ring');
+    const atsScoreValue  = document.getElementById('ats-score-value');
+    const atsScoreLabel  = document.getElementById('ats-score-label');
+    const atsMatchedKW   = document.getElementById('ats-matched-keywords');
+    const atsMissingKW   = document.getElementById('ats-missing-keywords');
+    const atsTipText     = document.getElementById('ats-tip-text');
+
+    function openAtsModal() {
+        atsModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        atsResults.classList.add('hidden');
+        atsLoading.classList.add('hidden');
+        atsInputSec.classList.remove('hidden');
+    }
+
+    function closeAtsModal() {
+        atsModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function getScoreColor(score) {
+        if (score >= 75) return { ring: '#22c55e', label: '🟢 Excellent Match — Your CV is well-optimised for this role!', labelClass: 'text-green-600' };
+        if (score >= 50) return { ring: '#f59e0b', label: '🟡 Moderate Match — A few tweaks will make a big difference.', labelClass: 'text-amber-500' };
+        return { ring: '#ef4444', label: '🔴 Low Match — Your CV needs keyword improvements for this role.', labelClass: 'text-red-500' };
+    }
+
+    async function runAtsScan() {
+        const jobDesc = atsJobDesc.value.trim();
+        if (jobDesc.length < 50) {
+            alert('Please paste a more complete job description (at least a few sentences).');
+            return;
+        }
+
+        // Build CV content summary for ATS comparison
+        const cvText = [
+            cvData.personalInfo?.summary || '',
+            (cvData.experience || []).map(e => `${e.jobTitle} ${e.company} ${e.responsibilities || ''}`).join(' '),
+            (cvData.skills?.technical || []).join(' '),
+            (cvData.skills?.soft || []).join(' '),
+            (cvData.education || []).map(e => `${e.degree} ${e.school} ${e.description || ''}`).join(' ')
+        ].join(' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 3000);
+
+        atsInputSec.classList.add('hidden');
+        atsLoading.classList.remove('hidden');
+        atsResults.classList.add('hidden');
+
+        try {
+            const res = await fetch('/api/ai/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'ats',
+                    input: cvText,
+                    context: { jobDescription: jobDesc }
+                })
+            });
+
+            if (res.status === 429) {
+                alert('Too many requests — please wait a moment before scanning again.');
+                atsInputSec.classList.remove('hidden');
+                atsLoading.classList.add('hidden');
+                return;
+            }
+
+            const data = await res.json();
+            if (!data.result) throw new Error('No result');
+
+            // Parse structured response
+            const scoreMatch   = data.result.match(/SCORE:\s*(\d+)/);
+            const matchedMatch = data.result.match(/MATCHED:\s*([^\n]+)/);
+            const missingMatch = data.result.match(/MISSING:\s*([^\n]+)/);
+            const tipMatch     = data.result.match(/TIP:\s*([^\n]+)/);
+
+            const score   = scoreMatch   ? Math.min(100, parseInt(scoreMatch[1]))   : 0;
+            const matched = matchedMatch ? matchedMatch[1].split(',').map(k => k.trim()).filter(Boolean) : [];
+            const missing = missingMatch ? missingMatch[1].split(',').map(k => k.trim()).filter(Boolean) : [];
+            const tip     = tipMatch     ? tipMatch[1].trim() : 'Review the job description for key terms and add them naturally to your CV.';
+
+            // Animate score ring
+            const circumference = 2 * Math.PI * 50; // 314.16
+            const offset = circumference - (score / 100) * circumference;
+            const { ring, label, labelClass } = getScoreColor(score);
+
+            atsScoreRing.style.stroke = ring;
+            atsScoreRing.style.strokeDashoffset = circumference; // reset
+            setTimeout(() => { atsScoreRing.style.strokeDashoffset = offset; }, 50);
+
+            // Animate counter
+            let current = 0;
+            const step = Math.ceil(score / 40);
+            const counter = setInterval(() => {
+                current = Math.min(current + step, score);
+                atsScoreValue.textContent = current;
+                if (current >= score) clearInterval(counter);
+            }, 30);
+
+            atsScoreLabel.textContent = label;
+            atsScoreLabel.className = `text-center text-sm font-bold ${labelClass}`;
+
+            // Render keyword chips
+            atsMatchedKW.innerHTML = matched.length
+                ? matched.map(k => `<span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full uppercase tracking-wide">${k}</span>`).join('')
+                : '<span class="text-xs text-gray-400">No direct keyword matches found.</span>';
+
+            atsMissingKW.innerHTML = missing.length
+                ? missing.map(k => `<span class="px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold rounded-full uppercase tracking-wide">${k}</span>`).join('')
+                : '<span class="text-xs text-gray-400">Great — no critical missing keywords!</span>';
+
+            atsTipText.textContent = tip;
+
+            atsLoading.classList.add('hidden');
+            atsResults.classList.remove('hidden');
+
+        } catch (err) {
+            console.error('ATS error:', err);
+            alert('ATS scan failed. Please try again.');
+            atsInputSec.classList.remove('hidden');
+            atsLoading.classList.add('hidden');
+        }
+    }
+
+    atsScanBtn?.addEventListener('click', openAtsModal);
+    atsCloseBtn?.addEventListener('click', closeAtsModal);
+    atsBackdrop?.addEventListener('click', closeAtsModal);
+    atsRunBtn?.addEventListener('click', runAtsScan);
+    atsRescanBtn?.addEventListener('click', () => {
+        atsResults.classList.add('hidden');
+        atsInputSec.classList.remove('hidden');
+        atsJobDesc.value = '';
+    });
 </script>
