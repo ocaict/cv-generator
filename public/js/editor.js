@@ -1863,6 +1863,22 @@ async function handleAIGeneration(event) {
         const jobTitleInput = document.querySelector('[name="personalInfo.jobTitle"]');
         const aiToneSelector = document.getElementById('ai-tone-selector');
 
+        // Extract block-specific context for items (Education/Experience) so AI doesn't hallucinate missing details
+        let blockContext = "";
+        const eduContainer = btn.closest('.education-item');
+        if (eduContainer && type === 'education') {
+            const currentDegree = eduContainer.querySelector('[data-key="degree"]')?.value || 'Degree';
+            const currentSchool = eduContainer.querySelector('[data-key="school"]')?.value || 'Institution';
+            blockContext = `For Degree: ${currentDegree} at ${currentSchool}`;
+        }
+        
+        const expContainer = btn.closest('.experience-item');
+        if (expContainer && type === 'experience') {
+            const currentRole = expContainer.querySelector('[data-key="jobTitle"]')?.value || 'Role';
+            const currentCompany = expContainer.querySelector('[data-key="company"]')?.value || 'Company';
+            blockContext = `For Role: ${currentRole} at ${currentCompany}`;
+        }
+
         // Build richer context from current cvData
         const recentExperience = (cvData.experience || [])
             .slice(0, 3)
@@ -1880,7 +1896,8 @@ async function handleAIGeneration(event) {
                     jobTitle: jobTitleInput ? jobTitleInput.value : (cvData.personalInfo?.jobTitle || 'Professional'),
                     targetTone: aiToneSelector ? aiToneSelector.value : 'Professional',
                     recentExperience: recentExperience,
-                    targetArea: cvData.personalInfo?.jobTitle || ''
+                    targetArea: cvData.personalInfo?.jobTitle || '',
+                    blockContext: blockContext
                 }
             })
         });

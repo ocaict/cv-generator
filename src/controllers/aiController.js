@@ -49,6 +49,14 @@ exports.generateAI = async (req, res) => {
             .join('; ');
     }
 
+    const safeBlockContext = sanitizeField(context?.blockContext || '', 150);
+    
+    // Auto-inject blockContext inline to the input data explicitly if missing from input
+    let enrichedInput = safeInput;
+    if (safeBlockContext) {
+        enrichedInput = `[${safeBlockContext}]\\n${safeInput}`;
+    }
+
     if (!safeInput && type !== 'skills') {
         return res.status(400).json({ error: "Input is empty after sanitization." });
     }
@@ -99,7 +107,7 @@ exports.generateAI = async (req, res) => {
 
         case 'experience':
             prompt = `Transform the following job responsibilities into high-impact, results-driven bullet points using the STAR method (Situation, Task, Action, Result).
-            Original Content: ${safeInput}
+            Original Content: ${enrichedInput}
             Target Role: ${safeJobTitle}
             Tone: ${safeTone}
             ${experienceContext ? `Career Context: ${experienceContext}` : ''}
@@ -122,7 +130,7 @@ exports.generateAI = async (req, res) => {
 
         case 'education':
             prompt = `Rewrite the following education entry to sound polished and impactful on a professional CV.
-            Original Text: ${safeInput}
+            Original Text: ${enrichedInput}
             Target Role Context: ${safeJobTitle}
             Guidelines:
             - Keep it concise (1-2 sentences max).
