@@ -126,6 +126,38 @@ exports.generateAI = async (req, res) => {
             TIP: [one specific, actionable improvement sentence]`;
             break;
 
+        case 'cv-review':
+            prompt = `You are a senior recruiter and professional CV consultant with 15+ years of experience hiring across multiple industries.
+Analyse the following CV content thoroughly and return your assessment in this EXACT structured format (no other text, no preamble):
+
+SCORE: [single integer 0-100 reflecting overall CV quality]
+LEVEL: [one of: Needs Work | Developing | Solid | Strong | Exceptional]
+STRENGTH_1: [specific strength with brief explanation, max 15 words]
+STRENGTH_2: [specific strength with brief explanation, max 15 words]
+STRENGTH_3: [specific strength with brief explanation, max 15 words]
+WEAKNESS_1: [specific weakness with brief explanation, max 15 words]
+WEAKNESS_2: [specific weakness with brief explanation, max 15 words]
+WEAKNESS_3: [specific weakness with brief explanation, max 15 words]
+ACTION_1: [concrete, actionable improvement tip, max 20 words]
+ACTION_2: [concrete, actionable improvement tip, max 20 words]
+ACTION_3: [concrete, actionable improvement tip, max 20 words]
+VERDICT: [one motivating sentence summarising the CV overall readiness for the job market]
+
+CV Content to Analyse:
+${safeInput}
+
+Target Role / Industry: ${safeJobTitle}
+
+Scoring Criteria (weight each):
+- Impact & Quantification (25%): Are achievements measurable? Do bullet points show results?
+- Completeness (20%): Are all key sections present (summary, experience, skills, education)?
+- Relevance & ATS Compatibility (20%): Is language targeted, keyword-rich, and modern?
+- Clarity & Structure (20%): Is the CV easy to scan? Are sections clearly defined?
+- Professional Tone (15%): Is the language confident, active-voice, and typo-free?
+
+CRITICAL: Follow the EXACT format above. Output ONLY the structured lines. No extra explanation.`;
+            break;
+
         case 'cover-letter':
             const companyName = sanitizeField(context?.companyName || 'the company', 120);
             const hiringManager = sanitizeField(context?.hiringManager || '', 80);
@@ -166,7 +198,7 @@ CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subje
             ],
             model: "llama-3.3-70b-versatile",
             temperature: 0.65,
-            max_tokens: 600,
+            max_tokens: 800,
             top_p: 1,
             stream: false,
         });

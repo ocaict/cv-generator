@@ -59,6 +59,10 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     <span>Cover Letter</span>
                 </button>
+                <button id="cv-review-btn" class="bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-emerald-100 dark:shadow-none hover:bg-emerald-600 transition-all flex items-center space-x-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Review CV</span>
+                </button>
             </div>
             <!-- Status & QR row -->
             <div class="flex items-center space-x-4">
@@ -667,6 +671,85 @@
 </div>
 
 <!-- ============================================================ -->
+<!-- CV Review Modal                                             -->
+<!-- ============================================================ -->
+<div id="review-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div id="review-backdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col" style="max-height:92vh;">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-8 py-5 border-b border-gray-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800">
+            <div>
+                <h2 class="text-lg font-extrabold text-gray-900 dark:text-white font-outfit">🧠 CV Review</h2>
+                <p class="text-xs text-gray-400 dark:text-slate-400 mt-0.5">AI-powered professional assessment of your entire CV</p>
+            </div>
+            <button id="review-close-btn" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-700 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+            <!-- Loading -->
+            <div id="review-loading" class="flex flex-col items-center justify-center py-16 space-y-4">
+                <svg class="w-12 h-12 animate-spin text-emerald-400" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                <p class="text-sm font-bold text-gray-400 animate-pulse">Analysing your CV...</p>
+            </div>
+
+            <!-- Results -->
+            <div id="review-results" class="hidden space-y-6">
+                <!-- Score + Level -->
+                <div class="flex items-center space-x-8">
+                    <div class="relative w-32 h-32 flex-shrink-0">
+                        <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="#f0fdf4" stroke-width="10"/>
+                            <circle id="review-score-ring" cx="60" cy="60" r="50" fill="none" stroke="#10b981" stroke-width="10"
+                                stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"
+                                style="transition: stroke-dashoffset 1.2s ease-in-out;"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="review-score-value" class="text-4xl font-extrabold text-gray-900 dark:text-white">0</span>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">/ 100</span>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <p id="review-level-badge" class="inline-block text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full mb-2"></p>
+                        <p id="review-verdict" class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <!-- Strengths -->
+                <div>
+                    <h3 class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center space-x-1.5">
+                        <span>✅</span><span>3 Strengths</span>
+                    </h3>
+                    <div id="review-strengths" class="space-y-2"></div>
+                </div>
+
+                <!-- Weaknesses -->
+                <div>
+                    <h3 class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3 flex items-center space-x-1.5">
+                        <span>⚠️</span><span>3 Areas to Improve</span>
+                    </h3>
+                    <div id="review-weaknesses" class="space-y-2"></div>
+                </div>
+
+                <!-- Action Items -->
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-2xl p-5">
+                    <h3 class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-3 flex items-center space-x-1.5">
+                        <span>💡</span><span>Top 3 Actions to Take Now</span>
+                    </h3>
+                    <div id="review-actions" class="space-y-2.5"></div>
+                </div>
+
+                <!-- Re-review button -->
+                <button id="review-rerun-btn" class="w-full border-2 border-emerald-400 text-emerald-600 dark:text-emerald-400 font-bold text-xs py-3 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
+                    ↺ Run Review Again
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
 <!-- Cover Letter Modal                                          -->
 <!-- ============================================================ -->
 <div id="cl-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1201,5 +1284,134 @@
             }, 2000);
         });
     });
+
+    // ============================================================
+    // CV Review Modal Logic
+    // ============================================================
+    const reviewModal    = document.getElementById('review-modal');
+    const reviewBackdrop = document.getElementById('review-backdrop');
+    const reviewOpenBtn  = document.getElementById('cv-review-btn');
+    const reviewCloseBtn = document.getElementById('review-close-btn');
+    const reviewLoading  = document.getElementById('review-loading');
+    const reviewResults  = document.getElementById('review-results');
+    const reviewRerunBtn = document.getElementById('review-rerun-btn');
+
+    function openReviewModal() {
+        reviewModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        runCvReview();
+    }
+    function closeReviewModal() {
+        reviewModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    async function runCvReview() {
+        reviewLoading.classList.remove('hidden');
+        reviewResults.classList.add('hidden');
+
+        // Reset score
+        document.getElementById('review-score-ring').style.strokeDashoffset = '314';
+        document.getElementById('review-score-value').textContent = '0';
+
+        const cvText = [
+            cvData.personalInfo?.summary || '',
+            (cvData.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${(e.responsibilities || '').replace(/<[^>]+>/g, ' ')}`).join(' '),
+            (cvData.skills?.technical || []).join(', '),
+            (cvData.skills?.soft || []).join(', '),
+            (cvData.education || []).map(e => `${e.degree} from ${e.school}`).join(', ')
+        ].join(' ').replace(/\s+/g, ' ').slice(0, 3000);
+
+        try {
+            const res = await fetch('/api/ai/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'cv-review',
+                    input: cvText,
+                    context: {
+                        jobTitle: cvData.personalInfo?.jobTitle || 'General Professional'
+                    }
+                })
+            });
+
+            if (res.status === 429) {
+                alert('Too many requests. Please wait a minute and try again.');
+                closeReviewModal();
+                return;
+            }
+
+            const data = await res.json();
+            if (!data.result) throw new Error('Empty result');
+
+            // Parse structured output
+            const lines = data.result.split('\n').filter(l => l.trim());
+            const parsed = {
+                score: 0, level: '', verdict: '',
+                strengths: [], weaknesses: [], actions: []
+            };
+
+            lines.forEach(line => {
+                const text = line.trim();
+                if (text.startsWith('SCORE:')) parsed.score = parseInt(text.replace('SCORE:', '').trim()) || 0;
+                else if (text.startsWith('LEVEL:')) parsed.level = text.replace('LEVEL:', '').trim();
+                else if (text.startsWith('VERDICT:')) parsed.verdict = text.replace('VERDICT:', '').trim();
+                else if (text.startsWith('STRENGTH_')) parsed.strengths.push(text.split(':').slice(1).join(':').trim());
+                else if (text.startsWith('WEAKNESS_')) parsed.weaknesses.push(text.split(':').slice(1).join(':').trim());
+                else if (text.startsWith('ACTION_')) parsed.actions.push(text.split(':').slice(1).join(':').trim());
+            });
+
+            // Populate UI
+            const bdg = document.getElementById('review-level-badge');
+            bdg.textContent = parsed.level;
+            bdg.className = 'inline-block text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full mb-2 ' + 
+                (parsed.score >= 80 ? 'bg-emerald-100 text-emerald-700' : 
+                 parsed.score >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700');
+
+            document.getElementById('review-verdict').textContent = parsed.verdict;
+
+            // Lists
+            const buildList = (items, colorClass, iconHtml) => items.map(item => `
+                <div class="flex items-start space-x-2">
+                    <span class="mt-0.5 ${colorClass}">${iconHtml}</span>
+                    <span class="text-xs text-gray-700 dark:text-slate-300 font-medium">${item}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('review-strengths').innerHTML = buildList(parsed.strengths.slice(0, 3), 'text-emerald-500', '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>');
+            document.getElementById('review-weaknesses').innerHTML = buildList(parsed.weaknesses.slice(0, 3), 'text-rose-400', '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>');
+            document.getElementById('review-actions').innerHTML = buildList(parsed.actions.slice(0, 3), 'text-emerald-600', '<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>');
+
+            reviewLoading.classList.add('hidden');
+            reviewResults.classList.remove('hidden');
+
+            // Animate Score
+            setTimeout(() => {
+                const ring = document.getElementById('review-score-ring');
+                const valEl = document.getElementById('review-score-value');
+                const offset = 314 - (parsed.score / 100) * 314;
+                ring.style.strokeDashoffset = offset;
+                ring.style.stroke = parsed.score >= 80 ? '#10b981' : parsed.score >= 60 ? '#f59e0b' : '#ef4444';
+                
+                let current = 0;
+                const incr = parsed.score / 30; // 30 frames
+                const ival = setInterval(() => {
+                    current += incr;
+                    if (current >= parsed.score) { current = parsed.score; clearInterval(ival); }
+                    valEl.textContent = Math.round(current);
+                }, 40);
+            }, 100);
+
+        } catch (err) {
+            console.error('Review Error:', err);
+            alert('Could not analyse CV at this moment. Please try again.');
+            closeReviewModal();
+        }
+    }
+
+    reviewOpenBtn?.addEventListener('click', openReviewModal);
+    reviewCloseBtn?.addEventListener('click', closeReviewModal);
+    reviewBackdrop?.addEventListener('click', closeReviewModal);
+    reviewRerunBtn?.addEventListener('click', runCvReview);
 </script>
 
