@@ -600,11 +600,32 @@ function addEducationItem(data = {}) {
                         <span>✨ AI Refine</span>
                     </button>
                 </div>
-                <textarea data-key="description" placeholder="e.g. First Class Honours, Dean's List, thesis on machine learning..." class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-xs outline-none resize-none h-16">${data.description || ''}</textarea>
+                <!-- Mini Quill Editor for Education -->
+                <div class="quill-editor bg-gray-50 border border-gray-100 rounded-xl text-xs h-32 mb-2 overflow-hidden"></div>
+                <input type="hidden" data-key="description" value="${data.description || ''}">
             </div>
         </div>
     `;
     educationList.appendChild(item);
+    
+    // Initialize Quill for Education Achievements
+    const quillEl = item.querySelector('.quill-editor');
+    const hiddenInput = item.querySelector('[data-key="description"]');
+    const quill = new Quill(quillEl, {
+        theme: 'snow',
+        modules: {
+            toolbar: [['bold', 'italic'], [{ 'list': 'bullet' }], ['clean']]
+        }
+    });
+
+    if (data.description) {
+        quill.root.innerHTML = data.description;
+    }
+
+    quill.on('text-change', () => {
+        hiddenInput.value = quill.root.innerHTML;
+        updatePreview();
+    });
 
     // Accordion Logic
     const header = item.querySelector('.accordion-header');
@@ -624,7 +645,7 @@ function addEducationItem(data = {}) {
     if (data.endMonth) item.querySelector('[data-key="endMonth"]').value = data.endMonth;
     if (data.endYear) item.querySelector('[data-key="endYear"]').value = data.endYear;
 
-    item.querySelectorAll('input, select, textarea').forEach(el => {
+    item.querySelectorAll('input, select').forEach(el => {
         el.addEventListener('input', (e) => {
             if (e.target.dataset.key === 'degree') titleText.innerText = e.target.value || 'New Degree';
             if (e.target.dataset.key === 'school') subtitleText.innerText = (e.target.value || 'University Name').toUpperCase();
@@ -834,6 +855,7 @@ function updatePreview() {
             firstName: formData.get('personalInfo.firstName'),
             lastName: formData.get('personalInfo.lastName'),
             jobTitle: formData.get('personalInfo.jobTitle'),
+            headline: formData.get('personalInfo.headline'),
             email: formData.get('personalInfo.email'),
             phone: formData.get('personalInfo.phone'),
             address: formData.get('personalInfo.address'),
@@ -883,6 +905,7 @@ function updatePreview() {
     
     Object.assign(cvData, data);
     renderPreview(cvData);
+    calculateProfileStrength(); // Update gamified strength
     triggerAutoSave();
 }
 
@@ -1360,6 +1383,7 @@ function renderModernTemplate(data, fullName, locationStr) {
                     <div>
                         <h1 class="text-5xl font-extrabold text-gray-900 mb-1 uppercase tracking-tighter font-heading">${fullName}</h1>
                         <p class="text-2xl font-bold text-indigo-600 uppercase tracking-widest leading-none font-heading">${data.personalInfo.jobTitle || 'Job Role'}</p>
+                        ${data.personalInfo.headline ? `<p class="mt-4 text-[11px] font-medium text-gray-500 max-w-lg italic font-serif leading-relaxed">${data.personalInfo.headline}</p>` : ''}
                     </div>
                     <div class="flex items-end space-x-4">
                         ${data.personalInfo.photo && photoStyle !== 'hidden' ? `
@@ -1508,7 +1532,9 @@ function renderClassicTemplate(data, fullName, locationStr) {
                     </div>
                 ` : ''}
                 <h1 class="text-3xl font-serif font-bold text-gray-900 border-b border-gray-900 pb-2 mb-2 italic tracking-tighter">${fullName}</h1>
-                <p class="text-[10px] text-gray-500 mb-8 font-serif uppercase tracking-widest">
+                <p class="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-1 italic">${data.personalInfo.jobTitle || ''}</p>
+                ${data.personalInfo.headline ? `<p class="text-[10px] text-gray-500 mb-4 font-serif italic max-w-xl mx-auto">${data.personalInfo.headline}</p>` : ''}
+                <p class="text-[10px] text-gray-400 mb-8 font-serif uppercase tracking-widest">
                     ${data.personalInfo.email} | ${data.personalInfo.phone}
                     ${locationStr ? ` | ${locationStr}` : ''}
                     ${data.personalInfo.linkedin ? ` | ${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}` : ''}
@@ -1654,6 +1680,7 @@ function renderGridTemplate(data, fullName, locationStr) {
                     <div>
                         <h1 class="text-4xl font-extrabold text-gray-900 mb-1 uppercase tracking-tight font-heading">${fullName}</h1>
                         <p class="text-lg font-bold text-indigo-600 uppercase tracking-widest leading-none font-heading">${data.personalInfo.jobTitle || ''}</p>
+                        ${data.personalInfo.headline ? `<p class="mt-3 text-[10px] font-medium text-gray-500 max-w-sm italic tracking-tight font-serif leading-relaxed">${data.personalInfo.headline}</p>` : ''}
                     </div>
                     ${data.personalInfo.photo && photoStyle !== 'hidden' ? `
                         <div class="w-20 h-20 ${photoClasses} overflow-hidden border-2 border-gray-100">
@@ -1774,7 +1801,8 @@ function renderMinimalistTemplate(data, fullName, locationStr) {
             <div class="minimalist-template animate-fade-in px-20 py-16 min-h-[1123px] text-gray-800 font-outfit">
                 <header class="text-center mb-12">
                     <h1 class="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">${fullName}</h1>
-                    <p class="text-lg font-bold text-indigo-600 uppercase tracking-widest mb-4">${data.personalInfo.jobTitle || ''}</p>
+                    <p class="text-lg font-bold text-indigo-600 uppercase tracking-widest mb-2 leading-none">${data.personalInfo.jobTitle || ''}</p>
+                    ${data.personalInfo.headline ? `<p class="text-[11px] font-medium text-gray-400 italic mb-4 max-w-lg mx-auto leading-relaxed">${data.personalInfo.headline}</p>` : ''}
                     <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs font-medium text-gray-500">
                         ${data.personalInfo.email ? `<span>${data.personalInfo.email}</span>` : ''}
                         ${data.personalInfo.phone ? `<span>•</span> <span>${data.personalInfo.phone}</span>` : ''}
@@ -2002,10 +2030,10 @@ async function handleAIGeneration(event) {
         editorEl = document.querySelector(`[name="${targetKey}"], [data-key="${targetKey}"]`);
     }
     
-    // Fallback: search surrounding area for Quill editors
+    // Fallback: search surrounding area for editors or standard inputs
     if (!editorEl) {
         const section = btn.closest('.col-span-2') || btn.closest('.experience-item') || btn.closest('div');
-        editorEl = section ? section.querySelector('.quill-editor, #summary-editor, textarea') : null;
+        editorEl = section ? section.querySelector('.quill-editor, #summary-editor, textarea, input') : null;
     }
     
     if (!editorEl) {
@@ -2014,23 +2042,23 @@ async function handleAIGeneration(event) {
     }
     
     let inputData = "";
-    const isTextarea = editorEl.tagName === 'TEXTAREA';
+    const isSimpleInput = editorEl.tagName === 'TEXTAREA' || editorEl.tagName === 'INPUT';
     
-    if (isTextarea) {
+    if (isSimpleInput) {
         inputData = editorEl.value.trim();
     } else {
         const quill = Quill.find(editorEl);
         if (quill) inputData = quill.getText().trim();
     }
 
-    // For skills, we allow empty input as it's based on the Job Title
-    if (type !== 'skills' && (!inputData || inputData.length < 5)) {
+    // For skills/headlines, we allow empty input as it's based on the Job Title
+    if (type !== 'skills' && type !== 'headline' && (!inputData || inputData.length < 5)) {
         alert("Please write a few words first so the AI has something to improve!");
         return;
     }
 
     const originalContent = btn.innerHTML;
-    const previousValue = isTextarea ? editorEl.value : Quill.find(editorEl).root.innerHTML;
+    const previousValue = isSimpleInput ? editorEl.value : Quill.find(editorEl).root.innerHTML;
 
     btn.innerHTML = '<span class="flex items-center space-x-1"><span>✨</span><span class="animate-pulse">Thinking...</span></span>';
     btn.disabled = true;
@@ -2108,7 +2136,7 @@ async function handleAIGeneration(event) {
             const decoder = new TextDecoder('utf-8');
             let buffer = '';
 
-            if (!isTextarea) {
+            if (!isSimpleInput) {
                 const quill = Quill.find(editorEl);
                 quill.setText('');
             } else {
@@ -2134,7 +2162,7 @@ async function handleAIGeneration(event) {
                             const parsed = JSON.parse(dataStr);
                             if (parsed.text) {
                                 finalResult += parsed.text;
-                                if (isTextarea) {
+                                if (isSimpleInput) {
                                     editorEl.value = finalResult;
                                     editorEl.scrollTop = editorEl.scrollHeight;
                                 } else {
@@ -2152,7 +2180,7 @@ async function handleAIGeneration(event) {
         }
 
         if (finalResult) {
-            if (isTextarea) {
+            if (isSimpleInput) {
                 editorEl.value = finalResult;
                 editorEl.dispatchEvent(new Event('input', { bubbles: true }));
             } else {
@@ -2466,3 +2494,290 @@ ipResetBtn?.addEventListener('click', () => {
     ipInputSec.classList.remove('hidden');
     ipJobDesc.value = '';
 });
+
+/**
+ * AI Growth Mentor: Profile Strength & Proactive Tips
+ */
+function calculateProfileStrength() {
+    let score = 0;
+    const data = cvData || {};
+    
+    // 1. Personal Info (15%)
+    const pi = data.personalInfo || {};
+    let piSub = 0;
+    if (pi.firstName && pi.lastName) piSub += 5;
+    if (pi.email && pi.phone) piSub += 5;
+    if (pi.jobTitle && pi.headline) piSub += 5;
+    else if (pi.jobTitle || pi.headline) piSub += 2.5; 
+    score += piSub;
+    
+    // 2. Summary (20%)
+    const summaryText = (pi.summary || '').replace(/<[^>]+>/g, '').trim();
+    if (summaryText.length > 100) score += 20;
+    else if (summaryText.length > 20) score += 10;
+    
+    // 3. Experience (30%)
+    const exp = data.experience || [];
+    if (exp.length >= 2) score += 30;
+    else if (exp.length === 1) score += 15;
+    
+    // 4. Education (15%)
+    const edu = data.education || [];
+    if (edu.length >= 1) score += 15;
+    
+    // 5. Skills (20%)
+    const skills = data.skills || {};
+    let skillSub = 0;
+    if (skills.technical && skills.technical.length >= 4) skillSub += 10;
+    else if (skills.technical && skills.technical.length >= 1) skillSub += 5;
+    
+    if (skills.soft && skills.soft.length >= 3) skillSub += 10;
+    else if (skills.soft && skills.soft.length >= 1) skillSub += 5;
+    score += skillSub;
+    
+    // Safety clamp
+    score = Math.min(100, Math.max(0, score));
+    
+    updateStrengthUI(score);
+    return score;
+}
+
+function updateStrengthUI(score) {
+    const bar = document.getElementById('strength-bar');
+    const pct = document.getElementById('strength-percentage');
+    const label = document.getElementById('strength-label');
+    const tipBox = document.getElementById('proactive-tip-box');
+    const tipText = document.getElementById('proactive-tip-text');
+    
+    if (!bar || !pct || !label) return;
+    
+    const prevScore = parseInt(pct.innerText) || 0;
+    bar.style.width = score + '%';
+    pct.innerText = score + '%';
+    
+    // Dynamic Labels & Tiers
+    let level = 'Beginner';
+    if (score < 30) level = 'Just Starting';
+    else if (score < 60) level = 'Developing';
+    else if (score < 90) level = 'Professional';
+    else level = 'Elite Masterpiece';
+    
+    label.innerText = level;
+    
+    // Determine which section needs fixing for Magic Fix & Tip Text
+    let fixType = '';
+    let fixTarget = '';
+    let fixLabel = '';
+    let tip = '';
+
+    const pi = cvData.personalInfo || {};
+    const summaryText = (pi.summary || '').replace(/<[^>]+>/g, '').trim();
+
+    if (summaryText.length < 20) {
+        tip = 'Add your <strong>Job Title</strong> and a brief <strong>Summary</strong> to jump-start your profile!';
+        fixType = 'summary';
+        fixTarget = 'personalInfo.summary';
+        fixLabel = 'Write Professional Summary';
+    } else if (!cvData.skills?.technical || cvData.skills.technical.length < 3) {
+        tip = 'You\'re almost there! Add at least <strong>4 Technical Skills</strong> to reach the top tier.';
+        fixType = 'skills';
+        fixTarget = 'skills.technical';
+        fixLabel = 'Suggest Smart Skills';
+    } else if (!cvData.education || cvData.education.length === 0) {
+        tip = 'Education is key! At least one <strong>Degree</strong> or <strong>Professional Cert</strong> is highly recommended.';
+        fixType = 'education-add';
+        fixLabel = 'Suggest Smart Education';
+    } else if (!cvData.skills?.soft || cvData.skills.soft.length < 3) {
+        tip = 'Great tech stack! Now add a few <strong>Soft Skills</strong> (Leadership, Communication) to show your human impact.';
+        fixType = 'soft-skills';
+        fixTarget = 'skills.soft';
+        fixLabel = 'Suggest Soft Skills';
+    } else if (!cvData.experience || cvData.experience.length === 0) {
+        tip = 'Your profile is taking shape! Add your first <strong>Experience</strong> item to build trust with recruiters.';
+        fixType = 'experience';
+        fixLabel = 'Suggest Draft Experience';
+    } else if (score < 90) {
+        const hasWeakExp = cvData.experience.some(e => (e.responsibilities || '').replace(/<[^>]+>/g, '').trim().length < 50);
+        if (hasWeakExp) {
+            tip = 'One of your <strong>Experience</strong> items looks a bit weak. Let me help you add some high-impact bullet points!';
+            fixType = 'experience-enhance';
+            fixLabel = 'Enhance Experience';
+        } else {
+            tip = 'Adding more <strong>Experience</strong> items with bullet points is the fastest way to get noticed.';
+            fixType = 'experience-add'; // Just trigger normal generation
+            fixLabel = 'Add Sample Experience';
+        }
+    } else if (score < 100) {
+        tip = 'Your CV is strong! Want to beat the competition? Let me check for <strong>Hidden Skill Gaps</strong>.';
+        fixType = 'skill-gap';
+        fixLabel = 'Run Gap Analysis';
+    } else {
+        tip = 'Your CV is looking <strong>Elite Masterpiece</strong>. Ready to share it?';
+    }
+
+    if (tipText) tipText.innerHTML = `${tip} ${fixLabel ? `<button type="button" onclick="handleMagicFix('${fixType}', '${fixTarget}')" class="ml-2 px-2 py-0.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-all text-[8px] font-black uppercase tracking-widest shadow-sm">✨ Magic Fix</button>` : ''}`;
+    
+    // Show tip if score changed or significant
+    if (tipBox && score < 100) {
+        tipBox.classList.remove('hidden');
+    } else if (tipBox && score === 100) {
+        tipText.innerHTML = "Perfect Score! You’re ready to apply. 🚀";
+    }
+
+    // Success flash if score increased
+    if (score > prevScore && score > 0) {
+        pct.classList.add('animate-bounce', 'text-green-500');
+        setTimeout(() => pct.classList.remove('animate-bounce', 'text-green-500'), 1000);
+    }
+}
+
+/**
+ * Handle Magic Fix One-Click Optimization
+ */
+async function handleMagicFix(type, target) {
+    const tipText = document.getElementById('proactive-tip-text');
+    const originalTip = tipText.innerHTML;
+    
+    tipText.innerHTML = '<span class="flex items-center space-x-2"><span class="animate-spin text-indigo-500 text-xs">🌀</span><span class="animate-pulse">Co-pilot is working its magic...</span></span>';
+    
+    try {
+        // Find the first relevant button to trigger the same UI logic
+        const contextType = type === 'experience' ? 'experience-add' : type === 'experience-enhance' ? 'experience' : type;
+        const specificType = `magic-fix-${contextType}`; // magic-fix-summary, magic-fix-skills, etc
+        
+        const mockBtn = document.createElement('button');
+        mockBtn.dataset.type = specificType;
+        mockBtn.dataset.target = target;
+        mockBtn.className = 'ai-gen-btn hidden'; // invisible but present for logic
+        
+        // Pass the actual section being fixed as blockContext
+        const contextLabel = type === 'summary' ? 'Summary' : type === 'skills' ? 'Technical Skills' : 'Experience';
+        
+        // Call the main generator with specific type
+        
+        let dynamicInput = (cvData.personalInfo.jobTitle || 'Professional');
+        if (type === 'summary') dynamicInput = (cvData.personalInfo.summary || 'Write a summary');
+        if (type === 'experience-enhance') {
+            const firstExp = cvData.experience?.[0];
+            dynamicInput = firstExp ? `${firstExp.jobTitle} at ${firstExp.company}: ${firstExp.responsibilities}` : dynamicInput;
+        }
+        if (type === 'skill-gap') {
+            dynamicInput = (cvData.skills?.technical || []).join(', ');
+        }
+        if (type === 'education-add') {
+            dynamicInput = cvData.personalInfo.jobTitle || 'Professional';
+        }
+
+        const response = await fetch('/api/ai/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: specificType,
+                input: dynamicInput,
+                context: {
+                    jobTitle: cvData.personalInfo.jobTitle || 'Professional',
+                    blockContext: contextLabel
+                }
+            })
+        });
+
+        const data = await response.json();
+        if (data.result) {
+            // Apply result based on target
+            if (type === 'summary') {
+                const summaryEditor = document.getElementById('summary-editor');
+                if (summaryEditor) {
+                    const quill = Quill.find(summaryEditor);
+                    quill.root.innerHTML = data.result;
+                }
+            } else if (type === 'skills') {
+                const skillsInput = document.querySelector('[name="skills.technical"]');
+                if (skillsInput) skillsInput.value = data.result;
+            } else if (type === 'soft-skills') {
+                const softSkillsInput = document.querySelector('[name="skills.soft"]');
+                if (softSkillsInput) softSkillsInput.value = data.result;
+            } else if (type === 'experience' || type === 'experience-add') {
+                const parts = data.result.split('|');
+                if (parts.length >= 5) {
+                    addExperienceItem({
+                        company: parts[0],
+                        jobTitle: parts[1],
+                        startYear: parts[2],
+                        endYear: parts[3],
+                        responsibilities: parts[4],
+                        isPresent: parts[3].toLowerCase() === 'present'
+                    });
+                }
+            } else if (type === 'experience-enhance') {
+                const firstExpEl = document.querySelector('.experience-item');
+                if (firstExpEl) {
+                    const quillEl = firstExpEl.querySelector('.quill-editor');
+                    if (quillEl) {
+                        const quill = Quill.find(quillEl);
+                        if (quill) quill.root.innerHTML = data.result;
+                    }
+                }
+            } else if (type === 'skill-gap') {
+                const gaps = data.result.split(',').map(s => s.trim()).filter(s => s);
+                if (gaps.length > 0) {
+                    tipText.innerHTML = `
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold text-gray-700">Recommended Skills for ${cvData.personalInfo.jobTitle}:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${gaps.map(g => `
+                                    <button onclick="addSkillToCV('${g}')" class="px-2 py-1 bg-white border border-indigo-100 text-indigo-600 text-[10px] font-bold rounded-lg hover:bg-indigo-600 hover:text-white transition-all">+ ${g}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    // Don't auto-update preview yet, wait for user to click
+                    return; 
+                }
+            } else if (type === 'education-add') {
+                const [degree, school, year, desc] = data.result.split('|').map(s => s.trim());
+                if (degree && school) {
+                    addEducationItem({
+                        degree: degree,
+                        school: school,
+                        year: year || '2020',
+                        description: desc || ''
+                    });
+                }
+            }
+            
+            if (type !== 'skill-gap') {
+                tipText.innerHTML = '<span class="text-green-500 font-black">Applied! Profile Strength boosted. ✨</span>';
+                setTimeout(() => {
+                    updatePreview();
+                    calculateProfileStrength();
+                }, 1000);
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        tipText.innerHTML = originalTip;
+    }
+}
+
+// Global helper to add skill from mentor tips
+window.addSkillToCV = function(skill) {
+    const input = document.querySelector('[name="skills.technical"]');
+    if (input) {
+        const currentVals = (input.value || '').split(',').map(s => s.trim()).filter(s => s);
+        if (!currentVals.includes(skill)) {
+            currentVals.push(skill);
+            input.value = currentVals.join(', ');
+            updatePreview();
+            calculateProfileStrength();
+            
+            const tipText = document.getElementById('proactive-tip-text');
+            if (tipText) {
+                tipText.innerHTML = `<span class="text-green-500 font-bold">Added ${skill}! ✨</span>`;
+                setTimeout(() => calculateProfileStrength(), 1500);
+            }
+        }
+    }
+}
+
+// Global initialization call
+setTimeout(calculateProfileStrength, 1000);

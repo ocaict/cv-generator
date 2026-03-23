@@ -71,3 +71,22 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 - [x] **Real-Time Streaming**: Implement Server-Sent Events (SSE) so the user sees the AI assistant "typing" or drafting in real time.
 - [x] **Actionable Tips**: Proactively suggest missing sections or highlight weaknesses in the CV directly via the chat interface.
 
+## 📈 Phase 12: Advanced Recruiter Analytics (The Awareness Layer)
+- [x] **Visitor Tracking**: High-fidelity tracking of how many times each CV is viewed.
+- [x] **Dashboard HUD**: Real-time "Global Views" and "Per-CV Views" displayed on the user dashboard.
+- [x] **Location Insights**: Basic regional detection (via browser language/headers) to see where interest is coming from.
+
+## 🤖 Phase 13: AI Growth Mentor (Proactive AI 2.0)
+- [x] **AI Notifications**: The Co-pilot "pops up" with specific hints (e.g., "Your summary is missing metrics—want me to help?").
+- [x] **Completion Progress Bar**: A gamified 0-100% "Profile Strength" indicator on the dashboard.
+- [x] **"Magic Fix" Button**: One-click AI optimization for flagged sections (low-action verbs, missing metrics).
+
+## ✉️ Phase 14: Personal Brand & Social Sharing (The Apply Suite)
+- [ ] **Cover Letter Attachments**: Allow users to attach their generated Cover Letters directly to their public CV link.
+- [ ] **Public View Toggle**: Recruiters can switch between "CV" and "Cover Letter" on the same landing page.
+- [ ] **Dynamic OpenGraph (OG) Cards**: Beautiful, template-specific preview images for LinkedIn/X sharing.
+
+## 🎨 Phase 15: Premium Design Systems (Themes & Micro-Accents)
+- [ ] **Deep-Theming Engine**: Swap accent colors (Indigo, Forest, Midnight, Ruby) without changing the template.
+- [ ] **Modern Typography Packs**: A curated list of 5 premium font pairings for each template.
+- [ ] **Custom Section Icons**: A visual library of SVG icons to make each CV uniquely tailored.

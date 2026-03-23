@@ -112,6 +112,13 @@ exports.generateAI = async (req, res) => {
             RULES: NO INTRO. NO QUOTES. OUTPUT ONLY THE SUMMARY TEXT.`;
             break;
 
+        case 'headline':
+            prompt = `As an expert career brander, craft a 1-sentence professional headline (max 100 chars) for a ${safeJobTitle} with a ${safeTone} tone. 
+            Focus on value proposition and unique impact.
+            EXAMPLES: "Results-driven Cloud Architect specializing in multi-region scaling and 99.9% uptime" or "Creative UI/UX Designer turning complex data into intuitive human experiences."
+            RULES: NO INTRO. NO QUOTES. OUTPUT ONLY THE HEADLINE TEXT.`;
+            break;
+
         case 'experience':
             prompt = `Transform the following job responsibilities into high-impact, results-driven bullet points using the STAR method (Situation, Task, Action, Result).
             Original Content: ${enrichedInput}
@@ -123,6 +130,120 @@ exports.generateAI = async (req, res) => {
             - Focus on measurable results where possible.
             - Ensure ATS compatibility by using relevant industry keywords.
             RULES: Return a RAW HTML <ul> list with 3-5 high-impact <li> items. NO PREAMBLE. NO ALTERNATIVES. NO CONVERSATIONAL FILLER.`;
+            break;
+
+        case 'magic-fix-summary':
+            prompt = `
+            TASK: Polish and Upgrade Professional Summary
+            ORIGINAL CONTENT: ${safeInput || 'None provided'}
+            TARGET JOB TITLE: ${safeJobTitle || 'Professional'}
+            TONE: ${safeTone}
+
+            INSTRUCTIONS:
+            Rewrite the summary into 2-3 high-impact, results-driven sentences (approx 50-60 words). 
+            Emphasise 'Strategic Impact' and 'Leadership'. Use the Job Title: ${safeJobTitle}.
+            
+            RULES: No intros/outros. Return only the summary text.`;
+            break;
+
+        case 'magic-fix-skills':
+            prompt = `
+            TASK: Generate High-Marketability Technical Skills
+            TARGET JOB TITLE: ${safeJobTitle || 'Professional'}
+            
+            INSTRUCTIONS:
+            Generate a list of exactly 8-10 high-demand, modern technical terms specifically related to the role of ${safeJobTitle}. 
+            Only include tools, software, methodologies, or hard skills. No full sentences. No descriptors.
+            
+            EXAMPLES: "AWS, Kubernetes, Docker, Node.js, Terraform"
+            
+            RULES: 
+            1. Return a COMMA-SEPARATED LIST ONLY.
+            2. ABSOLUTELY NO sentences. No "As a...", no "I am...".
+            3. Each skill should be 1-3 words max.`;
+            break;
+
+        case 'magic-fix-soft-skills':
+            prompt = `
+            TASK: Generate Professional Soft Skills
+            TARGET JOB TITLE: ${safeJobTitle || 'Professional'}
+            
+            INSTRUCTIONS:
+            Generate a list of exactly 6-8 high-impact soft skills (interpersonal/leadership) specifically related to being successful as a ${safeJobTitle}. 
+            Focus on things like: Communication, Project Management, Mentorship, Strategic Planning, etc.
+            
+            RULES: 
+            1. Return a COMMA-SEPARATED LIST ONLY (e.g. "Strategic Leadership, Cross-functional Collaboration").
+            2. NO sentences.
+            3. Each skill should be 1-3 words max.`;
+            break;
+
+        case 'magic-fix-experience':
+            prompt = `
+            TASK: Expert Resume Bullet Point Optimization
+            ORIGINAL CONTENT: ${safeInput || 'Add a job title and responsibilities'}
+            TARGET JOB TITLE: ${safeJobTitle || 'Professional'}
+
+            INSTRUCTIONS:
+            Using the STAR method (Situation, Task, Action, Result), rewrite the experience into 3-4 powerful, results-oriented bullet points.
+            - Start with strong action verbs (Orchestrated, Spearheaded, Optimized, Delivered).
+            - Add quantifiable metrics (e.g. %, $, time saved, team size).
+            - Align it with being a successful ${safeJobTitle}.
+
+            RULES:
+            1. Return only a raw HTML <ul><li> list.
+            2. NO intros, NO outros, NO conversational filler.`;
+            break;
+
+        case 'magic-fix-experience-add':
+            prompt = `
+            TASK: Generate Placeholder Professional Experience
+            TARGET JOB TITLE: ${safeJobTitle || 'Professional'}
+
+            INSTRUCTIONS:
+            Generate a single high-impact professional experience entry for the role of ${safeJobTitle}. 
+            Return the data in this EXACT comma-separated format:
+            COMPANY_NAME|JOB_TITLE|START_YEAR|END_YEAR|RESPONSIBILITIES_HTML
+
+            Example:
+            Tech Corp|Senior Dev|2021|Present|<ul><li>Built a real-time analytics dashboard...</li><li>Mentored junior engineers...</li></ul>
+
+            RULES:
+            1. NO preamble.
+            2. OUTPUT ONLY THE ONE LINE WITH THE PIPES.`;
+            break;
+
+        case 'magic-fix-skill-gap':
+            prompt = `
+            TASK: Hidden Skill Gap Analysis
+            JOB TITLE: ${safeJobTitle || 'Professional'}
+            CURRENT SKILLS: ${safeInput || 'None'}
+
+            INSTRUCTIONS:
+            Identify 5 high-impact, modern technical skills that a top-tier ${safeJobTitle} should have, but are NOT in the current skills list.
+            Return them as a COMMA-SEPARATED LIST of terms only.
+            
+            RULES: 
+            1. Return only the 5 skills as a comma-separated list.
+            2. No preamble. No other text.`;
+            break;
+
+        case 'magic-fix-education-add':
+            prompt = `
+            TASK: Generate Professional Education/Degree Suggestion
+            TARGET JOB TITLE: ${safeJobTitle || 'Professional'}
+
+            INSTRUCTIONS:
+            Suggest a standard, relevant University Degree or Professional Certification for a ${safeJobTitle}. 
+            Return the data in this EXACT pipe-separated format:
+            DEGREE_NAME|SCHOOL|YEAR|DESCRIPTION_HTML
+
+            Example:
+            B.Sc. Computer Science|University of Tech|2020|<ul><li>Dean's List...</li><li>Specialized in Artificial Intelligence</li></ul>
+
+            RULES:
+            1. NO preamble. No extra text.
+            2. OUTPUT ONLY THE ONE LINE WITH THE PIPES (|).`;
             break;
 
         case 'skills':

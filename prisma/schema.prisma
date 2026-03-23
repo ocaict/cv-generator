@@ -35,4 +35,15 @@ model CV {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views           CVView[]
+}
+
+model CVView {
+  id        Int      @id @default(autoincrement())
+  cvId      Int
+  cv        CV       @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  location  String?    // e.g. "London, UK"
+  viewedAt  DateTime @default(now())
 }

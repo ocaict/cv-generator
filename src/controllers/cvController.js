@@ -12,18 +12,22 @@ exports.getDashboard = async (req, res) => {
 
         const cvs = await prisma.cV.findMany({
             where: { userId },
+            include: { _count: { select: { views: true } } },
             orderBy: { updatedAt: 'desc' }
         });
 
         const stats = {
             total: cvs.length,
             publicCount: cvs.filter(cv => cv.isPublic).length,
-            templateCount: [...new Set(cvs.map(cv => cv.templateId))].length
+            templateCount: [...new Set(cvs.map(cv => cv.templateId))].length,
+            totalViews: cvs.reduce((sum, cv) => sum + cv._count.views, 0)
         };
 
         const cvsWithTime = cvs.map(cv => ({
             ...cv,
-            relativeTime: getRelativeTime(cv.updatedAt)
+            relativeTime: getRelativeTime(cv.updatedAt),
+            strengthScore: calculateProfileStrength(cv.data),
+            viewCount: cv._count.views
         }));
 
         res.render('dashboard/index', { 
@@ -35,6 +39,47 @@ exports.getDashboard = async (req, res) => {
         console.error(error);
         res.status(500).send('Internal Server Error');
     }
+};
+
+const calculateProfileStrength = (dataStr) => {
+    let score = 0;
+    let cvData = {};
+    try {
+        cvData = JSON.parse(dataStr || '{}');
+    } catch (e) {
+        return 0;
+    }
+    
+    // 1. Personal Info (15%)
+    const pi = cvData.personalInfo || {};
+    if (pi.firstName && pi.lastName) score += 5;
+    if (pi.email && pi.phone) score += 5;
+    if (pi.jobTitle) score += 5;
+    
+    // 2. Summary (20%)
+    const summaryText = (pi.summary || '').replace(/<[^>]+>/g, '').trim();
+    if (summaryText.length > 100) score += 20;
+    else if (summaryText.length > 20) score += 10;
+    
+    // 3. Experience (30%)
+    const exp = cvData.experience || [];
+    if (exp.length >= 2) score += 30;
+    else if (exp.length === 1) score += 15;
+    
+    // 4. Education (15%)
+    const edu = cvData.education || [];
+    if (edu.length >= 1) score += 15;
+    
+    // 5. Skills (20%)
+    const skills = cvData.skills || {};
+    let skillSub = 0;
+    if (skills.technical && skills.technical.length >= 4) skillSub += 10;
+    else if (skills.technical && skills.technical.length >= 1) skillSub += 5;
+    if (skills.soft && skills.soft.length >= 3) skillSub += 10;
+    else if (skills.soft && skills.soft.length >= 1) skillSub += 5;
+    score += skillSub;
+
+    return Math.min(100, score);
 };
 
 const getRelativeTime = (date) => {
@@ -262,6 +307,26 @@ exports.getPublicCV = async (req, res) => {
         if (!cv || !cv.isPublic) {
             return res.status(404).render('errors/404', { message: 'This CV is either private or does not exist.' });
         }
+
+        // --- TRIGGER RECRUITER ANALYTICS (Background Log) ---
+        (async () => {
+            try {
+                const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+                const ip = typeof rawIp === 'string' ? rawIp.split(',')[0].trim() : 'Local';
+                const loc = req.headers['accept-language']?.split(',')[0] || 'Unknown';
+
+                await prisma.cVView.create({
+                    data: {
+                        cvId: cv.id,
+                        ipAddress: ip,
+                        userAgent: req.headers['user-agent'] || 'Unknown',
+                        location: loc
+                    }
+                });
+            } catch (trackerErr) {
+                console.warn("Analytics tracker failed:", trackerErr.message);
+            }
+        })();
 
         const cvData = JSON.parse(cv.data || '{}');
         
