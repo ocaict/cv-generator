@@ -10,9 +10,16 @@
         </h1>
         <p class="<%= template === 'modern' ? 'text-xl font-bold text-indigo-600 uppercase tracking-widest leading-none' : 
                      template === 'classic' ? 'hidden' : 
-                     'text-lg font-bold text-indigo-600 uppercase tracking-widest mb-6 leading-none' %>">
+                     'text-lg font-bold text-indigo-600 uppercase tracking-widest mb-2 leading-none' %>">
             <%= personalInfo.jobTitle || '' %>
         </p>
+        <% if (personalInfo.headline) { %>
+            <p class="<%= template === 'modern' ? 'mt-3 text-[11px] font-medium text-gray-500 italic font-serif leading-relaxed max-w-2xl' : 
+                         template === 'classic' ? 'text-sm font-medium text-gray-500 italic font-serif mb-4' : 
+                         'text-[11px] font-medium text-gray-500 italic font-serif mt-1 mb-4 max-w-lg mx-auto' %>">
+                <%= personalInfo.headline %>
+            </p>
+        <% } %>
     </div>
     <% if (personalInfo.photo && (typeof photoStyle === 'undefined' || photoStyle !== 'hidden')) { %>
         <div class="<%= template === 'modern' ? 'w-32 h-32' : 'w-24 h-24 mx-auto mb-6 order-first' %> 

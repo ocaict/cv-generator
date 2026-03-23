@@ -1275,7 +1275,7 @@ function renderModernTemplate(data, fullName, locationStr) {
         if (id === 'profile') return `
             <section class="mb-10 animate-fade-in origin-top">
                 ${getSectionHeader('Profile', 'profile')}
-                <div class="text-[11px] leading-relaxed text-slate-800 font-medium quill-content">${data.personalInfo.summary || 'Summary...'}</div>
+                <div class="text-[11px] leading-relaxed text-gray-600 font-medium quill-content">${data.personalInfo.summary || 'Summary...'}</div>
             </section>`;
         if (id === 'experience') return `
             <section class="mb-10 animate-fade-in origin-top">
@@ -1441,7 +1441,7 @@ function renderClassicTemplate(data, fullName, locationStr) {
         if (id === 'profile') return `
              <section class="section-profile">
                 ${getSectionHeader('Summary', 'profile')}
-                <div class="text-sm leading-relaxed text-slate-800 font-medium font-serif quill-content">${data.personalInfo.summary || 'Summary...'}</div>
+                <div class="text-sm leading-relaxed text-gray-600 font-medium font-serif quill-content">${data.personalInfo.summary || 'Summary...'}</div>
              </section>`;
         if (id === 'experience') return `
              <section class="section-experience">
@@ -1577,7 +1577,7 @@ function renderGridTemplate(data, fullName, locationStr) {
         if (id === 'profile') return `
             <section class="mb-10">
                 ${getSectionHeader('Profile', 'profile')}
-                <div class="text-xs leading-relaxed text-slate-800 font-medium quill-content">${data.personalInfo.summary || ''}</div>
+                <div class="text-xs leading-relaxed text-gray-600 font-medium quill-content">${data.personalInfo.summary || ''}</div>
             </section>`;
         if (id === 'experience') return `
             <section class="mb-10">
@@ -1731,7 +1731,7 @@ function renderMinimalistTemplate(data, fullName, locationStr) {
         if (id === 'profile') return `
             <section>
                 ${getSectionHeader('Profile', 'profile')}
-                <div class="text-sm leading-relaxed font-medium text-slate-800 quill-content">${data.personalInfo.summary || ''}</div>
+                <div class="text-sm leading-relaxed font-medium text-gray-600 quill-content">${data.personalInfo.summary || ''}</div>
             </section>`;
         if (id === 'experience') return `
             <section>
