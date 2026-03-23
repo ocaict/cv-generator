@@ -118,14 +118,28 @@ function fillSampleData() {
         if (input) input.value = sample.personalInfo[key];
     });
     
-    // Set Summary Quill
-    const summaryQuillContainer = document.querySelector('[name="personalInfo.summary"]')?.closest('section')?.querySelector('.quill-editor');
-    if (summaryQuillContainer) {
-        const quill = Quill.find(summaryQuillContainer);
-        if (quill) quill.root.innerHTML = sample.personalInfo.summary;
+    // Set Summary Quill correctly by ID
+    const summaryEditor = document.getElementById('summary-editor');
+    if (summaryEditor) {
+        const quill = Quill.find(summaryEditor);
+        if (quill) {
+            quill.root.innerHTML = sample.personalInfo.summary;
+        } else {
+            summaryEditor.innerHTML = sample.personalInfo.summary;
+        }
+    }
+    const summaryHidden = document.querySelector('[name="personalInfo.summary"]');
+    if (summaryHidden) summaryHidden.value = sample.personalInfo.summary;
+
+    // --- Fill Skills (joining arrays into the textarea) ---
+    if (sample.skills) {
+        Object.keys(sample.skills).forEach(key => {
+            const input = document.querySelector(`[name="skills.${key}"]`);
+            if (input) input.value = sample.skills[key].join(', ');
+        });
     }
 
-    // 4. Fill Lists
+    // 4. Fill Lists (Experience, Edu, etc)
     sample.experience.forEach(exp => addExperienceItem(exp));
     sample.education.forEach(edu => addEducationItem(edu));
     sample.hobbies.forEach(hobby => addHobbyItem(hobby.name));

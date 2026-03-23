@@ -341,3 +341,92 @@ CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subje
         res.status(500).json({ error: "The AI assistant is currently unavailable. Please try again shortly." });
     }
 };
+
+/**
+ * Interactive AI Co-pilot Chat
+ */
+exports.chatAI = async (req, res) => {
+    const { message, cvData } = req.body;
+
+    if (!message) {
+        return res.status(400).json({ error: "No message provided." });
+    }
+
+    const safeMessage = sanitizeInput(message, 1500);
+    
+    // Extract key parts of CV data to stay within context limits while providing enough info
+    const summary = cvData?.personalInfo?.summary || '';
+    const jobTitle = cvData?.personalInfo?.jobTitle || '';
+    const experience = (cvData?.experience || []).map(e => `${e.jobTitle} at ${e.company}: ${e.responsibilities}`).join('; ');
+    const skills = (cvData?.skills?.technical || []).concat(cvData?.skills?.soft || []).join(', ');
+
+    const contextSummary = `Title: ${jobTitle}\nSummary: ${summary.replace(/<[^>]+>/g, '')}\nRecent Exp: ${experience.slice(0, 1500)}\nSkills: ${skills}`;
+
+    const systemPrompt = `You are a world-class career coach and professional CV writer. 
+    You are helping a candidate perfect their CV through a real-time chat interface.
+    
+    CURRENT CV CONTEXT:
+    ${contextSummary}
+    
+    USER'S MESSAGE:
+    ${safeMessage}
+
+    INSTRUCTIONS:
+    1. Be concise, encouraging, and professional. Get straight to the value.
+    2. Provide actionable advice. If they ask to rewrite a section, show the rewrite.
+    3. Use bolding (**text**) for emphasis. 
+    4. Use bulleted lists if providing multiple steps or skills.
+    5. If suggesting job experience bullets, follow the STAR method (Situation, Task, Action, Result) with metrics.
+    6. Maintain a helpful 'co-pilot' persona—be a friendly, top-tier expert.
+    7. Use standard Markdown for formatting.
+    8. Limit response to approx 250 words unless writing a full section.`;
+
+    try {
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: safeMessage }
+            ],
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.75,
+            max_tokens: 1200,
+            stream: true,
+        });
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        for await (const chunk of chatCompletion) {
+            const content = chunk.choices[0]?.delta?.content || "";
+            if (content) {
+                res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+            }
+        }
+        res.write('data: [DONE]\n\n');
+        return res.end();
+
+    } catch (error) {
+        console.error("AI Chat Error:", error.message);
+        
+        // Final fallback to 8b if 70b is busy
+        try {
+            const fallback = await groq.chat.completions.create({
+                messages: [
+                    { role: "system", content: "You are an AI career coach. Help the user with their request concisely." },
+                    { role: "user", content: safeMessage }
+                ],
+                model: "llama-3.1-8b-instant",
+                temperature: 0.7,
+                max_tokens: 500,
+                stream: false,
+            });
+            const text = fallback.choices[0]?.message?.content || "";
+            res.write(`data: ${JSON.stringify({ text: text })}\n\n`);
+            res.write('data: [DONE]\n\n');
+            return res.end();
+        } catch (e) {
+            res.status(500).json({ error: "Chat service unavailable." });
+        }
+    }
+};

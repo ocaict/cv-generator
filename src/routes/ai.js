@@ -24,4 +24,10 @@ const aiLimiter = rateLimit({
  */
 router.post('/generate', ensureAuthenticated, aiLimiter, aiController.generateAI);
 
+/**
+ * AI Chat Endpoint
+ * POST /api/ai/chat
+ */
+router.post('/chat', ensureAuthenticated, aiLimiter, aiController.chatAI);
+
 module.exports = router;

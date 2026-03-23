@@ -49,4 +49,25 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 - [x] **Full CV Review Mode**: A dedicated AI panel that analyses the entire CV and returns an overall quality score (1–100), highlights 3 strengths, identifies 3 weaknesses, and offers a one-click "Apply All Suggestions" button.
 - [x] **Streaming AI Responses**: Replace the current blocking AI calls with token-by-token streaming (SSE/ReadableStream) so users see text appear in real time instead of waiting for the full response.
 - [x] **Industry-Specific Tone Presets**: Expand the tone selector to include domain-aware presets — **Tech/Startup**, **Law/Finance**, **Healthcare**, **Academic** — each pre-configured with vocabulary, keyword density, and sentence structure tuned for that field.
-- [ ] **AI Interview Prep**: Based on the CV and a target job description, generate a tailored list of likely interview questions (behavioural, technical, situational) with suggested answer frameworks.
+- [x] **AI Interview Prep**: Based on the CV and a target job description, generate a tailored list of likely interview questions (behavioural, technical, situational) with suggested answer frameworks.
+
+## 📊 Phase 10: Dashboard 2.0 (Premium Career Hub)
+- [x] **Visual Overhaul**:
+    - [x] **Thumbnail Previews**: Replace generic icons with high-fidelity, template-accurate mini-previews of the CV.
+    - [x] **Glassmorphism UI**: Transition to a modern "frosted glass" card system with deep shadows and micro-animations.
+    - [x] **Dynamic Greetings**: Time-aware greetings (e.g., "Good Evening, Alex") and a simplified "Master Create" flow.
+- [x] **Functional Insights**:
+    - [x] **Quick Stats Bar**: Display "Total CVs", "Active Public Links", and "Profile Completion" strength. 
+    - [x] **Live Status Badges**: Clear visual markers for `● LIVE` vs `● DRAFT` status on each CV card.
+- [x] **UX & Discovery**:
+    - [x] **Search & Filter**: Add a real-time search bar to filter CVs by title, role, or template type.
+    - [x] **Guided Template Selector**: A visual modal that helps users choose a starting style (Modern, Classic, Creative) before entering the editor.
+    - [x] **Direct Share Actions**: Copy the public URL or download the PDF/Word file directly from the dashboard card.
+
+## 🤖 Phase 11: AI Co-pilot Integration (Floating Chat)
+- [x] **Floating Chat Bubble**: Add a modern, animated "AI Assistant" trigger in the bottom right of the CV editor.
+- [x] **Context-Aware Assistance**: The AI "knows" exactly what CV the user is editing and offers specific advice on summaries, skills, and experience in the chat thread.
+- [x] **ST.A.R. Bullet Point Wizard**: A chat-based assistant that guides users through creating high-impact bullet points for their work history via dialogue.
+- [x] **Real-Time Streaming**: Implement Server-Sent Events (SSE) so the user sees the AI assistant "typing" or drafting in real time.
+- [x] **Actionable Tips**: Proactively suggest missing sections or highlight weaknesses in the CV directly via the chat interface.
+
