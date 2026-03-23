@@ -3,15 +3,34 @@ const prisma = require('../config/db');
 exports.getDashboard = async (req, res) => {
     try {
         const userId = req.session.user.id;
+        
+        // Fetch user info for personalization
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, email: true }
+        });
+
         const cvs = await prisma.cV.findMany({
             where: { userId },
             orderBy: { updatedAt: 'desc' }
         });
+
+        const stats = {
+            total: cvs.length,
+            publicCount: cvs.filter(cv => cv.isPublic).length,
+            templateCount: [...new Set(cvs.map(cv => cv.templateId))].length
+        };
+
         const cvsWithTime = cvs.map(cv => ({
             ...cv,
             relativeTime: getRelativeTime(cv.updatedAt)
         }));
-        res.render('dashboard/index', { cvs: cvsWithTime });
+
+        res.render('dashboard/index', { 
+            cvs: cvsWithTime, 
+            user: user || req.session.user,
+            stats
+        });
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
