@@ -338,6 +338,9 @@ exports.getPublicCV = async (req, res) => {
             fullName: `${cvData.personalInfo?.firstName || ''} ${cvData.personalInfo?.lastName || ''}`.trim(),
             locationStr: [cvData.personalInfo?.city, cvData.personalInfo?.nationality].filter(Boolean).join(', ')
         });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
     }
 };
 
