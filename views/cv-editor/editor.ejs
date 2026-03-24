@@ -1459,7 +1459,7 @@
                 date: new Date().toISOString()
             };
             
-            const res = await fetch(`/cv-editor/${CV_ID}/update`, {
+            const res = await fetch(`/cv-editor/${CV_ID}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
