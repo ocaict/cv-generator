@@ -334,6 +334,7 @@ exports.getPublicCV = async (req, res) => {
         res.render('cv-editor/public-view', { 
             cv, 
             cvData,
+            req,
             fullName: `${cvData.personalInfo?.firstName || ''} ${cvData.personalInfo?.lastName || ''}`.trim(),
             locationStr: [cvData.personalInfo?.city, cvData.personalInfo?.nationality].filter(Boolean).join(', ')
         });
