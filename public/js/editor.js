@@ -1275,7 +1275,7 @@ function renderModernTemplate(data, fullName, locationStr) {
         if (id === 'profile') return `
             <section class="mb-10 animate-fade-in origin-top">
                 ${getSectionHeader('Profile', 'profile')}
-                <div class="text-[11px] leading-relaxed text-gray-600 font-medium quill-content">${data.personalInfo.summary || 'Summary...'}</div>
+                <div class="text-[11px] leading-relaxed text-gray-800 quill-content">${data.personalInfo.summary || 'Summary...'}</div>
             </section>`;
         if (id === 'experience') return `
             <section class="mb-10 animate-fade-in origin-top">
@@ -1288,7 +1288,7 @@ function renderModernTemplate(data, fullName, locationStr) {
                                 ${exp.duration ? `<span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">${exp.duration}</span>` : ''}
                             </div>
                             <p class="text-xs font-bold text-gray-400 uppercase mb-2">${exp.company || 'Company'}</p>
-                            <div class="text-xs text-gray-600 leading-relaxed quill-content">${exp.responsibilities || ''}</div>
+                            <div class="text-xs text-gray-800 leading-relaxed quill-content">${exp.responsibilities || ''}</div>
                         </div>
                     `).join('')}
                  </div>
@@ -1441,7 +1441,7 @@ function renderClassicTemplate(data, fullName, locationStr) {
         if (id === 'profile') return `
              <section class="section-profile">
                 ${getSectionHeader('Summary', 'profile')}
-                <div class="text-sm leading-relaxed text-gray-600 font-medium font-serif quill-content">${data.personalInfo.summary || 'Summary...'}</div>
+                <div class="text-sm leading-relaxed text-gray-800 font-serif quill-content">${data.personalInfo.summary || 'Summary...'}</div>
              </section>`;
         if (id === 'experience') return `
              <section class="section-experience">
@@ -1577,7 +1577,7 @@ function renderGridTemplate(data, fullName, locationStr) {
         if (id === 'profile') return `
             <section class="mb-10">
                 ${getSectionHeader('Profile', 'profile')}
-                <div class="text-xs leading-relaxed text-gray-600 font-medium quill-content">${data.personalInfo.summary || ''}</div>
+                <div class="text-xs leading-relaxed text-gray-800 quill-content">${data.personalInfo.summary || ''}</div>
             </section>`;
         if (id === 'experience') return `
             <section class="mb-10">
@@ -1590,7 +1590,7 @@ function renderGridTemplate(data, fullName, locationStr) {
                                 <span class="text-[9px] text-gray-400 font-bold uppercase">${exp.duration || ''}</span>
                             </div>
                             <p class="text-[10px] font-bold text-indigo-600 uppercase mb-2">${exp.company || ''}</p>
-                            <div class="text-[10px] text-gray-600 leading-relaxed quill-content">${exp.responsibilities || ''}</div>
+                            <div class="text-[10px] text-gray-800 leading-relaxed quill-content">${exp.responsibilities || ''}</div>
                         </div>
                     `).join('')}
                 </div>
