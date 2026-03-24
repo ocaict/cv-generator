@@ -9,7 +9,7 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 
 ## 📁 Phase 2: Template Architecture Refactor
 - [x] **Modular Sections**: Break down CV sections (Header, Experience, Skills) into reusable EJS partials or clean blocks.
-- [ ] **Layout Library**: 
+- [x] **Layout Library**: 
     - [x] **The "Executive"**: A clean, single-column, center-aligned template. (Implemented as "Classic")
     - [x] **The "Minimalist"**: High white-space, very clean lines, no sidebar.
     - [x] **The "Grid"**: Unique 2-column layout for technical/skill-heavy CVs.
@@ -34,6 +34,7 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 - [x] **User Authentication**: Implemented Supabase Authentication for secure email/password logins and Google OAuth (social login) with automatic session bridging.
 - [x] **Multi-Format Export**: Implemented clean, structured Microsoft Word (.docx) export using the `docx` library.
 - [x] **CV Dashboard**: Refined the user home with smart "Duplicate" functionality, relative timestamps (e.g., "2h ago"), and polished UI cards.
+
 ## 🌗 Phase 7: Theme Selection & Dark Mode (Onyx)
 - [x] **Dark Mode Support**: Implement a sitewide dark mode for the editor and dashboard.
 - [x] **Onyx CV Theme**: Create a specialized high-contrast dark theme for the CV output itself.
@@ -82,11 +83,21 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 - [x] **"Magic Fix" Button**: One-click AI optimization for flagged sections (low-action verbs, missing metrics).
 
 ## ✉️ Phase 14: Personal Brand & Social Sharing (The Apply Suite)
-- [ ] **Cover Letter Attachments**: Allow users to attach their generated Cover Letters directly to their public CV link.
-- [ ] **Public View Toggle**: Recruiters can switch between "CV" and "Cover Letter" on the same landing page.
-- [ ] **Dynamic OpenGraph (OG) Cards**: Beautiful, template-specific preview images for LinkedIn/X sharing.
+- [x] **Cover Letter Attachments**: Allow users to attach their generated Cover Letters directly to their public CV link.
+- [x] **Public View Toggle**: Recruiters can switch between "CV" and "Cover Letter" on the same landing page.
+- [x] **Dynamic OpenGraph (OG) Cards**: Beautiful, template-specific preview images (Photo/Role) for LinkedIn/X sharing.
 
-## 🎨 Phase 15: Premium Design Systems (Themes & Micro-Accents)
-- [ ] **Deep-Theming Engine**: Swap accent colors (Indigo, Forest, Midnight, Ruby) without changing the template.
-- [ ] **Modern Typography Packs**: A curated list of 5 premium font pairings for each template.
-- [ ] **Custom Section Icons**: A visual library of SVG icons to make each CV uniquely tailored.
+## 📊 Phase 15: Recruiter Insights 2.0 (Deep Data Visualization)
+- [x] **Interactive Charts**: Integrated Chart.js for visualizing views-over-time and device distribution.
+- [x] **Audit Log**: Detailed table showing IP addresses, regional metadata, and browser types for every visitor.
+- [x] **Deep Analytics View**: Dedicated "Insights" page for each CV with exported reporting capabilities.
+
+## 💼 Phase 16: Job Market Insights (AI Strategic Intelligence)
+- [ ] **Salary Estimation**: AI-powered analysis of the CV to estimate market value based on current industry standards.
+- [ ] **Market Demand Analysis**: Identify if the user's current skill set is in high demand for their target role.
+- [ ] **Key Competency Heatmap**: Visualize which parts of the CV are most "marketable" to top employers.
+
+---
+
+**Current Status**: 🚀 **Global Design & Analytics Suite Operational**  
+Next Priority: **Strategic AI Intelligence (Salary & Demand)**
