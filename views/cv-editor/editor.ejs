@@ -68,6 +68,10 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Review CV</span>
                 </button>
+                <button id="salary-strategy-btn" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-slate-200 dark:shadow-none hover:bg-black transition-all flex items-center space-x-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Market Strategy</span>
+                </button>
             </div>
             <!-- Status & QR row -->
             <div class="flex items-center space-x-4">
@@ -733,6 +737,89 @@
 <!-- ============================================================ -->
 <!-- CV Review Modal                                             -->
 <!-- ============================================================ -->
+<!-- Salary / Market Strategy Modal -->
+<div id="salary-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div id="salary-backdrop" class="absolute inset-0 bg-slate-950/40 backdrop-blur-xl"></div>
+    <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl border border-white dark:border-slate-800 overflow-hidden transform transition-all animate-modal-in">
+        <!-- Close Button -->
+        <button id="salary-close-btn" class="absolute top-8 right-8 w-10 h-10 bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-full flex items-center justify-center transition-all z-10 border border-gray-100 dark:border-slate-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+
+        <div class="p-12">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-slate-200 dark:shadow-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase font-heading">Market Intelligence</h3>
+                    <p class="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest">AI Salary & Demand Estimator</p>
+                </div>
+            </div>
+
+            <div id="salary-loading" class="hidden py-20 flex flex-col items-center justify-center space-y-4">
+                <div class="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin"></div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">Calculating Market Value...</p>
+            </div>
+
+            <div id="salary-results" class="hidden space-y-10">
+                <!-- Salary Range Bar -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Annual Range</span>
+                        <div id="salary-confidence" class="px-2 py-0.5 bg-green-50 text-green-600 text-[8px] font-black uppercase tracking-widest rounded-full border border-green-100">Confidence: High</div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800 rounded-3xl p-8 border border-slate-100 dark:border-slate-700">
+                        <div class="flex justify-between items-end mb-6">
+                            <div class="text-center">
+                                <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Floor</p>
+                                <span id="sal-lower" class="text-xl font-black text-slate-900 dark:text-white">$80k</span>
+                            </div>
+                            <div class="text-center pb-2">
+                                <p class="text-[10px] font-black text-indigo-600 uppercase mb-1">Median Market Value</p>
+                                <span id="sal-median" class="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">$115k</span>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Ceiling</p>
+                                <span id="sal-upper" class="text-xl font-black text-slate-900 dark:text-white">$145k</span>
+                            </div>
+                        </div>
+                        <!-- Range Bar Visualization -->
+                        <div class="h-2 w-full bg-slate-200 dark:bg-slate-900 rounded-full relative overflow-hidden shadow-inner">
+                            <div id="sal-range-fill" class="absolute inset-y-0 left-[20%] right-[20%] bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full shadow-lg shadow-indigo-200"></div>
+                        </div>
+                        <div class="mt-4 flex justify-between text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                            <span>Entry / Base</span>
+                            <span>Mid-Market</span>
+                            <span>Expert / Lead</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market Trend -->
+                <div class="bg-indigo-50/50 dark:bg-indigo-900/20 p-6 rounded-3xl border border-indigo-100 dark:border-indigo-900/50">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-1">Market Trend Analysis</p>
+                            <p id="sal-trend" class="text-sm font-bold text-slate-900 dark:text-slate-100 leading-relaxed italic">The demand for this role is growing steadily, driven by increased transformation across the logistics and fleet sectors.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center space-x-2 pt-4">
+                    <button id="salary-rerun-btn" class="text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <span>Recalculate Estimation</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="review-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div id="review-backdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
     <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col" style="max-height:92vh;">
@@ -1627,6 +1714,90 @@
     reviewCloseBtn?.addEventListener('click', closeReviewModal);
     reviewBackdrop?.addEventListener('click', closeReviewModal);
     reviewRerunBtn?.addEventListener('click', runCvReview);
+
+    // ============================================================
+    // Salary / Market Strategy Modal Logic
+    // ============================================================
+    const salaryModal = document.getElementById('salary-modal');
+    const salaryBackdrop = document.getElementById('salary-backdrop');
+    const salaryOpenBtn = document.getElementById('salary-strategy-btn');
+    const salaryCloseBtn = document.getElementById('salary-close-btn');
+    const salaryLoading = document.getElementById('salary-loading');
+    const salaryResults = document.getElementById('salary-results');
+    const salaryRerunBtn = document.getElementById('salary-rerun-btn');
+
+    salaryOpenBtn?.addEventListener('click', () => {
+        salaryModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        runSalaryEstimation();
+    });
+
+    const closeSalModal = () => {
+        salaryModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    };
+
+    salaryCloseBtn?.addEventListener('click', closeSalModal);
+    salaryBackdrop?.addEventListener('click', closeSalModal);
+    salaryRerunBtn?.addEventListener('click', runSalaryEstimation);
+
+    async function runSalaryEstimation() {
+        updatePreview();
+        salaryLoading.classList.remove('hidden');
+        salaryResults.classList.add('hidden');
+
+        const profileText = `[TITLE: ${cvData.personalInfo?.jobTitle || 'General'}]
+[SKILLS: ${(cvData.skills?.technical || []).join(', ')}]
+[EXP: ${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company} (${e.duration || 'N/A'})`).join('; ')}]`;
+
+        try {
+            const res = await fetch('/api/ai/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'salary-estimation',
+                    input: profileText,
+                    context: {
+                        jobTitle: cvData.personalInfo?.jobTitle || 'General Professional'
+                    }
+                })
+            });
+
+            if (!res.ok) throw new Error('API Error');
+            const data = await res.json();
+            
+            const lines = data.result.split('\n');
+            const getValue = (key) => {
+                const line = lines.find(l => l.startsWith(key));
+                return line ? line.split(':')[1].trim() : 'N/A';
+            };
+
+            const lower = getValue('LOWER');
+            const median = getValue('MEDIAN');
+            const upper = getValue('UPPER');
+            const trend = getValue('TREND');
+            const conf = getValue('CONFIDENCE');
+
+            document.getElementById('sal-lower').textContent = lower;
+            document.getElementById('sal-median').textContent = median;
+            document.getElementById('sal-upper').textContent = upper;
+            document.getElementById('sal-trend').textContent = trend;
+            document.getElementById('salary-confidence').textContent = `Confidence: ${conf}`;
+            
+            // simple bar state
+            const fill = document.getElementById('sal-range-fill');
+            fill.style.left = '20%'; 
+            fill.style.right = '20%';
+
+            salaryLoading.classList.add('hidden');
+            salaryResults.classList.remove('hidden');
+
+        } catch (err) {
+            console.error(err);
+            alert('Salary estimation failed. Please try again.');
+            closeSalModal();
+        }
+    }
 </script>
 
 <%- include('../partials/cv-editor/ai-chat') %>

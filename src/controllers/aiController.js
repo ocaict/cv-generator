@@ -354,6 +354,27 @@ RULES:
 - Return ONLY the Q:, A:, T: blocks. No other text.`;
             break;
 
+        case 'salary-estimation':
+            prompt = `As an expert compensation analyst and senior recruiter, estimate the annual salary range for a candidate with the following CV data.
+            Candidate Profile:
+            ${safeInput}
+            
+            Contextual Market: ${safeJobTitle || 'Global / Remote'}
+            
+            Analyze:
+            1. Experience level (Junior, Mid, Senior, Lead/Exec).
+            2. Tech stack / Skill demand.
+            3. Responsibility scope.
+            
+            Respond in this EXACT format (no other text):
+            LOWER: [minimum annual salary e.g. $80,000]
+            MEDIAN: [median annual salary e.g. $100,000]
+            UPPER: [maximum annual salary e.g. $130,000]
+            CURRENCY: [ISO currency code e.g. USD]
+            TREND: [One sentence explaining if this role is in Growing, Stable, or Declining demand]
+            CONFIDENCE: [Low | Medium | High] based on input clarity.`;
+            break;
+
         case 'cover-letter':
             const companyName = sanitizeField(context?.companyName || 'the company', 120);
             const hiringManager = sanitizeField(context?.hiringManager || '', 80);
