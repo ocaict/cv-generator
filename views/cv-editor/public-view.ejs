@@ -9,6 +9,26 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <% 
+        const siteTitle = `${cvData.personalInfo?.firstName || ''} ${cvData.personalInfo?.lastName || ''} - ${cvData.personalInfo?.jobTitle || 'Professional CV'}`;
+        const siteDesc = `View my professional CV and tailored cover letter for the role of ${cvData.attachedCLMeta?.role || cvData.personalInfo?.jobTitle || 'Professional'}. Hosted on CV Generator.`;
+        const siteUrl = `https://${req ? req.get('host') : 'cv-generator.com'}/p/${cv.publicSlug}`;
+        const siteImg = cvData.personalInfo?.photo || '/images/og-default.png';
+    %>
+
+    <!-- Social Meta Tags (OpenGraph) -->
+    <meta property="og:title" content="<%= siteTitle %>">
+    <meta property="og:description" content="<%= siteDesc %>">
+    <meta property="og:image" content="<%= siteImg %>">
+    <meta property="og:url" content="<%= siteUrl %>">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= siteTitle %>">
+    <meta name="twitter:description" content="<%= siteDesc %>">
+    <meta name="twitter:image" content="<%= siteImg %>">
     <% 
     const fontPairs = {
         'outfit-inter': { heading: "'Outfit', sans-serif", body: "'Inter', sans-serif" },
@@ -63,13 +83,27 @@
 </head>
 <body class="bg-gray-100 min-h-screen py-10">
     <!-- Floating Public Badge -->
-    <a href="/" class="fixed top-4 right-4 z-50 bg-white dark:bg-slate-800 shadow-xl border border-gray-100 dark:border-slate-700 px-4 py-2 rounded-full text-xs font-bold text-gray-700 dark:text-slate-300 flex items-center space-x-2 hover:scale-105 transition-transform">
-        <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        <span>Powered by CV Generator</span>
-    </a>
+    <div class="fixed top-4 right-4 z-50 flex flex-col items-end space-y-2">
+        <a href="/" class="bg-white dark:bg-slate-800 shadow-xl border border-gray-100 dark:border-slate-700 px-4 py-2 rounded-full text-xs font-bold text-gray-700 dark:text-slate-300 flex items-center space-x-2 hover:scale-105 transition-transform no-underline">
+            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span>Powered by CV Generator</span>
+        </a>
+    </div>
+
+    <% if (cvData.attachedCoverLetter) { %>
+        <!-- View Toggle (Floating or Top) -->
+        <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white/80 backdrop-blur-md shadow-2xl border border-gray-100 px-1.5 py-1.5 rounded-2xl flex items-center space-x-1">
+            <button id="show-cv-btn" class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+                Curriculum Vitae
+            </button>
+            <button id="show-cl-btn" class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-400 hover:text-gray-600 hover:bg-gray-50">
+                Cover Letter
+            </button>
+        </div>
+    <% } %>
 
     <!-- CV Container (shadow wrapper) -->
-    <div class="max-w-4xl mx-auto shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none">
+    <div id="cv-container" class="max-w-4xl mx-auto shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none transition-all duration-500">
         <div class="p-0 m-0 print:p-0 print:m-0 bg-white w-full">
     <% 
     // Section Mapping for easy lookup
@@ -187,6 +221,71 @@
 
         </div>
     </div>
+
+    <% if (cvData.attachedCoverLetter) { %>
+    <!-- Cover Letter Container (hidden by default) -->
+    <div id="cl-container" class="hidden max-w-3xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden transition-all duration-500">
+        <div class="px-16 py-20 min-h-[1000px] flex flex-col justify-between">
+            <!-- Header -->
+            <div class="mb-16">
+                <div class="flex justify-between items-start mb-12">
+                    <div>
+                        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tighter mb-1 uppercase font-heading"><%= fullName %></h1>
+                        <p class="text-lg font-bold text-indigo-600 uppercase tracking-widest leading-none font-heading"><%= cvData.personalInfo.jobTitle %></p>
+                    </div>
+                    <div class="text-right text-xs font-medium text-gray-400 space-y-1">
+                        <p><%= cvData.personalInfo.email %></p>
+                        <p><%= cvData.personalInfo.phone %></p>
+                        <p><%= locationStr %></p>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="text-xs font-bold text-gray-900"><%= new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-6">To:</p>
+                    <p class="text-sm font-extrabold text-gray-900"><%= cvData.attachedCLMeta?.company || 'Hiring Team' %></p>
+                    <p class="text-xs font-bold text-indigo-600 italic"><%= cvData.attachedCLMeta?.role || '' %></p>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1">
+                <div class="text-[13px] leading-[1.8] text-gray-700 whitespace-pre-wrap font-serif">
+                    <%= cvData.attachedCoverLetter %>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-20 pt-10 border-t border-gray-100">
+                <p class="text-sm font-bold text-gray-900 mb-1">Sincerely,</p>
+                <p class="text-2xl font-serif italic text-indigo-600 tracking-tighter"><%= fullName %></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cvBtn = document.getElementById('show-cv-btn');
+        const clBtn = document.getElementById('show-cl-btn');
+        const cvCont = document.getElementById('cv-container');
+        const clCont = document.getElementById('cl-container');
+
+        cvBtn.addEventListener('click', () => {
+            cvCont.classList.remove('hidden');
+            clCont.classList.add('hidden');
+            cvBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-200';
+            clBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-400 hover:text-gray-600 hover:bg-gray-50';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        clBtn.addEventListener('click', () => {
+            clCont.classList.remove('hidden');
+            cvCont.classList.add('hidden');
+            clBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-200';
+            cvBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-gray-400 hover:text-gray-600 hover:bg-gray-50';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+    <% } %>
 </body>
 </html>
 

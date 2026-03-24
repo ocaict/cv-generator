@@ -901,6 +901,12 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </button>
                 </div>
+                
+                <!-- Attach to Public Profile Button -->
+                <button id="cl-attach-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-3.5 rounded-2xl transition-all shadow-lg shadow-emerald-100 dark:shadow-none flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    <span>Attach to Public Profile Link</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1434,6 +1440,50 @@
                 clCopyBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>';
             }, 2000);
         });
+    });
+
+    const clAttachBtn = document.getElementById('cl-attach-btn');
+    clAttachBtn?.addEventListener('click', async () => {
+        const letterText = clLetterText.value.trim();
+        if (!letterText) { alert('Generate a letter first!'); return; }
+        
+        const originalText = clAttachBtn.innerHTML;
+        clAttachBtn.innerHTML = '<span class="animate-pulse">Attaching...</span>';
+        clAttachBtn.disabled = true;
+
+        try {
+            cvData.attachedCoverLetter = letterText;
+            cvData.attachedCLMeta = {
+                company: document.getElementById('cl-company').value.trim(),
+                role: document.getElementById('cl-job-title').value.trim(),
+                date: new Date().toISOString()
+            };
+            
+            const res = await fetch(`/cv-editor/${CV_ID}/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: cvData,
+                    title: document.getElementById('cv-title').value,
+                    templateId: document.body.dataset.template || 'modern'
+                })
+            });
+
+            if (!res.ok) throw new Error('Save failed');
+            
+            clAttachBtn.className = 'w-full bg-emerald-100 text-emerald-700 font-bold text-xs py-3.5 rounded-2xl flex items-center justify-center space-x-2';
+            clAttachBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Successfully Attached!</span>';
+            
+            setTimeout(() => {
+                clAttachBtn.className = 'w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-3.5 rounded-2xl transition-all shadow-lg shadow-emerald-100 dark:shadow-none flex items-center justify-center space-x-2';
+                clAttachBtn.innerHTML = originalText;
+                clAttachBtn.disabled = false;
+            }, 3000);
+        } catch (err) {
+            alert('Failed to attach cover letter. Please try again.');
+            clAttachBtn.innerHTML = originalText;
+            clAttachBtn.disabled = false;
+        }
     });
 
     // ============================================================
