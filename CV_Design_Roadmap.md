@@ -92,12 +92,17 @@ This roadmap outlines the evolution of the CV Generator's visual system, moving 
 - [x] **Audit Log**: Detailed table showing IP addresses, regional metadata, and browser types for every visitor.
 - [x] **Deep Analytics View**: Dedicated "Insights" page for each CV with exported reporting capabilities.
 
-## 💼 Phase 16: Job Market Insights (AI Strategic Intelligence)
-- [ ] **Salary Estimation**: AI-powered analysis of the CV to estimate market value based on current industry standards.
-- [ ] **Market Demand Analysis**: Identify if the user's current skill set is in high demand for their target role.
+## 💼 Phase 16: Job Market Insights (Strategic AI Intelligence)
+- [x] **AI Salary Estimation**: One-click estimate of annual market value (LOWER/MEDIAN/UPPER) based on live industry data.
+- [x] **Market Demand Trends**: Identify if the role is Growing, Stable, or Declining.
 - [ ] **Key Competency Heatmap**: Visualize which parts of the CV are most "marketable" to top employers.
+
+## 🌍 Phase 17: Global Talent & Recruiter CRM (Inbound Hub)
+- [ ] **One-Click AI Translation**: The ability to instantly translate the entire CV into French, Spanish, German, or Portuguese while preserving formatting.
+- [ ] **"Hire Me" Passive Inbound**: A premium "Contact Me" button on the public CV link that allows recruiters to message you directly.
+- [ ] **Job Description Match Score**: Paste a job description and receive a 1-100% "Fit Score" with missing keyword analysis.
+- [ ] **Localized Resume Formats**: Adjust layouts for specific regional standards (e.g., US Resume vs UK CV vs German Lebenslauf).
 
 ---
 
-**Current Status**: 🚀 **Global Design & Analytics Suite Operational**  
-Next Priority: **Strategic AI Intelligence (Salary & Demand)**
+**Next Priority**: **Strategic AI Intelligence (Competency Heatmap)**
