@@ -196,6 +196,7 @@ exports.postUpdateCV = async (req, res) => {
                 sidebarStyle: data.sidebarStyle || 'minimal',
                 photoStyle: data.photoStyle || 'rounded',
                 showHeaderIcons: data.showHeaderIcons || 'text',
+                region: data.region || 'us',
                 data: JSON.stringify(data)
             }
         });
@@ -248,6 +249,7 @@ exports.duplicateCV = async (req, res) => {
                 sidebarStyle: original.sidebarStyle,
                 photoStyle: original.photoStyle,
                 showHeaderIcons: original.showHeaderIcons,
+                region: original.region || 'us',
                 data: original.data
             }
         });

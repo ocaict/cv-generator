@@ -72,6 +72,10 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Market Strategy</span>
                 </button>
+                <button id="translate-cv-btn" class="bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-xs font-black shadow-sm hover:shadow-md hover:border-indigo-400 transition-all flex items-center space-x-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+                    <span>Translate CV</span>
+                </button>
             </div>
             <!-- Status & QR row -->
             <div class="flex items-center space-x-4">
@@ -240,6 +244,35 @@
                                 <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-2 uppercase">City/Town</label>
                                 <input type="text" name="personalInfo.city" value="<%= cvData.personalInfo.city || '' %>" placeholder="e.g. London" class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:text-white transition-all outline-none">
                             </div>
+                        </div>
+
+                        <!-- Localized Bio Data (EU/German Standard) -->
+                        <div id="localized-bio-fields" class="col-span-2 grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
+                             <div class="col-span-2 flex items-center justify-between mb-2">
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Extended Disclosure (EU/German Standard)</h4>
+                             </div>
+                             <div>
+                                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-2 uppercase">Date of Birth</label>
+                                <input type="date" name="personalInfo.dob" value="<%= cvData.personalInfo.dob || '' %>" class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:text-white transition-all outline-none">
+                             </div>
+                             <div>
+                                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-2 uppercase">Place of Birth</label>
+                                <input type="text" name="personalInfo.pob" value="<%= cvData.personalInfo.pob || '' %>" placeholder="e.g. Berlin, Germany" class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:text-white transition-all outline-none">
+                             </div>
+                             <div>
+                                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-2 uppercase">Nationality</label>
+                                <input type="text" name="personalInfo.nationality" value="<%= cvData.personalInfo.nationality || '' %>" placeholder="e.g. German" class="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:text-white transition-all outline-none">
+                             </div>
+                             <div>
+                                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-2 uppercase">Marital Status</label>
+                                <select name="personalInfo.maritalStatus" class="w-full bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
+                                    <option value="">Select Status</option>
+                                    <option value="Single" <%= (cvData.personalInfo.maritalStatus === 'Single') ? 'selected' : '' %>>Single</option>
+                                    <option value="Married" <%= (cvData.personalInfo.maritalStatus === 'Married') ? 'selected' : '' %>>Married</option>
+                                </select>
+                             </div>
+                        </div>
+
                         <div class="col-span-2 pt-4">
                             <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-2 uppercase tracking-widest">Global AI Writing Tone</label>
                             <select name="aiTone" id="ai-tone-selector" class="w-full px-4 py-3 bg-indigo-50 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 text-xs font-bold text-indigo-700 dark:text-indigo-400 outline-none cursor-pointer transition-all hover:bg-indigo-100/50 dark:hover:bg-slate-700/80">
@@ -472,28 +505,28 @@
                         <div class="mb-10">
                             <label class="block text-[10px] font-bold text-gray-400 mb-6 uppercase tracking-[0.2em] leading-none">Premium Design Presets</label>
                             <div class="grid grid-cols-3 gap-3">
-                                <button type="button" onclick="applyPreset('startup')" class="group p-4 bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-100 rounded-2xl text-left hover:border-indigo-400 hover:shadow-lg transition-all duration-300">
-                                    <div class="w-8 h-8 bg-indigo-600 rounded-lg mb-3 flex items-center justify-center text-white shadow-indigo-200 shadow-lg group-hover:scale-110 transition-transform">
+                                <button type="button" onclick="applyPreset('startup')" class="group p-4 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/40 dark:to-slate-900 border-2 border-indigo-100 dark:border-indigo-800 rounded-2xl text-left hover:border-indigo-400 hover:shadow-lg transition-all duration-300">
+                                    <div class="w-8 h-8 bg-indigo-600 rounded-lg mb-3 flex items-center justify-center text-white shadow-indigo-200 dark:shadow-indigo-900 shadow-lg group-hover:scale-110 transition-transform">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     </div>
-                                    <h4 class="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">Startup Guru</h4>
-                                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none">Modern • Teal • Airy</p>
+                                    <h4 class="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">Startup Guru</h4>
+                                    <p class="text-[9px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-none">Modern • Teal • Airy</p>
                                 </button>
 
-                                <button type="button" onclick="applyPreset('executive')" class="group p-4 bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 rounded-2xl text-left hover:border-slate-400 hover:shadow-lg transition-all duration-300">
-                                    <div class="w-8 h-8 bg-slate-800 rounded-lg mb-3 flex items-center justify-center text-white shadow-slate-200 shadow-lg group-hover:scale-110 transition-transform">
+                                <button type="button" onclick="applyPreset('executive')" class="group p-4 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-left hover:border-slate-400 hover:shadow-lg transition-all duration-300">
+                                    <div class="w-8 h-8 bg-slate-800 dark:bg-slate-700 rounded-lg mb-3 flex items-center justify-center text-white shadow-slate-200 dark:shadow-slate-900 shadow-lg group-hover:scale-110 transition-transform">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                                     </div>
-                                    <h4 class="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">Wall Street</h4>
-                                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none">Classic • Slate • Serif</p>
+                                    <h4 class="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">Wall Street</h4>
+                                    <p class="text-[9px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-none">Classic • Slate • Serif</p>
                                 </button>
 
-                                <button type="button" onclick="applyPreset('creative')" class="group p-4 bg-gradient-to-br from-rose-50 to-white border-2 border-rose-100 rounded-2xl text-left hover:border-rose-400 hover:shadow-lg transition-all duration-300">
-                                    <div class="w-8 h-8 bg-rose-500 rounded-lg mb-3 flex items-center justify-center text-white shadow-rose-200 shadow-lg group-hover:scale-110 transition-transform">
+                                <button type="button" onclick="applyPreset('creative')" class="group p-4 bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/40 dark:to-slate-900 border-2 border-rose-100 dark:border-rose-800 rounded-2xl text-left hover:border-rose-400 hover:shadow-lg transition-all duration-300">
+                                    <div class="w-8 h-8 bg-rose-500 rounded-lg mb-3 flex items-center justify-center text-white shadow-rose-200 dark:shadow-rose-900 shadow-lg group-hover:scale-110 transition-transform">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
                                     </div>
-                                    <h4 class="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">Creative</h4>
-                                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none">Grid • Rose • Modern</p>
+                                    <h4 class="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">Creative</h4>
+                                    <p class="text-[9px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-none">Grid • Rose • Modern</p>
                                 </button>
                             </div>
                         </div>
@@ -503,92 +536,85 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="templateId" value="modern" class="hidden peer" <%= cv.templateId === 'modern' ? 'checked' : '' %>>
-                                    <div class="p-4 border-2 border-gray-100 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white peer-checked:shadow-xl peer-checked:shadow-indigo-50 transition-all text-left">
-                                        <div class="aspect-[4/3] bg-gray-50 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center space-y-2 border border-gray-100 group-hover:bg-white transition-colors">
-                                            <div class="w-16 h-2 bg-gray-200 rounded-full"></div>
-                                            <div class="w-20 h-1 bg-gray-100 rounded-full"></div>
-                                            <div class="w-20 h-1 bg-gray-100 rounded-full"></div>
-                                            <div class="w-20 h-1 bg-gray-100 rounded-full"></div>
+                                    <div class="p-4 border-2 border-gray-100 dark:border-slate-800 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white dark:peer-checked:bg-slate-900 peer-checked:shadow-xl peer-checked:shadow-indigo-50 dark:peer-checked:shadow-indigo-900/20 transition-all text-left">
+                                        <div class="aspect-[4/3] bg-gray-50 dark:bg-slate-800/50 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center space-y-2 border border-gray-100 dark:border-slate-700 group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
+                                            <div class="w-16 h-2 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
+                                            <div class="w-20 h-1 bg-gray-100 dark:bg-slate-600 rounded-full"></div>
+                                            <div class="w-20 h-1 bg-gray-100 dark:bg-slate-600 rounded-full"></div>
+                                            <div class="w-20 h-1 bg-gray-100 dark:bg-slate-600 rounded-full"></div>
                                         </div>
-                                        <h5 class="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">The Modernist</h5>
-                                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">Balanced • Sidebar • Sharp</p>
-                                    </div>
-                                </label>
-
-                                <label class="cursor-pointer group">
-                                    <input type="radio" name="templateId" value="classic" class="hidden peer" <%= cv.templateId === 'classic' ? 'checked' : '' %>>
-                                    <div class="p-4 border-2 border-gray-100 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white peer-checked:shadow-xl peer-checked:shadow-indigo-50 transition-all text-left">
-                                        <div class="aspect-[4/3] bg-gray-50 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center space-y-2 border border-gray-100 group-hover:bg-white transition-colors">
-                                            <div class="w-12 h-2.5 bg-gray-300 rounded-sm"></div>
-                                            <div class="w-24 h-0.5 bg-gray-200 rounded-sm"></div>
-                                            <div class="w-24 h-0.5 bg-gray-200 rounded-sm"></div>
-                                            <div class="w-24 h-0.5 bg-gray-200 rounded-sm"></div>
-                                        </div>
-                                        <h5 class="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">The Executive</h5>
-                                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">Traditional • Center • Clean</p>
+                                        <h5 class="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">The Modernist</h5>
+                                        <p class="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-widest leading-none">Balanced • Sidebar • Sharp</p>
                                     </div>
                                 </label>
 
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="templateId" value="minimalist" class="hidden peer" <%= cv.templateId === 'minimalist' ? 'checked' : '' %>>
-                                    <div class="p-4 border-2 border-gray-100 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white peer-checked:shadow-xl peer-checked:shadow-indigo-50 transition-all text-left">
-                                        <div class="aspect-[4/3] bg-gray-50 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center space-y-1.5 border border-gray-100 px-4 group-hover:bg-white transition-colors">
-                                            <div class="w-10 h-1.5 bg-gray-300 rounded-full self-start"></div>
-                                            <div class="w-full h-0.5 bg-gray-100 rounded-full"></div>
-                                            <div class="w-full h-0.5 bg-gray-100 rounded-full"></div>
-                                            <div class="w-full h-0.5 bg-gray-100 rounded-full"></div>
-                                            <div class="w-full h-0.5 bg-gray-100 rounded-full"></div>
+                                    <div class="p-4 border-2 border-gray-100 dark:border-slate-800 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white dark:peer-checked:bg-slate-900 peer-checked:shadow-xl peer-checked:shadow-indigo-50 dark:peer-checked:shadow-indigo-900/20 transition-all text-left">
+                                        <div class="aspect-[4/3] bg-gray-50 dark:bg-slate-800/50 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center space-y-1.5 border border-gray-100 dark:border-slate-700 px-4 group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
+                                            <div class="w-10 h-1.5 bg-gray-300 dark:bg-slate-600 rounded-full self-start"></div>
+                                            <div class="w-full h-0.5 bg-gray-100 dark:bg-slate-700 rounded-full"></div>
+                                            <div class="w-full h-0.5 bg-gray-100 dark:bg-slate-700 rounded-full"></div>
+                                            <div class="w-full h-0.5 bg-gray-100 dark:bg-slate-700 rounded-full"></div>
+                                            <div class="w-full h-0.5 bg-gray-100 dark:bg-slate-700 rounded-full"></div>
                                         </div>
-                                        <h5 class="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">The Minimal</h5>
-                                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">Sleek • Single Column</p>
+                                        <h5 class="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">The Minimal</h5>
+                                        <p class="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-widest leading-none">Sleek • Single Column</p>
                                     </div>
                                 </label>
 
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="templateId" value="grid" class="hidden peer" <%= cv.templateId === 'grid' ? 'checked' : '' %>>
-                                    <div class="p-4 border-2 border-gray-100 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white peer-checked:shadow-xl peer-checked:shadow-indigo-50 transition-all text-left">
-                                        <div class="aspect-[4/3] bg-gray-50 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center border border-gray-100 group-hover:bg-white transition-colors">
+                                    <div class="p-4 border-2 border-gray-100 dark:border-slate-800 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white dark:peer-checked:bg-slate-900 peer-checked:shadow-xl peer-checked:shadow-indigo-50 dark:peer-checked:shadow-indigo-900/20 transition-all text-left">
+                                        <div class="aspect-[4/3] bg-gray-50 dark:bg-slate-800/50 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center border border-gray-100 dark:border-slate-700 group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
                                             <div class="flex space-x-2 w-full h-full p-2">
-                                                <div class="w-1/3 h-full bg-gray-200 rounded-lg"></div>
-                                                <div class="w-2/3 h-full bg-gray-50 rounded-lg flex flex-col space-y-2 p-2">
-                                                    <div class="h-2 w-full bg-gray-300 rounded-full"></div>
-                                                    <div class="h-full w-full bg-gray-100 rounded-lg"></div>
+                                                <div class="w-1/3 h-full bg-gray-200 dark:bg-slate-700 rounded-lg"></div>
+                                                <div class="w-2/3 h-full bg-gray-50 dark:bg-slate-800/50 rounded-lg flex flex-col space-y-2 p-2">
+                                                    <div class="h-2 w-full bg-gray-300 dark:bg-slate-600 rounded-full"></div>
+                                                    <div class="h-full w-full bg-gray-100 dark:bg-slate-700 rounded-lg"></div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <h5 class="text-xs font-black text-gray-900 mb-1 uppercase tracking-tight">The Gridsmith</h5>
-                                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">Tech • Multi-column</p>
+                                        <h5 class="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">The Gridsmith</h5>
+                                        <p class="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-widest leading-none">Tech • Multi-column</p>
                                     </div>
                                 </label>
 
-                                <label class="cursor-pointer group col-span-2 sm:col-span-1">
-                                    <input type="radio" name="templateId" value="onyx" class="hidden peer" <%= cv.templateId === 'onyx' ? 'checked' : '' %>>
-                                    <div class="p-4 border-2 border-slate-800 bg-slate-900 rounded-3xl group-hover:border-indigo-400 peer-checked:border-indigo-500 peer-checked:bg-slate-900 peer-checked:shadow-xl peer-checked:shadow-indigo-900/50 transition-all text-left">
-                                        <div class="aspect-[4/3] bg-slate-800 rounded-2xl mb-4 overflow-hidden flex flex-col items-center justify-center space-y-2 border border-slate-700 group-hover:bg-slate-700 transition-colors">
-                                            <div class="w-16 h-2 bg-indigo-500 rounded-full"></div>
-                                            <div class="w-20 h-1 bg-slate-600 rounded-full"></div>
-                                            <div class="w-20 h-1 bg-slate-600 rounded-full"></div>
-                                            <div class="w-20 h-1 bg-slate-600 rounded-full"></div>
+                                <label class="cursor-pointer group">
+                                    <input type="radio" name="templateId" value="standard_professional" class="hidden peer" <%= cv.templateId === 'standard_professional' ? 'checked' : '' %>>
+                                    <div class="p-4 border-2 border-gray-100 dark:border-slate-800 rounded-3xl group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-white dark:peer-checked:bg-slate-900 peer-checked:shadow-xl peer-checked:shadow-indigo-50 dark:peer-checked:shadow-indigo-900/20 transition-all text-left">
+                                        <div class="aspect-[4/3] bg-gray-50 dark:bg-slate-800/50 rounded-2xl mb-4 overflow-hidden flex flex-col pt-3 px-4 border border-gray-100 dark:border-slate-700 group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors relative items-center">
+                                            <div class="w-12 h-1.5 bg-gray-300 dark:bg-slate-600 rounded-full text-center"></div>
+                                            <div class="mt-1 flex space-x-1 justify-center w-full pb-1 border-b border-gray-200 dark:border-slate-600">
+                                                <div class="w-4 h-0.5 bg-gray-200 dark:bg-slate-700"></div>
+                                                <div class="w-4 h-0.5 bg-gray-200 dark:bg-slate-700"></div>
+                                                <div class="w-4 h-0.5 bg-gray-200 dark:bg-slate-700"></div>
+                                            </div>
+                                            <div class="w-full h-0.5 bg-gray-300 dark:bg-slate-600 mt-2 mb-1 self-start ml-0 w-8"></div>
+                                            <div class="w-full h-0.5 bg-gray-200 dark:bg-slate-700 mb-1 rounded-full"></div>
+                                            <div class="w-4/5 h-0.5 bg-gray-200 dark:bg-slate-700 mb-1 rounded-full self-start"></div>
+                                            <div class="w-full h-0.5 bg-gray-300 dark:bg-slate-600 mt-2 mb-1 self-start ml-0 w-8"></div>
+                                            <div class="w-full flex justify-between mb-1 items-center"><div class="w-1/3 h-1 bg-gray-200 dark:bg-slate-700"></div><div class="w-1/5 h-0.5 bg-gray-200 dark:bg-slate-700"></div></div>
                                         </div>
-                                        <h5 class="text-xs font-black text-white mb-1 uppercase tracking-tight">Onyx Dark</h5>
-                                        <p class="text-[9px] text-indigo-400 font-bold uppercase tracking-widest leading-none">Premium • High Contrast</p>
+                                        <h5 class="text-xs font-black text-gray-900 dark:text-white mb-1 uppercase tracking-tight">ATS Standard</h5>
+                                        <p class="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-widest leading-none">Traditional • Professional</p>
                                     </div>
                                 </label>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-6">
+                        <div class="grid grid-cols-2 gap-6 pb-6 border-b border-gray-100 dark:border-slate-800 mb-8">
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest leading-none">Typography Style</label>
-                                <select name="fontPairing" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 outline-none focus:border-indigo-600 transition-all appearance-none">
+                                <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest leading-none text-left">Typography Style</label>
+                                <select name="fontPairing" class="w-full bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 dark:text-gray-300 outline-none focus:border-indigo-600 transition-all appearance-none">
                                     <option value="outfit-inter" <%= cv.fontPairing === 'outfit-inter' ? 'selected' : '' %>>Modern (Outfit + Inter)</option>
                                     <option value="serif-inter" <%= cv.fontPairing === 'serif-inter' ? 'selected' : '' %>>Professional (Serif + Inter)</option>
                                     <option value="inter-inter" <%= cv.fontPairing === 'inter-inter' ? 'selected' : '' %>>Standard (Inter + Inter)</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest leading-none">Content Density</label>
-                                <select name="density" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 outline-none focus:border-indigo-600 transition-all appearance-none">
+                                <label class="block text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest leading-none text-left">Content Density</label>
+                                <select name="density" class="w-full bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 dark:text-gray-300 outline-none focus:border-indigo-600 transition-all appearance-none">
                                     <option value="tight" <%= cv.density === 'tight' ? 'selected' : '' %>>Compact</option>
                                     <option value="standard" <%= cv.density === 'standard' ? 'selected' : '' %>>Standard</option>
                                     <option value="airy" <%= cv.density === 'airy' ? 'selected' : '' %>>Airy (Premium)</option>
@@ -596,8 +622,8 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-400 mb-4 uppercase tracking-widest leading-none">Primary Accent Color</label>
+                         <div>
+                            <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-4 uppercase tracking-widest leading-none">Primary Accent Color</label>
                             <div class="flex flex-wrap gap-4 items-center">
                                 <% const colors = [
                                     { name: 'Indigo', hex: '#4f46e5' },
@@ -610,33 +636,33 @@
                                 <% colors.forEach(color => { %>
                                     <label class="relative cursor-pointer group">
                                         <input type="radio" name="themeColor" value="<%= color.hex %>" class="hidden peer" <%= (cvData.themeColor || '#4f46e5') === color.hex ? 'checked' : '' %>>
-                                        <div class="w-10 h-10 rounded-xl border-2 border-white ring-2 ring-transparent peer-checked:ring-indigo-600 peer-checked:scale-110 shadow-sm transition-all group-hover:scale-105" style="background-color: <%= color.hex %>;"></div>
+                                        <div class="w-10 h-10 rounded-xl border-2 border-white dark:border-slate-800 ring-2 ring-transparent peer-checked:ring-indigo-600 dark:peer-checked:ring-indigo-400 peer-checked:scale-110 shadow-sm transition-all group-hover:scale-105" style="background-color: <%= color.hex %>;"></div>
                                     </label>
                                 <% }) %>
                                 <div class="flex flex-col items-center space-y-2 ml-2">
-                                    <input type="color" name="themeColorCustom" id="custom-color-picker" class="w-10 h-10 rounded-xl border-2 border-gray-100 p-1 cursor-pointer bg-white shadow-sm" value="<%= cvData.themeColor || '#4f46e5' %>">
+                                    <input type="color" name="themeColorCustom" id="custom-color-picker" class="w-10 h-10 rounded-xl border-2 border-gray-100 dark:border-slate-700 p-1 cursor-pointer bg-white dark:bg-slate-800 shadow-sm" value="<%= cvData.themeColor || '#4f46e5' %>">
                                     <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Custom</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-6 mt-8 pt-8 border-t border-gray-100">
+                         <div class="grid grid-cols-2 gap-6 mt-8 pt-8 border-t border-gray-100 dark:border-slate-800">
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest leading-none">Sidebar Position</label>
-                                <div class="flex p-1 bg-gray-50 rounded-xl space-x-1">
+                                <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-3 uppercase tracking-widest leading-none">Sidebar Position</label>
+                                <div class="flex p-1 bg-gray-50 dark:bg-slate-800/50 rounded-xl space-x-1">
                                     <label class="flex-1 cursor-pointer">
                                         <input type="radio" name="sidebarPos" value="left" class="hidden peer" <%= (cvData.sidebarPos || 'left') === 'left' ? 'checked' : '' %>>
-                                        <div class="py-2 text-center text-[10px] font-bold text-gray-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm rounded-lg transition-all">LEFT</div>
+                                        <div class="py-2 text-center text-[10px] font-bold text-gray-400 dark:text-slate-500 peer-checked:bg-white dark:peer-checked:bg-slate-700 peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400 peer-checked:shadow-sm rounded-lg transition-all">LEFT</div>
                                     </label>
                                     <label class="flex-1 cursor-pointer">
                                         <input type="radio" name="sidebarPos" value="right" class="hidden peer" <%= (cvData.sidebarPos || 'left') === 'right' ? 'checked' : '' %>>
-                                        <div class="py-2 text-center text-[10px] font-bold text-gray-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm rounded-lg transition-all">RIGHT</div>
+                                        <div class="py-2 text-center text-[10px] font-bold text-gray-400 dark:text-slate-500 peer-checked:bg-white dark:peer-checked:bg-slate-700 peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400 peer-checked:shadow-sm rounded-lg transition-all">RIGHT</div>
                                     </label>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest leading-none">Section Style</label>
-                                <select name="sidebarStyle" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-2.5 text-[10px] font-bold text-gray-700 outline-none focus:border-indigo-600 transition-all appearance-none uppercase tracking-widest">
+                                <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-3 uppercase tracking-widest leading-none">Section Style</label>
+                                <select name="sidebarStyle" class="w-full bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl px-4 py-2.5 text-[10px] font-bold text-gray-700 dark:text-gray-300 outline-none focus:border-indigo-600 transition-all appearance-none uppercase tracking-widest">
                                     <option value="minimal" <%= (cvData.sidebarStyle || 'minimal') === 'minimal' ? 'selected' : '' %>>Minimal Text</option>
                                     <option value="underline" <%= (cvData.sidebarStyle || 'minimal') === 'underline' ? 'selected' : '' %>>Underlined</option>
                                     <option value="pill" <%= (cvData.sidebarStyle || 'minimal') === 'pill' ? 'selected' : '' %>>Accent Pill</option>
@@ -644,68 +670,83 @@
                             </div>
                         </div>
 
-                        <div class="mt-8">
-                             <label class="block text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest leading-none">Photo Display Style</label>
+                        <!-- Global Market Standard Selector -->
+                        <div class="mt-8 pt-8 border-t border-gray-100 dark:border-slate-800">
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="block text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest leading-none">Global Market Standard</label>
+                                <span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-full">New</span>
+                            </div>
+                            <select id="cv-region" name="region" class="w-full bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold text-gray-700 dark:text-white outline-none focus:border-indigo-600 transition-all cursor-pointer appearance-none">
+                                <option value="us" <%= (cv.region === 'us') ? 'selected' : '' %>>US Standard (Resume) - No Photo, Metric Focus</option>
+                                <option value="eu" <%= (cv.region === 'eu') ? 'selected' : '' %>>UK / EU Standard (CV) - Balanced Layout</option>
+                                <option value="de" <%= (cv.region === 'de') ? 'selected' : '' %>>German Standard (Lebenslauf) - Photo + Bio Data</option>
+                                <option value="ca" <%= (cv.region === 'ca') ? 'selected' : '' %>>Canada / Australia</option>
+                            </select>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-2 opacity-60 italic">AI will automatically adjust hierarchy for local hiring norms.</p>
+                        </div>
+
+                         <div class="mt-8">
+                             <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-3 uppercase tracking-widest leading-none">Photo Display Style</label>
                              <div class="flex space-x-4">
                                 <% const photoStylesList = ['square', 'rounded', 'circle', 'hidden'] %>
                                 <% photoStylesList.forEach(style => { %>
                                     <label class="cursor-pointer group flex-1">
                                          <input type="radio" name="photoStyle" value="<%= style %>" class="hidden peer" <%= (cvData.photoStyle || 'rounded') === style ? 'checked' : '' %>>
-                                         <div class="py-3 px-2 border-2 border-gray-100 rounded-xl text-center group-hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 transition-all">
-                                             <div class="w-8 h-8 bg-gray-200 mx-auto mb-1 
+                                         <div class="py-3 px-2 border-2 border-gray-100 dark:border-slate-700 rounded-xl text-center group-hover:border-indigo-200 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-400 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/20 transition-all">
+                                             <div class="w-8 h-8 bg-gray-200 dark:bg-slate-700 mx-auto mb-1 
                                                 <%= style === 'circle' ? 'rounded-full' : (style === 'rounded' ? 'rounded-lg' : 'rounded-none') %>
                                                 <%= style === 'hidden' ? 'opacity-20' : '' %>">
                                                 <% if (style === 'hidden') { %>
                                                     <div class="w-full h-full flex items-center justify-center text-[8px] text-gray-400">∅</div>
                                                 <% } %>
                                              </div>
-                                             <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none text-center block"><%= style %></span>
+                                             <span class="text-[8px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest leading-none text-center block"><%= style %></span>
                                          </div>
                                     </label>
                                 <% }) %>
                              </div>
                         </div>
 
-                        <div class="mt-8">
-                             <label class="block text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest leading-none">Section Labels</label>
-                             <div class="flex p-1 bg-gray-50 rounded-xl space-x-1 w-full max-w-xs">
+                         <div class="mt-8">
+                             <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-3 uppercase tracking-widest leading-none">Section Labels</label>
+                             <div class="flex p-1 bg-gray-50 dark:bg-slate-800/50 rounded-xl space-x-1 w-full max-w-xs">
                                  <label class="flex-1 cursor-pointer">
                                      <input type="radio" name="showHeaderIcons" value="text" class="hidden peer" <%= (cvData.showHeaderIcons || 'text') === 'text' ? 'checked' : '' %>>
-                                     <div class="py-2 text-center text-[10px] font-bold text-gray-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm rounded-lg transition-all uppercase tracking-widest">Text Only</div>
+                                     <div class="py-2 text-center text-[10px] font-bold text-gray-400 dark:text-slate-500 peer-checked:bg-white dark:peer-checked:bg-slate-700 peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400 peer-checked:shadow-sm rounded-lg transition-all uppercase tracking-widest">Text Only</div>
                                  </label>
                                  <label class="flex-1 cursor-pointer">
                                      <input type="radio" name="showHeaderIcons" value="icons" class="hidden peer" <%= (cvData.showHeaderIcons || 'text') === 'icons' ? 'checked' : '' %>>
-                                     <div class="py-2 text-center text-[10px] font-bold text-gray-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm rounded-lg transition-all uppercase tracking-widest">With Icons</div>
+                                     <div class="py-2 text-center text-[10px] font-bold text-gray-400 dark:text-slate-500 peer-checked:bg-white dark:peer-checked:bg-slate-700 peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400 peer-checked:shadow-sm rounded-lg transition-all uppercase tracking-widest">With Icons</div>
                                  </label>
                              </div>
                         </div>
 
-                        <div class="mt-8">
-                             <label class="block text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest leading-none">Section Visibility</label>
+                         <div class="mt-8">
+                             <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-3 uppercase tracking-widest leading-none">Section Visibility</label>
                              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                  <% const visSections = [{id: 'profile', name: 'Summary'}, {id: 'experience', name: 'Experience'}, {id: 'education', name: 'Education'}, {id: 'skills', name: 'Skills'}, {id: 'interests', name: 'Interests'}, {id: 'references', name: 'References'}]; %>
                                  <% visSections.forEach(sec => { %>
-                                     <label class="flex items-center p-3 bg-white border border-gray-100 rounded-xl cursor-pointer hover:border-indigo-200 hover:bg-indigo-50/10 transition-all select-none group">
-                                         <input type="checkbox" name="sectionVisibility.<%= sec.id %>" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3 transition-all" <%= (!cvData.sectionVisibility || cvData.sectionVisibility[sec.id] !== false) ? 'checked' : '' %>>
-                                         <span class="text-[10px] font-bold text-gray-600 group-hover:text-indigo-600 uppercase tracking-widest"><%= sec.name %></span>
+                                     <label class="flex items-center p-3 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-200 dark:hover:border-indigo-600 hover:bg-indigo-50/10 dark:hover:bg-indigo-900/10 transition-all select-none group">
+                                         <input type="checkbox" name="sectionVisibility.<%= sec.id %>" class="w-4 h-4 rounded border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-600 focus:ring-indigo-500 mr-3 transition-all" <%= (!cvData.sectionVisibility || cvData.sectionVisibility[sec.id] !== false) ? 'checked' : '' %>>
+                                         <span class="text-[10px] font-bold text-gray-600 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 uppercase tracking-widest"><%= sec.name %></span>
                                      </label>
                                  <% }) %>
                              </div>
                         </div>
 
-                        <div id="layout-config-area" class="pt-6 border-t border-gray-100 mt-6">
-                            <label class="block text-[10px] font-bold text-gray-400 mb-6 uppercase tracking-widest leading-none">Layout & Section Order (Drag to Reorder)</label>
+                         <div id="layout-config-area" class="pt-6 border-t border-gray-100 dark:border-slate-800 mt-6">
+                            <label class="block text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-6 uppercase tracking-widest leading-none">Layout & Section Order (Drag to Reorder)</label>
                             
                             <div id="reorder-zone-container" class="grid grid-cols-2 gap-8">
                                 <div>
-                                    <label id="main-column-label" class="block text-[9px] font-bold text-gray-300 mb-3 uppercase tracking-wider">Main Column</label>
-                                    <div id="main-sections-list" class="space-y-2 p-3 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100 min-h-[100px]">
+                                    <label id="main-column-label" class="block text-[9px] font-bold text-gray-300 dark:text-slate-600 mb-3 uppercase tracking-wider">Main Column</label>
+                                    <div id="main-sections-list" class="space-y-2 p-3 bg-gray-50/50 dark:bg-slate-800/30 rounded-2xl border-2 border-dashed border-gray-100 dark:border-slate-800 min-h-[100px]">
                                         <!-- Sections will be rendered here -->
                                     </div>
                                 </div>
                                 <div id="sidebar-column-zone">
-                                    <label class="block text-[9px] font-bold text-gray-300 mb-3 uppercase tracking-wider text-right">Sidebar / Details</label>
-                                    <div id="sidebar-sections-list" class="space-y-2 p-3 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100 min-h-[100px]">
+                                    <label class="block text-[9px] font-bold text-gray-300 dark:text-slate-600 mb-3 uppercase tracking-wider text-right">Sidebar / Details</label>
+                                    <div id="sidebar-sections-list" class="space-y-2 p-3 bg-gray-50/50 dark:bg-slate-800/30 rounded-2xl border-2 border-dashed border-gray-100 dark:border-slate-800 min-h-[100px]">
                                         <!-- Sections will be rendered here -->
                                     </div>
                                 </div>
@@ -723,12 +764,43 @@
     </div>
 
     <!-- Right Content: Live Preview -->
-    <div id="preview-section" class="hidden lg:flex flex-grow h-full bg-gray-100 flex-col items-center pt-12 pb-24 overflow-y-auto transition-all duration-500">
+    <div id="preview-section" class="hidden lg:flex flex-grow h-full bg-gray-100 dark:bg-slate-950 flex-col items-center pt-8 pb-24 overflow-y-auto transition-all duration-500 border-l border-gray-200 dark:border-slate-800">
+        <!-- Preview Controller Bar -->
+        <div class="w-full max-w-[794px] mb-6 flex items-center justify-between px-6 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm transition-all sticky top-0 z-10">
+            <div class="flex items-center space-x-4">
+                <span class="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Preview Mode</span>
+                <div class="flex p-1 bg-gray-100 dark:bg-slate-800 rounded-xl space-x-1">
+                    <button id="view-normal-btn" class="px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all">Single</button>
+                    <button id="view-split-btn" class="px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition-all flex items-center space-x-1.5">
+                        <span>Side-by-Side</span>
+                        <span class="px-1.5 py-0.5 bg-green-500 text-white text-[7px] rounded-full">Pro</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button id="preview-zoom-out" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path></svg>
+                </button>
+                <span id="zoom-level" class="text-[10px] font-black text-gray-400 dark:text-slate-500 tracking-tighter">100%</span>
+                <button id="preview-zoom-in" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                </button>
+            </div>
+        </div>
+
         <!-- Preview Container -->
-        <div id="preview-frame" class="bg-white w-full max-w-[794px] shadow-2xl rounded shadow-gray-200 transform origin-top scale-[0.75] xl:scale-90 p-0 m-0">
-            <!-- This will be replaced by the template HTML -->
-            <div id="preview-content" class="w-full h-auto">
-                Loading preview...
+        <div id="preview-viewport" class="w-full flex justify-center transition-all duration-500">
+            <div id="preview-frame" class="bg-white w-full max-w-[794px] shadow-2xl rounded shadow-gray-200 transform origin-top transition-all p-0 m-0">
+                <div id="preview-content" class="w-full h-auto">
+                    Loading preview...
+                </div>
+            </div>
+            
+            <!-- Split Preview Frame (Hidden by default) -->
+            <div id="split-preview-frame" class="hidden bg-white w-full max-w-[794px] shadow-2xl rounded shadow-gray-200 border-l border-gray-100 transform origin-top transition-all p-0 m-0 opacity-0 -translate-x-10">
+                <div id="split-preview-content" class="w-full h-auto">
+                    <!-- Original version for comparison -->
+                </div>
             </div>
         </div>
     </div>
@@ -740,13 +812,13 @@
 <!-- Salary / Market Strategy Modal -->
 <div id="salary-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div id="salary-backdrop" class="absolute inset-0 bg-slate-950/40 backdrop-blur-xl"></div>
-    <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl border border-white dark:border-slate-800 overflow-hidden transform transition-all animate-modal-in">
+    <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl border border-white dark:border-slate-800 overflow-hidden transform transition-all animate-modal-in flex flex-col" style="max-height: 90vh;">
         <!-- Close Button -->
-        <button id="salary-close-btn" class="absolute top-8 right-8 w-10 h-10 bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-full flex items-center justify-center transition-all z-10 border border-gray-100 dark:border-slate-700">
+        <button id="salary-close-btn" class="absolute top-6 right-6 w-10 h-10 bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-full flex items-center justify-center transition-all z-20 border border-gray-100 dark:border-slate-700">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
 
-        <div class="p-12">
+        <div class="p-10 overflow-y-auto custom-scrollbar">
             <div class="flex items-center space-x-4 mb-8">
                 <div class="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-slate-200 dark:shadow-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -906,6 +978,63 @@
                 <button id="review-rerun-btn" class="w-full border-2 border-emerald-400 text-emerald-600 dark:text-emerald-400 font-bold text-xs py-3 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
                     ↺ Run Review Again
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Translation Modal                                           -->
+<!-- ============================================================ -->
+<div id="translate-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div id="translate-backdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col">
+        <div class="px-8 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-black text-gray-900 dark:text-white font-outfit tracking-tight">Global Translation</h2>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">International Career Bridge</p>
+                </div>
+                <button id="translate-close-btn" class="w-10 h-10 rounded-2xl bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-red-500 transition-all flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div id="translate-selection">
+                <p class="text-sm text-gray-600 dark:text-slate-300 mb-6 leading-relaxed">
+                    Translate your entire CV instantly. Our AI preserves professional terminology and maintains your layout structure perfectly.
+                </p>
+                
+                <div class="grid grid-cols-2 gap-3 mb-8">
+                    <button onclick="runTranslation('French')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
+                        <span class="block text-2xl mb-2">🇫🇷</span>
+                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">French</span>
+                    </button>
+                    <button onclick="runTranslation('Spanish')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
+                        <span class="block text-2xl mb-2">🇪🇸</span>
+                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">Spanish</span>
+                    </button>
+                    <button onclick="runTranslation('German')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
+                        <span class="block text-2xl mb-2">🇩🇪</span>
+                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">German</span>
+                    </button>
+                    <button onclick="runTranslation('Portuguese')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
+                        <span class="block text-2xl mb-2">🇵🇹</span>
+                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">Portuguese</span>
+                    </button>
+                </div>
+
+                <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                    <p class="text-[10px] text-indigo-700 dark:text-indigo-400 font-bold leading-relaxed">
+                        ⚠️ Note: This will overwrite your current content. We recommend saving or duplicating your CV first.
+                    </p>
+                </div>
+            </div>
+
+            <div id="translate-loading" class="hidden py-12 flex flex-col items-center justify-center space-y-4">
+                <div class="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                <p class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] animate-pulse">Translating Documents...</p>
+                <p class="text-[10px] text-gray-400 font-medium">This may take up to 30 seconds</p>
             </div>
         </div>
     </div>
@@ -1157,13 +1286,43 @@
     </div>
 </div>
 
+<!-- Template Gallery Modal -->
+<div id="template-gallery-modal" class="fixed inset-0 z-[60] hidden">
+    <div id="template-gallery-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300"></div>
+    <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col transform transition-transform duration-500 translate-x-full" id="template-gallery-panel">
+        <div class="p-8 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+            <div>
+                <h3 class="text-xl font-black text-gray-900 dark:text-white tracking-tight uppercase">Premium Template Library</h3>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Selected for your industry & region</p>
+            </div>
+            <button id="template-gallery-close" class="p-3 bg-gray-50 dark:bg-slate-800 rounded-2xl text-gray-400 hover:text-indigo-600 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <div class="flex-grow overflow-y-auto p-8 custom-scrollbar">
+            <div class="grid grid-cols-2 gap-8" id="gallery-grid">
+                <!-- Templates will be populated here if needed, or static for now -->
+            </div>
+        </div>
+        
+        <div class="p-8 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50">
+            <div class="flex items-center space-x-3 text-indigo-600 font-bold">
+                <span class="text-lg">✨</span>
+                <p class="text-xs uppercase tracking-widest">More templates coming soon based on your industry!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
     const CV_ID = "<%= cv.id %>";
     const TEMPLATE_ID = "<%= cv.templateId %>";
-    let cvData = <%- JSON.stringify(cvData) %>;
+    // Passing data safely to avoid linting issues and script breaks
+    let cvData = <%- JSON.stringify(cvData).replace(/<\/script/g, '<\\/script').replace(/<!--/g, '<\\!--') %>;
 </script>
 <script src="/js/editor.js?v=<%= Date.now() %>"></script>
 <script>
@@ -1587,6 +1746,80 @@
             clAttachBtn.disabled = false;
         }
     });
+
+    // ============================================================
+    // Translation Modal Logic
+    // ============================================================
+    const transModal    = document.getElementById('translate-modal');
+    const transBackdrop = document.getElementById('translate-backdrop');
+    const transOpenBtn  = document.getElementById('translate-cv-btn');
+    const transCloseBtn = document.getElementById('translate-close-btn');
+    const transLoading  = document.getElementById('translate-loading');
+    const transSelection = document.getElementById('translate-selection');
+
+    function openTransModal() {
+        transModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        transSelection.classList.remove('hidden');
+        transLoading.classList.add('hidden');
+    }
+    function closeTransModal() {
+        transModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    async function runTranslation(targetLang) {
+        if (!confirm(`Are you sure? This will translate all content to ${targetLang} and overwrite your current entries.`)) return;
+        
+        transSelection.classList.add('hidden');
+        transLoading.classList.remove('hidden');
+
+        try {
+            const res = await fetch('/api/ai/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'translate',
+                    input: JSON.stringify(cvData),
+                    context: { targetLanguage: targetLang }
+                })
+            });
+
+            if (!res.ok) throw new Error('Translation failed');
+            const data = await res.json();
+            
+            // Expected result is a JSON string or object
+            let translatedData;
+            try {
+                translatedData = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+            } catch (e) {
+                // If it failed to parse, maybe it's just the text? 
+                // But we requested JSON. Hard error for now.
+                throw new Error('AI returned invalid data format');
+            }
+
+            // Update the global cvData
+            Object.assign(cvData, translatedData);
+            
+            // Force re-render of all inputs and preview
+            syncDataToInputs();
+            updatePreview();
+            saveCV(); // Auto-save after translation
+            
+            alert(`Succesfully translated to ${targetLang}!`);
+            closeTransModal();
+
+        } catch (err) {
+            console.error(err);
+            alert('Translation failed. Please try again.');
+            transSelection.classList.remove('hidden');
+            transLoading.classList.add('hidden');
+        }
+    }
+
+    transOpenBtn?.addEventListener('click', openTransModal);
+    transCloseBtn?.addEventListener('click', closeTransModal);
+    transBackdrop?.addEventListener('click', closeTransModal);
 
     // ============================================================
     // CV Review Modal Logic

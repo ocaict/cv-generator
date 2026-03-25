@@ -29,6 +29,7 @@ model CV {
   sidebarStyle    String   @default("minimal")
   photoStyle      String   @default("rounded")
   showHeaderIcons String   @default("text")
+  region          String   @default("us")
   data            String
   isPublic        Boolean  @default(false)
   publicSlug      String?  @unique

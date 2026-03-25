@@ -11,6 +11,25 @@ const editorForm = document.getElementById('editor-form');
 const saveBtn = document.getElementById('save-btn');
 const cvTitle = document.getElementById('cv-title');
 const previewContent = document.getElementById('preview-content');
+const splitPreviewFrame = document.getElementById('split-preview-frame');
+const splitPreviewContent = document.getElementById('split-preview-content');
+const viewNormalBtn = document.getElementById('view-normal-btn');
+const viewSplitBtn = document.getElementById('view-split-btn');
+const previewViewport = document.getElementById('preview-viewport');
+const zoomInBtn = document.getElementById('preview-zoom-in');
+const zoomOutBtn = document.getElementById('preview-zoom-out');
+const zoomLevelText = document.getElementById('zoom-level');
+
+let isSplitView = false;
+let currentZoom = 1;
+let originalCvDataSnapshot = null;
+
+const templateGalleryModal = document.getElementById('template-gallery-modal');
+const templateGalleryPanel = document.getElementById('template-gallery-panel');
+const templateGalleryBackdrop = document.getElementById('template-gallery-backdrop');
+const templateGalleryClose = document.getElementById('template-gallery-close');
+const browseTemplatesBtn = document.getElementById('browse-templates-btn');
+const galleryGrid = document.getElementById('gallery-grid');
 
 // --- CV Title Edits ---
 if (cvTitle) {
@@ -45,6 +64,79 @@ if (preFillBtn) {
     });
 }
 
+function syncDataToInputs() {
+    const data = cvData;
+    if (!data) return;
+
+    // 1. Fill Personal Info Inputs
+    if (data.personalInfo) {
+        Object.keys(data.personalInfo).forEach(key => {
+            const input = document.querySelector(`[name="personalInfo.${key}"]`);
+            if (input) input.value = data.personalInfo[key] || '';
+        });
+        
+        // Set Summary Quill correctly by ID
+        const summaryEditor = document.getElementById('summary-editor');
+        if (summaryEditor) {
+            const quill = Quill.find(summaryEditor);
+            if (quill) {
+                quill.root.innerHTML = data.personalInfo.summary || '';
+            } else {
+                summaryEditor.innerHTML = data.personalInfo.summary || '';
+            }
+        }
+        const summaryHidden = document.querySelector('[name="personalInfo.summary"]');
+        if (summaryHidden) summaryHidden.value = data.personalInfo.summary || '';
+    }
+
+    // 2. Fill Skills
+    if (data.skills) {
+        Object.keys(data.skills).forEach(key => {
+            const input = document.querySelector(`[name="skills.${key}"]`);
+            if (input) input.value = Array.isArray(data.skills[key]) ? data.skills[key].join(', ') : (data.skills[key] || '');
+        });
+    }
+
+    // 3. Clear and Fill Lists
+    experienceList.innerHTML = '';
+    (data.experience || []).forEach(exp => addExperienceItem(exp));
+
+    educationList.innerHTML = '';
+    (data.education || []).forEach(edu => addEducationItem(edu));
+
+    hobbiesList.innerHTML = '';
+    (data.hobbies || []).forEach(hobby => addHobbyItem(typeof hobby === 'string' ? hobby : hobby.name));
+
+    referencesList.innerHTML = '';
+    (data.references || []).forEach(ref => addReferenceItem(ref));
+
+    if (refOnRequestCheckbox) {
+        refOnRequestCheckbox.checked = data.referencesOnRequest || false;
+    }
+
+    // 4. Update Design Controls
+    const templateRadio = document.querySelector(`input[name="templateId"][value="${data.templateId || 'modern'}"]`);
+    if (templateRadio) templateRadio.checked = true;
+
+    const themeColor = data.themeColor || '#4f46e5';
+    const colorRadio = document.querySelector(`input[name="themeColor"][value="${themeColor}"]`);
+    if (colorRadio) {
+        colorRadio.checked = true;
+    } else {
+        const customPicker = document.getElementById('custom-color-picker');
+        if (customPicker) customPicker.value = themeColor;
+    }
+
+    const fontSelect = document.querySelector('select[name="fontPairing"]');
+    if (fontSelect) fontSelect.value = data.fontPairing || 'outfit-inter';
+
+    const densitySelect = document.querySelector('select[name="density"]');
+    if (densitySelect) densitySelect.value = data.density || 'standard';
+
+    // 5. Final Refresh
+    updatePreview();
+}
+
 function fillSampleData() {
     const sample = {
         personalInfo: {
@@ -72,6 +164,7 @@ function fillSampleData() {
                 company: "Innovate AI",
                 startMonth: "Mar",
                 startYear: "2016",
+                startYear: "2016",
                 endMonth: "Dec",
                 endYear: "2019",
                 responsibilities: "<ul><li>Developed a real-time data processing engine using Node.js and Redis.</li><li>Implemented CI/CD pipelines that reduced deployment time from 2 hours to 10 minutes.</li><li>Spearheaded the redesign of the core product dashboard using React and GraphQL.</li></ul>"
@@ -89,12 +182,9 @@ function fillSampleData() {
             technical: ["AWS", "Kubernetes", "Docker", "Terraform", "Node.js", "Python", "React", "GraphQL", "Redis", "PostgreSQL"],
             soft: ["Strategic Leadership", "Cross-functional Collaboration", "Public Speaking", "Problem Solving", "Agile Mentoring"]
         },
-        hobbies: [
-            { name: "Mountain Biking", description: "Exploring trails in the Tahoe area." },
-            { name: "Open Source", description: "Contributing to Kubernetes and Terraform providers." }
-        ],
+        hobbies: ["Mountain Biking", "Open Source"],
         references: [
-            { name: "Sarah Chen", position: "CTO at Global Tech", contact: "sarah.chen@example.com" }
+            { name: "Sarah Chen", position: "CTO at Global Tech", company: "Global Tech Labs", contact: "sarah.chen@example.com" }
         ],
         referencesOnRequest: false,
         themeColor: "#4f46e5",
@@ -106,51 +196,8 @@ function fillSampleData() {
     // 1. Update global cvData
     Object.assign(cvData, sample);
 
-    // 2. Clear UI lists
-    experienceList.innerHTML = '';
-    educationList.innerHTML = '';
-    hobbiesList.innerHTML = '';
-    referencesList.innerHTML = '';
-
-    // 3. Fill Personal Info Inputs
-    Object.keys(sample.personalInfo).forEach(key => {
-        const input = document.querySelector(`[name="personalInfo.${key}"]`);
-        if (input) input.value = sample.personalInfo[key];
-    });
-    
-    // Set Summary Quill correctly by ID
-    const summaryEditor = document.getElementById('summary-editor');
-    if (summaryEditor) {
-        const quill = Quill.find(summaryEditor);
-        if (quill) {
-            quill.root.innerHTML = sample.personalInfo.summary;
-        } else {
-            summaryEditor.innerHTML = sample.personalInfo.summary;
-        }
-    }
-    const summaryHidden = document.querySelector('[name="personalInfo.summary"]');
-    if (summaryHidden) summaryHidden.value = sample.personalInfo.summary;
-
-    // --- Fill Skills (joining arrays into the textarea) ---
-    if (sample.skills) {
-        Object.keys(sample.skills).forEach(key => {
-            const input = document.querySelector(`[name="skills.${key}"]`);
-            if (input) input.value = sample.skills[key].join(', ');
-        });
-    }
-
-    // 4. Fill Lists (Experience, Edu, etc)
-    sample.experience.forEach(exp => addExperienceItem(exp));
-    sample.education.forEach(edu => addEducationItem(edu));
-    sample.hobbies.forEach(hobby => addHobbyItem(hobby.name));
-    sample.references.forEach(ref => addReferenceItem(ref));
-
-    // 5. Update Design Controls
-    const templateRadio = document.querySelector(`input[name="templateId"][value="${sample.templateId}"]`);
-    if (templateRadio) templateRadio.checked = true;
-
-    // 6. Final Refresh
-    updatePreview();
+    // 2. Sync UI
+    syncDataToInputs();
     triggerAutoSave();
     
     // Notify user
@@ -283,6 +330,30 @@ function applyPreset(presetName) {
             themeColor: '#f43f5e', // Rose
             fontPairing: 'outfit-inter',
             density: 'airy'
+        },
+        'executive_sidebar': {
+            templateId: 'executive_sidebar',
+            themeColor: '#1e293b', // Navy Slate
+            fontPairing: 'outfit-inter',
+            density: 'standard'
+        },
+        'centered': {
+            templateId: 'centered_modern',
+            themeColor: '#4f46e5', // Indigo
+            fontPairing: 'serif-inter',
+            density: 'airy'
+        },
+        'asymmetric': {
+            templateId: 'asymmetric',
+            themeColor: '#475569', // Slate
+            fontPairing: 'outfit-inter',
+            density: 'standard'
+        },
+        'banner': {
+            templateId: 'creative_banner',
+            themeColor: '#4f46e5', // Indigo
+            fontPairing: 'outfit-inter',
+            density: 'airy'
         }
     };
 
@@ -313,7 +384,7 @@ function applyPreset(presetName) {
 
     // Trigger updates
     updatePreview();
-    handleAutoSave();
+    triggerAutoSave();
     
     // Smooth scroll to preview top
     const previewContainer = document.querySelector('.sticky-preview');
@@ -847,6 +918,7 @@ function updatePreview() {
 
     const data = {
         templateId: formData.get('templateId') || (typeof TEMPLATE_ID !== 'undefined' ? TEMPLATE_ID : 'modern'),
+        region: formData.get('region') || 'us', 
         themeColor: formData.get('themeColor') || formData.get('themeColorCustom') || '#4f46e5',
         fontPairing: formData.get('fontPairing') || 'outfit-inter',
         density: formData.get('density') || 'standard',
@@ -905,9 +977,181 @@ function updatePreview() {
     
     Object.assign(cvData, data);
     renderPreview(cvData);
-    calculateProfileStrength(); // Update gamified strength
+
+    if (isSplitView && originalCvDataSnapshot) {
+        renderSplitPreview(originalCvDataSnapshot);
+    }
+
+    calculateProfileStrength(); 
     triggerAutoSave();
 }
+
+function renderSplitPreview(data) {
+    if (!splitPreviewContent) return;
+    
+    const fullName = `${data.personalInfo.firstName || ''} ${data.personalInfo.lastName || ''}`.trim() || 'Original Profile';
+    const locationStr = [data.personalInfo.address, data.personalInfo.city].filter(x => x).join(', ');
+    
+    // We reuse the styling from the main preview but render into the split content
+    const templateId = data.templateId || 'modern';
+    let html = '';
+    
+    if (templateId === 'modern' || templateId === 'onyx') html = renderModernTemplate(data, fullName, locationStr);
+    else if (templateId === 'classic') html = renderClassicTemplate(data, fullName, locationStr);
+    else if (templateId === 'grid') html = renderGridTemplate(data, fullName, locationStr);
+    else if (templateId === 'minimalist') html = renderMinimalistTemplate(data, fullName, locationStr);
+    else if (templateId === 'executive_sidebar') html = renderExecutiveSidebarTemplate(data, fullName, locationStr);
+    else if (templateId === 'centered_modern') html = renderCenteredModernTemplate(data, fullName, locationStr);
+    else if (templateId === 'asymmetric') html = renderAsymmetricGridTemplate(data, fullName, locationStr);
+    else if (templateId === 'creative_banner') html = renderCreativeBannerTemplate(data, fullName, locationStr);
+    else if (templateId === 'standard_professional') html = renderStandardProfessionalTemplate(data, fullName, locationStr);
+    
+    splitPreviewContent.innerHTML = html;
+}
+
+// --- Preview Viewport Controls ---
+if (viewSplitBtn) {
+    viewSplitBtn.addEventListener('click', () => {
+        isSplitView = true;
+        // Take a snapshot of current data if we don't have one, or use it for comparison
+        if (!originalCvDataSnapshot) {
+            originalCvDataSnapshot = JSON.parse(JSON.stringify(cvData));
+        }
+        
+        previewViewport.classList.remove('justify-center');
+        previewViewport.classList.add('justify-start', 'px-8', 'space-x-8');
+        
+        splitPreviewFrame.classList.remove('hidden');
+        setTimeout(() => {
+            splitPreviewFrame.classList.remove('opacity-0', '-translate-x-10');
+            splitPreviewFrame.classList.add('opacity-100', 'translate-x-0');
+        }, 10);
+        
+        viewSplitBtn.className = 'px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
+        viewNormalBtn.className = 'px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition-all';
+        
+        updatePreview();
+    });
+}
+
+if (viewNormalBtn) {
+    viewNormalBtn.addEventListener('click', () => {
+        isSplitView = false;
+        previewViewport.classList.add('justify-center');
+        previewViewport.classList.remove('justify-start', 'px-8', 'space-x-8');
+        
+        splitPreviewFrame.classList.add('opacity-0', '-translate-x-10');
+        setTimeout(() => splitPreviewFrame.classList.add('hidden'), 500);
+        
+        viewNormalBtn.className = 'px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all';
+        viewSplitBtn.className = 'px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition-all flex items-center space-x-1.5';
+    });
+}
+
+if (zoomInBtn) {
+    zoomInBtn.addEventListener('click', () => {
+        if (currentZoom < 1.5) {
+            currentZoom += 0.1;
+            applyZoom();
+        }
+    });
+}
+
+if (zoomOutBtn) {
+    zoomOutBtn.addEventListener('click', () => {
+        if (currentZoom > 0.5) {
+            currentZoom -= 0.1;
+            applyZoom();
+        }
+    });
+}
+
+function applyZoom() {
+    const frame = document.getElementById('preview-frame');
+    const sFrame = document.getElementById('split-preview-frame');
+    
+    if (frame) frame.style.transform = `scale(${currentZoom})`;
+    if (sFrame) sFrame.style.transform = `scale(${currentZoom})`;
+    if (zoomLevelText) zoomLevelText.innerText = Math.round(currentZoom * 100) + '%';
+}
+
+// --- Template Gallery Logic ---
+const PREMIUM_TEMPLATES = [
+    { id: 'modern', name: 'The Modernist', type: 'Professional', desc: 'Recruiter favorite for 2024' },
+    { id: 'onyx', name: 'Onyx Dark', type: 'Premium', desc: 'High contrast elite design' },
+    { id: 'grid', name: 'The Gridsmith', type: 'Tech', desc: 'Structured for engineers & data' },
+    { id: 'executive_sidebar', name: 'Executive Navy', type: 'Corporate', desc: 'Balanced for leadership roles' },
+    { id: 'minimalist', name: 'Pure Minimal', type: 'Simple', desc: 'Focus on content and clarity' },
+    { id: 'centered_modern', name: 'Centered Elegance', type: 'Modern', desc: 'Artistic and clean symmetry' },
+    { id: 'asymmetric', name: 'Dynamic Flow', type: 'Content Dense', desc: 'Maximize information real estate' },
+    { id: 'creative_banner', name: 'Bold Creator', type: 'Creative', desc: 'Graphic impact for designers' }
+];
+
+function populateTemplateGallery() {
+    if (!galleryGrid) return;
+    
+    galleryGrid.innerHTML = PREMIUM_TEMPLATES.map(tmp => `
+        <div class="template-gallery-item group cursor-pointer" data-id="${tmp.id}">
+            <div class="aspect-[3/4] rounded-3xl bg-gray-50 border-2 border-gray-100 dark:border-slate-800 p-2 overflow-hidden group-hover:border-indigo-500 group-hover:shadow-2xl group-hover:shadow-indigo-100 transition-all relative">
+                <div class="w-full h-full bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center space-y-2 opacity-80 group-hover:opacity-100">
+                     <!-- Dummy Preview Graphic -->
+                     <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+                     <div class="w-20 h-1 bg-gray-100 rounded-full"></div>
+                     <div class="w-20 h-1 bg-gray-100 rounded-full"></div>
+                     <div class="mt-4 w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                     </div>
+                </div>
+                <div class="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition-colors"></div>
+            </div>
+            <div class="mt-4 text-left">
+                <div class="flex items-center justify-between mb-1">
+                    <h5 class="text-sm font-black text-gray-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">${tmp.name}</h5>
+                    <span class="text-[8px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full uppercase">${tmp.type}</span>
+                </div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${tmp.desc}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    // Add listeners to gallery items
+    galleryGrid.querySelectorAll('.template-gallery-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.dataset.id;
+            const radio = document.querySelector(`input[name="templateId"][value="${id}"]`);
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+                closeTemplateGallery();
+                // Visual feedback in the main grid
+                radio.closest('label')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    });
+}
+
+function openTemplateGallery() {
+    if (!templateGalleryModal) return;
+    populateTemplateGallery();
+    templateGalleryModal.classList.remove('hidden');
+    setTimeout(() => {
+        templateGalleryPanel.classList.remove('translate-x-full');
+        templateGalleryBackdrop.classList.remove('opacity-0');
+    }, 10);
+    document.body.style.overflow = 'hidden';
+}
+
+function closeTemplateGallery() {
+    if (!templateGalleryModal) return;
+    templateGalleryPanel.classList.add('translate-x-full');
+    templateGalleryBackdrop.classList.add('opacity-0');
+    setTimeout(() => templateGalleryModal.classList.add('hidden'), 500);
+    document.body.style.overflow = '';
+}
+
+if (browseTemplatesBtn) browseTemplatesBtn.addEventListener('click', openTemplateGallery);
+if (templateGalleryClose) templateGalleryClose.addEventListener('click', closeTemplateGallery);
+if (templateGalleryBackdrop) templateGalleryBackdrop.addEventListener('click', closeTemplateGallery);
 
 if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
@@ -1120,6 +1364,16 @@ function renderPreview(data) {
         previewContent.innerHTML = styleOverride + renderGridTemplate(data, fullName, locationStr);
     } else if (data.templateId === 'minimalist') {
         previewContent.innerHTML = styleOverride + renderMinimalistTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'executive_sidebar') {
+        previewContent.innerHTML = styleOverride + renderExecutiveSidebarTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'centered_modern') {
+        previewContent.innerHTML = styleOverride + renderCenteredModernTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'asymmetric') {
+        previewContent.innerHTML = styleOverride + renderAsymmetricGridTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'creative_banner') {
+        previewContent.innerHTML = styleOverride + renderCreativeBannerTemplate(data, fullName, locationStr);
+    } else if (data.templateId === 'standard_professional') {
+        previewContent.innerHTML = styleOverride + renderStandardProfessionalTemplate(data, fullName, locationStr);
     }
 
     // Render QR code into preview slot if showQrCode is enabled
@@ -1177,7 +1431,7 @@ function renderSectionOrderUI() {
 
     const renderItem = (id, parent) => {
         const div = document.createElement('div');
-        div.className = 'p-3 bg-white border border-gray-100 rounded-xl shadow-sm cursor-move flex items-center justify-between group hover:border-indigo-200 transition-all';
+        div.className = 'p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-sm cursor-move flex items-center justify-between group hover:border-indigo-200 transition-all';
         div.draggable = true;
         div.dataset.id = id;
         div.innerHTML = `
@@ -1251,7 +1505,23 @@ function getDragAfterElement(container, y) {
 }
 
 function renderModernTemplate(data, fullName, locationStr) {
-    const getSectionHeader = (title, iconName) => {
+    const getLocalizedHeader = (id) => {
+        const region = data.region || 'us';
+        const labels = {
+            profile: { us: 'Summary', eu: 'Professional Profile', de: 'Profil' },
+            experience: { us: 'Work Experience', eu: 'Employment History', de: 'Berufserfahrung' },
+            education: { us: 'Education', eu: 'Academic Background', de: 'Ausbildung' },
+            skills: { us: 'Skills', eu: 'Core Competencies', de: 'Kenntnisse' },
+            details: { us: 'Biographical Data', eu: 'Additional Info', de: 'Persönliche Daten' },
+            interests: { us: 'Interests', eu: 'Hobbies & Interests', de: 'Interessen' },
+            references: { us: 'References', eu: 'Referees', de: 'Referenzen' },
+            contact: { us: 'Contact', eu: 'Contact Details', de: 'Kontakt' }
+        };
+        return labels[id]?.[region] || labels[id]?.us || id.charAt(0).toUpperCase() + id.slice(1);
+    };
+
+    const getSectionHeader = (iconName) => {
+        const title = getLocalizedHeader(iconName);
         const icons = {
             profile: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
             experience: '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
@@ -1274,12 +1544,12 @@ function renderModernTemplate(data, fullName, locationStr) {
         if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
         if (id === 'profile') return `
             <section class="mb-10 animate-fade-in origin-top">
-                ${getSectionHeader('Profile', 'profile')}
+                ${getSectionHeader('profile')}
                 <div class="text-[11px] leading-relaxed text-gray-800 quill-content">${data.personalInfo.summary || 'Summary...'}</div>
             </section>`;
         if (id === 'experience') return `
             <section class="mb-10 animate-fade-in origin-top">
-                ${getSectionHeader('Experience', 'experience')}
+                ${getSectionHeader('experience')}
                 <div class="space-y-8">
                     ${data.experience.map(exp => `
                         <div>
@@ -1295,7 +1565,7 @@ function renderModernTemplate(data, fullName, locationStr) {
             </section>`;
         if (id === 'education') return `
             <section class="mb-10">
-                ${getSectionHeader('Education', 'education')}
+                ${getSectionHeader('education')}
                 <div class="space-y-4">
                     ${data.education.map(edu => `
                         <div>
@@ -1308,7 +1578,7 @@ function renderModernTemplate(data, fullName, locationStr) {
             </section>`;
         if (id === 'skills') return `
             <section class="mb-10">
-                ${getSectionHeader('Skills', 'skills')}
+                ${getSectionHeader('skills')}
                 <div class="flex flex-wrap gap-1.5 mb-4">
                     ${data.skills.technical.map(skill => `<span class="px-2 py-0.5 bg-gray-100 text-[9px] font-bold text-gray-700 rounded uppercase tracking-wider">${skill}</span>`).join('')}
                 </div>
@@ -1318,7 +1588,7 @@ function renderModernTemplate(data, fullName, locationStr) {
             </section>`;
         if (id === 'contact') return `
             <section class="mb-10">
-                ${getSectionHeader('Contact', 'contact')}
+                ${getSectionHeader('contact')}
                 <ul class="space-y-2 text-[10px] font-semibold text-gray-600">
                     <li class="flex items-center space-x-2">📧 <span>${data.personalInfo.email || 'email@example.com'}</span></li>
                     <li class="flex items-center space-x-2">📱 <span>${data.personalInfo.phone || '+1 234 567 890'}</span></li>
@@ -1326,10 +1596,11 @@ function renderModernTemplate(data, fullName, locationStr) {
                     ${data.personalInfo.linkedin ? `<li class="flex items-center space-x-2">🔗 <span>${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</span></li>` : ''}
                 </ul>
             </section>`;
-        if (id === 'details') return `
+        if (id === 'details') {
+            return `
             ${data.personalInfo.dateOfBirth || data.personalInfo.nationality || data.personalInfo.maritalStatus || data.personalInfo.drivingLicense ? `
             <section class="mb-10">
-                ${getSectionHeader('Details', 'details')}
+                ${getSectionHeader('details')}
                 <ul class="space-y-1 text-[9px] text-gray-500 font-bold uppercase">
                     ${data.personalInfo.dateOfBirth ? `<li>Birth: <span class="text-gray-900">${data.personalInfo.dateOfBirth}</span></li>` : ''}
                     ${data.personalInfo.nationality ? `<li>Nat: <span class="text-gray-900">${data.personalInfo.nationality}</span></li>` : ''}
@@ -1338,28 +1609,29 @@ function renderModernTemplate(data, fullName, locationStr) {
                 </ul>
             </section>
             ` : ''}`;
+        }
         if (id === 'interests') return `
             ${data.hobbies.length > 0 ? `
             <section class="mb-10">
-                ${getSectionHeader('Interests', 'interests')}
+                ${getSectionHeader('interests')}
                 <div class="flex flex-wrap gap-2 text-xs text-gray-600 font-medium">
-                    ${data.hobbies.join(' • ')}
+                    ${(data.hobbies || []).map(h => typeof h === 'string' ? h : h.name).join(' • ')}
                 </div>
             </section>
             ` : ''}`;
         if (id === 'references') return `
-            ${data.referencesOnRequest || data.references.length > 0 ? `
+            ${data.references.length > 0 || data.referencesOnRequest ? `
             <section class="mb-10">
-                ${getSectionHeader('References', 'references')}
+                ${getSectionHeader('references')}
                 ${data.referencesOnRequest ? `
-                    <p class="text-xs italic text-gray-500">References available on request</p>
+                    <p class="text-[10px] text-gray-500 italic">Excellent references available upon request.</p>
                 ` : `
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-4">
                         ${data.references.map(ref => `
                             <div>
-                                <h4 class="text-xs font-bold text-gray-900">${ref.name}</h4>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase">${ref.company}</p>
-                                <p class="text-[10px] text-indigo-600 mt-1">${ref.email} ${ref.phone ? '• ' + ref.phone : ''}</p>
+                                <h4 class="text-xs font-bold text-gray-900">${ref.name || 'Name'}</h4>
+                                <p class="text-[10px] text-gray-500">${ref.position || ''} ${ref.company ? 'at ' + ref.company : ''}</p>
+                                <p class="text-[10px] text-indigo-600 font-medium">${ref.contact || ''}</p>
                             </div>
                         `).join('')}
                     </div>
@@ -1369,6 +1641,9 @@ function renderModernTemplate(data, fullName, locationStr) {
         return '';
     };
 
+    const isGerman = data.region === 'de';
+    const isUS = data.region === 'us';
+
     const photoStyle = data.photoStyle || 'rounded';
     const photoClasses = {
         'square': 'rounded-none',
@@ -1376,6 +1651,9 @@ function renderModernTemplate(data, fullName, locationStr) {
         'circle': 'rounded-full',
         'hidden': 'hidden'
     }[photoStyle] || 'rounded-2xl';
+
+    // Region forced overrides
+    const showPhoto = !isUS && data.personalInfo.photo && photoStyle !== 'hidden';
 
     return `
             <div class="modern-template animate-fade-in origin-top px-12 py-12 min-h-[1123px]">
@@ -1386,7 +1664,7 @@ function renderModernTemplate(data, fullName, locationStr) {
                         ${data.personalInfo.headline ? `<p class="mt-4 text-[11px] font-medium text-gray-500 max-w-lg italic font-serif leading-relaxed">${data.personalInfo.headline}</p>` : ''}
                     </div>
                     <div class="flex items-end space-x-4">
-                        ${data.personalInfo.photo && photoStyle !== 'hidden' ? `
+                        ${showPhoto ? `
                             <div class="w-24 h-24 ${photoClasses} overflow-hidden border-4 border-white shadow-xl mb-[-4px]">
                                 <img src="${data.personalInfo.photo}" class="w-full h-full object-cover">
                             </div>
@@ -1414,6 +1692,130 @@ function renderModernTemplate(data, fullName, locationStr) {
                 </div>
             </div>
     `;
+}
+
+function renderExecutiveSidebarTemplate(data, fullName, locationStr) {
+    const isUS = data.region === 'us';
+    const photoStyle = data.photoStyle || 'rounded';
+    const photoClasses = { 'square': 'rounded-none', 'rounded': 'rounded-2xl', 'circle': 'rounded-full', 'hidden': 'hidden' }[photoStyle] || 'rounded-2xl';
+    const showPhoto = !isUS && data.personalInfo.photo && photoStyle !== 'hidden';
+
+    const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
+        if (id === 'profile') return `<section class="mb-10"><h2 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-gray-900 border-b-2 border-slate-100 pb-2">Executive Summary</h2><div class="text-[11px] text-gray-700 leading-relaxed quill-content">${data.personalInfo.summary || ''}</div></section>`;
+        if (id === 'experience') return `<section class="mb-10"><h2 class="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-gray-900 border-b-2 border-slate-100 pb-2">Professional Experience</h2><div class="space-y-8">${data.experience.map(exp => `<div><div class="flex items-baseline justify-between mb-1"><h3 class="text-sm font-black text-gray-900 uppercase tracking-tight">${exp.jobTitle}</h3><span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${exp.duration}</span></div><p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-3">${exp.company}</p><div class="text-[11px] text-gray-600 leading-relaxed quill-content">${exp.responsibilities}</div></div>`).join('')}</div></section>`;
+        if (id === 'education') return `<section class="mb-10"><h2 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-gray-900 border-b-2 border-slate-100 pb-2">Education</h2><div class="space-y-4">${data.education.map(edu => `<div><div class="flex items-baseline justify-between mb-0.5"><h4 class="text-xs font-black text-gray-900 uppercase">${edu.degree}</h4><span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${edu.year}</span></div><p class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">${edu.school}</p> ${edu.description ? `<div class="text-[10px] text-gray-500 italic quill-content">${edu.description}</div>` : ''}</div>`).join('')}</div></section>`;
+        if (id === 'skills') return `<section class="mb-10 p-6 bg-slate-800/50 rounded-2xl border border-white/10"><h2 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-white/60">Competencies</h2><div class="space-y-4"><div><p class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Technical</p><div class="flex flex-wrap gap-1.5">${data.skills.technical.map(skill => `<span class="px-2 py-0.5 bg-white/10 text-[9px] font-bold text-white rounded uppercase tracking-wider border border-white/5">${skill}</span>`).join('')}</div></div><div><p class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Soft Skills</p><div class="flex flex-wrap gap-1.5">${data.skills.soft.map(skill => `<span class="px-2 py-0.5 bg-indigo-500/20 text-[9px] font-bold text-indigo-200 rounded uppercase tracking-wider border border-indigo-400/10">${skill}</span>`).join('')}</div></div></div></section>`;
+        if (id === 'contact') return `<section class="mb-10"><h2 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-white/60">Contact</h2><ul class="space-y-4 text-[10px] font-bold text-white/80 uppercase tracking-widest"><li class="flex items-center space-x-3"><span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-indigo-300 pointer-events-none">📧</span><span>${data.personalInfo.email}</span></li><li class="flex items-center space-x-3"><span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-indigo-300 pointer-events-none">📱</span><span>${data.personalInfo.phone}</span></li><li class="flex items-center space-x-3"><span class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-indigo-300 pointer-events-none">📍</span><span>${locationStr}</span></li></ul></section>`;
+        return '';
+    };
+
+    return `
+        <div class="executive-sidebar-template animate-fade-in flex min-h-[1123px]">
+            <aside class="w-[32%] bg-[#1e293b] text-white p-10 flex flex-col">
+                <div class="mb-10">${showPhoto ? `<div class="w-32 h-32 ${photoClasses} overflow-hidden border-4 border-white/10 shadow-2xl mx-auto mb-6"><img src="${data.personalInfo.photo}" class="w-full h-full object-cover"></div>` : ''}</div>
+                ${renderSection('contact')} ${renderSection('skills')}
+                <div class="mt-auto pt-10">${data.showQrCode && document.getElementById('share-btn')?.dataset.slug ? `<div class="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center space-x-3"><div id="preview-qr-slot" class="w-12 h-12 bg-white p-1 rounded-lg"></div><div><p class="text-[8px] font-black text-white uppercase tracking-widest leading-tight">Digital<br>Version</p></div></div>` : ''}</div>
+            </aside>
+            <main class="flex-grow p-12 bg-white"><header class="mb-10"><h1 class="text-5xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-2">${fullName}</h1><p class="text-xl font-bold text-indigo-600 uppercase tracking-[0.2em] mb-6">${data.personalInfo.jobTitle || ''}</p><div class="w-20 h-2 bg-indigo-600 rounded-full mb-8"></div></header><div class="space-y-2">${data.sectionOrder.main.map(renderSection).join('')}</div></main>
+        </div>`;
+}
+
+function renderCenteredModernTemplate(data, fullName, locationStr) {
+    const isUS = data.region === 'us';
+    const showPhoto = !isUS && data.personalInfo.photo && (data.photoStyle || 'rounded') !== 'hidden';
+    
+    const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
+        const titleMap = { profile: 'Summary', experience: 'Experience', education: 'Education', skills: 'Skills', contact: 'Contact', details: 'Details', interests: 'Interests', references: 'References' };
+        if (id === 'profile') return `<section class="mb-12"><h2 class="text-center text-[11px] font-black uppercase tracking-[0.3em] text-gray-900 mb-6 flex items-center justify-center gap-4"><div class="h-px w-8 bg-gray-200"></div>${titleMap[id]}<div class="h-px w-8 bg-gray-200"></div></h2><div class="text-center text-xs text-gray-600 leading-relaxed max-w-2xl mx-auto quill-content">${data.personalInfo.summary || ''}</div></section>`;
+        if (id === 'experience' || id === 'education') return `<section class="mb-12"><h2 class="text-center text-[11px] font-black uppercase tracking-[0.3em] text-gray-900 mb-8 flex items-center justify-center gap-4"><div class="h-px w-8 bg-gray-200"></div>${titleMap[id]}<div class="h-px w-8 bg-gray-200"></div></h2><div class="space-y-10">${(id === 'experience' ? data.experience : data.education).map(item => `<div class="text-center"><h3 class="text-sm font-black text-gray-900 uppercase mb-1">${item.jobTitle || item.degree}</h3><p class="text-xs font-black text-indigo-600 uppercase tracking-widest mb-1">${item.company || item.school}</p><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">${item.duration || item.year}</p><div class="text-[11px] text-gray-600 leading-relaxed max-w-2xl mx-auto quill-content">${item.responsibilities || item.description || ''}</div></div>`).join('')}</div></section>`;
+        if (id === 'skills') return `<section class="mb-12"><h2 class="text-center text-[11px] font-black uppercase tracking-[0.3em] text-gray-900 mb-6 flex items-center justify-center gap-4"><div class="h-px w-8 bg-gray-200"></div>${titleMap[id]}<div class="h-px w-8 bg-gray-200"></div></h2><div class="flex flex-wrap justify-center gap-2 max-w-xl mx-auto">${data.skills.technical.map(s => `<span class="px-3 py-1 bg-gray-50 border border-gray-100 text-[10px] font-bold text-gray-700 rounded-full uppercase tracking-wider">${s}</span>`).join('')}</div></section>`;
+        return '';
+    };
+
+    return `
+        <div class="centered-modern-template animate-fade-in px-20 py-16 min-h-[1123px] bg-white text-center">
+            <header class="mb-16">
+                ${showPhoto ? `<div class="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-50 shadow-lg mx-auto mb-6"><img src="${data.personalInfo.photo}" class="w-full h-full object-cover"></div>` : ''}
+                <h1 class="text-5xl font-black text-gray-900 uppercase tracking-tight mb-2">${fullName}</h1>
+                <p class="text-lg font-bold text-indigo-600 uppercase tracking-[0.4em] mb-6">${data.personalInfo.jobTitle || ''}</p>
+                <div class="flex items-center justify-center space-x-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    <span>${data.personalInfo.email}</span><span>•</span><span>${data.personalInfo.phone}</span><span>•</span><span>${locationStr}</span>
+                </div>
+            </header>
+            <div class="space-y-4">
+                ${[...data.sectionOrder.main, ...data.sectionOrder.sidebar].filter(id => !['contact', 'skills'].includes(id)).map(renderSection).join('')}
+                ${renderSection('skills')}
+            </div>
+        </div>`;
+}
+
+function renderAsymmetricGridTemplate(data, fullName, locationStr) {
+    const isUS = data.region === 'us';
+    const showPhoto = !isUS && data.personalInfo.photo && (data.photoStyle || 'rounded') !== 'hidden';
+    
+    const renderSection = (id, isSidebar = false) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
+        const title = id.charAt(0).toUpperCase() + id.slice(1);
+        const header = `<h2 class="text-[11px] font-black uppercase tracking-[0.15em] mb-4 ${isSidebar ? 'text-gray-900' : 'text-indigo-600'}">${title}</h2>`;
+        
+        if (id === 'profile') return `<section class="mb-10">${header}<div class="text-[11px] text-gray-700 leading-relaxed quill-content">${data.personalInfo.summary || ''}</div></section>`;
+        if (id === 'experience') return `<section class="mb-10">${header}<div class="space-y-8">${data.experience.map(exp => `<div><div class="flex justify-between items-baseline mb-1"><h3 class="text-sm font-black text-gray-900 uppercase">${exp.jobTitle}</h3><span class="text-[10px] font-black text-gray-400 uppercase">${exp.duration}</span></div><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">${exp.company}</p><div class="text-[11px] text-gray-600 leading-relaxed quill-content pl-4 border-l-2 border-slate-100">${exp.responsibilities}</div></div>`).join('')}</div></section>`;
+        if (id === 'skills') return `<section class="mb-10">${header}<div class="grid grid-cols-1 gap-4">${data.skills.technical.map(s => `<div><p class="text-[10px] font-bold text-gray-700 uppercase mb-1">${s}</p><div class="w-full h-1 bg-gray-100 rounded-full overflow-hidden"><div class="w-4/5 h-full bg-indigo-500 rounded-full"></div></div></div>`).join('')}</div></section>`;
+        if (id === 'contact') return `<section class="mb-10">${header}<ul class="space-y-3 text-[10px] font-bold text-gray-600 uppercase tracking-tight"><li><p class="text-[8px] text-gray-400 mb-0.5">EMAIL</p>${data.personalInfo.email}</li><li><p class="text-[8px] text-gray-400 mb-0.5">PHONE</p>${data.personalInfo.phone}</li><li><p class="text-[8px] text-gray-400 mb-0.5">LOCATION</p>${locationStr}</li></ul></section>`;
+        return '';
+    };
+
+    return `
+        <div class="asymmetric-template animate-fade-in flex min-h-[1123px] bg-white">
+            <main class="w-[66%] p-16 border-r border-gray-100">
+                <header class="mb-12">
+                    <h1 class="text-6xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-4">${fullName}</h1>
+                    <p class="text-xl font-bold text-indigo-600 uppercase tracking-widest">${data.personalInfo.jobTitle || ''}</p>
+                </header>
+                ${data.sectionOrder.main.map(id => renderSection(id, false)).join('')}
+            </main>
+            <aside class="w-[34%] bg-gray-50 p-12">
+                ${showPhoto ? `<div class="mb-10 rounded-3xl overflow-hidden shadow-xl border-8 border-white"><img src="${data.personalInfo.photo}" class="w-full h-full object-cover"></div>` : ''}
+                ${renderSection('contact', true)}
+                ${data.sectionOrder.sidebar.filter(id => id !== 'contact').map(id => renderSection(id, true)).join('')}
+            </aside>
+        </div>`;
+}
+
+function renderCreativeBannerTemplate(data, fullName, locationStr) {
+    const isUS = data.region === 'us';
+    const showPhoto = !isUS && data.personalInfo.photo && (data.photoStyle || 'rounded') !== 'hidden';
+    
+    const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
+        const title = id.toUpperCase();
+        if (id === 'experience') return `<section class="mb-10"><h2 class="text-[12px] font-black text-indigo-600 mb-6 flex items-center gap-3"><span>${title}</span><div class="flex-grow h-px bg-indigo-100"></div></h2><div class="relative space-y-8 pl-6 border-l-2 border-indigo-50">${data.experience.map(exp => `<div class="relative"><div class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-white border-4 border-indigo-600"></div><div class="mb-1 text-[10px] font-black text-indigo-400">${exp.duration}</div><h3 class="text-sm font-black text-gray-900 mb-0.5">${exp.jobTitle}</h3><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">${exp.company}</p><div class="text-[11px] text-gray-600 leading-relaxed quill-content">${exp.responsibilities}</div></div>`).join('')}</div></section>`;
+        if (id === 'skills') return `<section class="mb-10"><h2 class="text-xs font-black text-gray-900 mb-4">SKILLS</h2><div class="flex flex-wrap gap-2">${data.skills.technical.map(s => `<span class="px-3 py-1.5 bg-indigo-600 text-white text-[10px] font-black rounded-lg uppercase shadow-lg shadow-indigo-100">${s}</span>`).join('')}</div></section>`;
+        return '';
+    };
+
+    return `
+        <div class="creative-banner-template animate-fade-in bg-white min-h-[1123px]">
+            <header class="bg-indigo-600 text-white p-16 pb-20 clip-path-banner">
+                <div class="flex justify-between items-start">
+                    <div class="max-w-xl">
+                        <h1 class="text-6xl font-black uppercase tracking-tight leading-none mb-4">${fullName}</h1>
+                        <p class="text-2xl font-bold text-indigo-200 uppercase tracking-widest mb-6">${data.personalInfo.jobTitle || ''}</p>
+                        <div class="flex flex-wrap gap-6 text-[10px] font-bold uppercase tracking-widest text-indigo-100 opacity-80">
+                            <span>📧 ${data.personalInfo.email}</span><span>📱 ${data.personalInfo.phone}</span><span>📍 ${locationStr}</span>
+                        </div>
+                    </div>
+                    ${showPhoto ? `<div class="w-32 h-32 rounded-3xl overflow-hidden border-4 border-white shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500"><img src="${data.personalInfo.photo}" class="w-full h-full object-cover"></div>` : ''}
+                </div>
+            </header>
+            <div class="px-16 -mt-10 grid grid-cols-3 gap-12">
+                <aside class="col-span-1 space-y-8">${data.sectionOrder.sidebar.map(renderSection).join('')}</aside>
+                <main class="col-span-2 space-y-8">${data.sectionOrder.main.map(renderSection).join('')}</main>
+            </div>
+        </div>
+        <style>.clip-path-banner { clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); }</style>`;
 }
 
 function renderClassicTemplate(data, fullName, locationStr) {
@@ -1541,6 +1943,137 @@ function renderClassicTemplate(data, fullName, locationStr) {
                     ${data.personalInfo.website ? ` | ${data.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}` : ''}
                 </p>
                 <div class="text-left space-y-8">
+                    ${combinedOrder.map(renderSection).join('')}
+                </div>
+
+                <!-- Page Break Indicator (Visual Guide Only) -->
+                <div class="mt-20 border-t-2 border-dashed border-gray-100 flex items-center justify-center relative">
+                    <span class="absolute -top-3 bg-white px-4 text-[8px] font-bold text-gray-300 uppercase tracking-[0.3em]">Potential Page Break</span>
+                </div>
+            </div>
+    `;
+}
+
+function renderStandardProfessionalTemplate(data, fullName, locationStr) {
+    const getSectionHeader = (title) => `
+        <h2 class="text-[13px] font-bold border-b-2 border-gray-800 pb-1 mb-3 uppercase tracking-widest text-gray-900 mt-6">${title}</h2>
+    `;
+
+    const renderSection = (id) => {
+        if (data.sectionVisibility && data.sectionVisibility[id] === false) return '';
+        if (id === 'profile') return `
+             <section class="section-profile">
+                ${getSectionHeader('Professional Summary')}
+                <div class="text-[11px] leading-relaxed text-gray-800 quill-content">${data.personalInfo.summary || 'Summary...'}</div>
+             </section>`;
+        if (id === 'experience') return `
+             <section class="section-experience">
+                ${getSectionHeader('Experience')}
+                <div class="space-y-4">
+                    ${data.experience.map(exp => `
+                        <div>
+                            <div class="flex justify-between items-baseline mb-0.5">
+                                <span class="text-xs font-bold text-gray-900">${exp.jobTitle}</span>
+                                <span class="text-[10px] whitespace-nowrap font-medium text-gray-700">${exp.duration}</span>
+                            </div>
+                            <p class="text-[11px] font-medium text-gray-800 mb-1">${exp.company}</p>
+                            <div class="text-[11px] text-gray-800 leading-relaxed quill-content shrink-li-margins">${exp.responsibilities}</div>
+                        </div>
+                    `).join('')}
+                </div>
+             </section>`;
+        if (id === 'education') return `
+             <section class="section-education">
+                 ${getSectionHeader('Education')}
+                 <div class="space-y-3">
+                     ${data.education.map(edu => `
+                         <div>
+                             <div class="flex justify-between items-baseline mb-0.5">
+                                 <span class="text-xs font-bold text-gray-900">${edu.degree}</span>
+                                 <span class="text-[10px] whitespace-nowrap font-medium text-gray-700">${edu.year}</span>
+                             </div>
+                             <p class="text-[11px] text-gray-800">${edu.school}</p>
+                             ${edu.description ? `<div class="text-[10px] text-gray-600 leading-relaxed quill-content mt-1 shrink-li-margins">${edu.description}</div>` : ''}
+                         </div>
+                     `).join('')}
+                 </div>
+             </section>`;
+        if (id === 'skills') return `
+             <section class="section-skills">
+                 ${getSectionHeader('Skills')}
+                 <p class="text-[11px] text-gray-800"><strong>Technical:</strong> ${data.skills.technical.join(', ')}</p>
+                 <p class="text-[11px] text-gray-800 mt-1"><strong>Soft Skills:</strong> ${data.skills.soft.join(', ')}</p>
+             </section>`;
+        if (id === 'details') return `
+             ${data.personalInfo.dateOfBirth || data.personalInfo.nationality || data.personalInfo.maritalStatus || data.personalInfo.drivingLicense ? `
+             <section class="section-details">
+                ${getSectionHeader('Details')}
+                <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-800">
+                    ${data.personalInfo.dateOfBirth ? `<li>Birth: <span>${data.personalInfo.dateOfBirth}</span></li>` : ''}
+                    ${data.personalInfo.nationality ? `<li>Nat: <span>${data.personalInfo.nationality}</span></li>` : ''}
+                    ${data.personalInfo.maritalStatus ? `<li>Status: <span>${data.personalInfo.maritalStatus}</span></li>` : ''}
+                    ${data.personalInfo.drivingLicense ? `<li>DL: <span>${data.personalInfo.drivingLicense}</span></li>` : ''}
+                </div>
+             </section>
+             ` : ''}`;
+        if (id === 'interests') return `
+             ${data.hobbies.length > 0 ? `
+                <section class="section-interests">
+                    ${getSectionHeader('Interests')}
+                    <p class="text-[11px] text-gray-800">${data.hobbies.join(', ')}</p>
+                </section>
+             ` : ''}`;
+        if (id === 'references') return `
+             ${data.referencesOnRequest || data.references.length > 0 ? `
+                <section class="section-references">
+                    ${getSectionHeader('References')}
+                    ${data.referencesOnRequest ? `
+                        <p class="text-[11px] italic text-gray-600">References available on request</p>
+                    ` : `
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                             ${data.references.map(ref => `
+                                <div>
+                                    <h4 class="text-[11px] font-bold text-gray-900">${ref.name}</h4>
+                                    <p class="text-[10px] text-gray-600 uppercase mb-1">${ref.company}</p>
+                                    <p class="text-[10px] text-gray-800">${ref.email}</p>
+                                    ${ref.phone ? `<p class="text-[10px] text-gray-800">${ref.phone}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </section>
+             ` : ''}`;
+        return '';
+    };
+
+    const combinedOrder = [...data.sectionOrder.sidebar, ...data.sectionOrder.main].filter(id => id !== 'contact');
+
+    return `
+            <div class="standard-professional-template animate-fade-in text-left px-16 py-16 min-h-[1123px]" style="font-family: Arial, Helvetica, sans-serif;">
+                <style>
+                    /* Custom styles for resume-now ATS simple look */
+                    .shrink-li-margins ul { list-style-type: disc !important; margin-left: 1.5rem !important; margin-top: 0.25rem !important; }
+                    .shrink-li-margins li { margin-bottom: 0.25rem !important; }
+                    .shrink-li-margins p { margin-bottom: 0.25rem !important; }
+                </style>
+                <div class="text-center mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900 uppercase tracking-tight mb-2">${fullName}</h1>
+                    <p class="text-[11px] text-gray-800 mb-1 flex flex-wrap justify-center gap-2">
+                        ${data.personalInfo.address ? `<span>${data.personalInfo.address}</span>` : ''}
+                        ${data.personalInfo.city ? `<span>${data.personalInfo.city}</span>` : ''}
+                        ${data.personalInfo.zipCode ? `<span>${data.personalInfo.zipCode}</span>` : ''}
+                    </p>
+                    <p class="text-[11px] text-gray-800 flex flex-wrap justify-center gap-x-3 gap-y-1">
+                        ${data.personalInfo.phone ? `<span>${data.personalInfo.phone}</span>` : ''}
+                        ${data.personalInfo.phone && data.personalInfo.email ? '<span class="text-gray-400">|</span>' : ''}
+                        ${data.personalInfo.email ? `<span>${data.personalInfo.email}</span>` : ''}
+                        ${(data.personalInfo.phone || data.personalInfo.email) && (data.personalInfo.linkedin || data.personalInfo.website) ? '<span class="text-gray-400">|</span>' : ''}
+                        ${data.personalInfo.linkedin ? `<span>${data.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</span>` : ''}
+                        ${data.personalInfo.website ? `<span class="text-gray-400">|</span><span>${data.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}</span>` : ''}
+                    </p>
+                </div>
+                
+                <div class="text-left space-y-2">
                     ${combinedOrder.map(renderSection).join('')}
                 </div>
 
@@ -2755,7 +3288,7 @@ async function handleMagicFix(type, target) {
         }
     } catch (e) {
         console.error(e);
-        tipText.innerHTML = originalTip;
+        if (tipText) tipText.innerHTML = originalTip;
     }
 }
 

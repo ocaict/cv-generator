@@ -7,19 +7,11 @@
     <title>OcaTechCV Pro - Modern Resume Builder</title>
     <!-- Tailwind Config -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        outfit: ['Outfit', 'sans-serif'],
-                    },
-                },
-            },
-        }
     </script>
+    <!-- Premium Font Pairings -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Essential Utilities -->
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <!-- Theme Switcher Script (Inline to prevent flash) -->
     <script>
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {

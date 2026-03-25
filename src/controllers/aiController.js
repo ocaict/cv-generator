@@ -140,6 +140,44 @@ RULES:
             CONFIDENCE: [Low | Medium | High] based on input clarity.`;
             break;
 
+        case 'translate':
+            const targetLang = sanitizeField(context?.targetLanguage || 'English', 50);
+            prompt = `Translate the following CV document from its current language into ${targetLang}.
+            
+            CV Data (JSON):
+            ${safeInput}
+            
+            CRITICAL INSTRUCTIONS:
+            1. Maintain the EXACT same JSON structure.
+            2. Translate all content: Summary, Job Titles, Responsibilities, Degrees, descriptions, etc.
+            3. DO NOT translate technical terms that are globally standard (e.g., "React", "Node.js", "SQL").
+            4. Ensure the tone remains professional and appropriate for the target culture.
+            5. Return ONLY the translated JSON object. No preamble, no chatter.`;
+            break;
+
+        case 'ats':
+            const jdInput = sanitizeInput(context?.jobDescription || '', 4000);
+            prompt = `As an elite technical recruiter and ATS (Applicant Tracking System) expert, analyze this candidate's CV against the provided Job Description.
+            
+            CV Data:
+            ${safeInput}
+            
+            Job Description:
+            ${jdInput}
+            
+            Tasks:
+            1. Calculate a "Match Score" out of 100 based on core requirements.
+            2. Identify 5 key MATCHED keywords or skills.
+            3. Identify 5 important MISSING keywords or skills that the candidate likely has but didn't mention, or needs to highlight.
+            4. Provide 1 high-impact "Power Tip" to immediately improve this match.
+            
+            Respond in this EXACT format (no other text):
+            SCORE: [Number]
+            MATCHED: [Skill 1, Skill 2, ...]
+            MISSING: [Skill 1, Skill 2, ...]
+            TIP: [One single powerful improvement tip]`;
+            break;
+
         case 'cover-letter':
             const companyName = sanitizeField(context?.companyName || 'the company', 120);
             const hiringManager = sanitizeField(context?.hiringManager || '', 80);
