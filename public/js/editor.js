@@ -1118,12 +1118,24 @@ function populateTemplateGallery() {
     galleryGrid.querySelectorAll('.template-gallery-item').forEach(item => {
         item.addEventListener('click', () => {
             const id = item.dataset.id;
-            const radio = document.querySelector(`input[name="templateId"][value="${id}"]`);
-            if (radio) {
-                radio.checked = true;
-                radio.dispatchEvent(new Event('change', { bubbles: true }));
-                closeTemplateGallery();
-                // Visual feedback in the main grid
+            let radio = document.querySelector(`input[name="templateId"][value="${id}"]`);
+            if (!radio) {
+                radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'templateId';
+                radio.value = id;
+                radio.className = 'hidden';
+                document.getElementById('cv-form').appendChild(radio);
+            }
+            
+            // Clear all other selections to trigger change events
+            document.querySelectorAll('input[name="templateId"]').forEach(r => r.checked = false);
+            
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+            closeTemplateGallery();
+            
+            if (radio.closest('label')) {
                 radio.closest('label')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
