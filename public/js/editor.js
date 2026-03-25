@@ -1320,10 +1320,10 @@ function renderPreview(data) {
             }
             
             /* Preview Template Overrides */
-            .modern-template .text-indigo-600, .classic-template .text-indigo-600, .modern-template .text-indigo-700, .classic-template .text-indigo-700, .minimalist-template .text-indigo-600, .grid-template .text-indigo-600 { color: var(--primary) !important; }
-            .modern-template .bg-indigo-600, .classic-template .bg-indigo-600, .minimalist-template .bg-indigo-600, .grid-template .bg-indigo-600 { background-color: var(--primary) !important; }
-            .modern-template .bg-indigo-50, .classic-template .bg-indigo-50, .minimalist-template .bg-indigo-50, .grid-template .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; color: var(--primary) !important; }
-            .modern-template .border-indigo-600, .classic-template .border-indigo-600, .minimalist-template .border-indigo-600, .grid-template .border-indigo-600 { border-color: var(--primary) !important; }
+            .modern-template .text-indigo-600, .classic-template .text-indigo-600, .modern-template .text-indigo-700, .classic-template .text-indigo-700, .minimalist-template .text-indigo-600, .grid-template .text-indigo-600, .standard-professional-template .text-indigo-600, .standard-professional-template .text-indigo-700 { color: var(--primary) !important; }
+            .modern-template .bg-indigo-600, .classic-template .bg-indigo-600, .minimalist-template .bg-indigo-600, .grid-template .bg-indigo-600, .standard-professional-template .bg-indigo-600 { background-color: var(--primary) !important; }
+            .modern-template .bg-indigo-50, .classic-template .bg-indigo-50, .minimalist-template .bg-indigo-50, .grid-template .bg-indigo-50, .standard-professional-template .bg-indigo-50 { background-color: rgba(${hexToRgb(primaryColor)}, 0.1) !important; color: var(--primary) !important; }
+            .modern-template .border-indigo-600, .classic-template .border-indigo-600, .minimalist-template .border-indigo-600, .grid-template .border-indigo-600, .standard-professional-template .border-indigo-600 { border-color: var(--primary) !important; }
 
             /* App UI Immersion (Buttons & Steppers) */
             .bg-indigo-600, .next-step-btn, #export-btn, #final-save-btn { background-color: var(--primary) !important; transition: background 0.3s; }
@@ -1956,7 +1956,7 @@ function renderClassicTemplate(data, fullName, locationStr) {
 
 function renderStandardProfessionalTemplate(data, fullName, locationStr) {
     const getSectionHeader = (title) => `
-        <h2 class="text-[13px] font-bold border-b-2 border-gray-800 pb-1 mb-3 uppercase tracking-widest text-gray-900 mt-6">${title}</h2>
+        <h2 class="text-[13px] font-bold border-b-2 border-indigo-600 pb-1 mb-3 uppercase tracking-widest text-indigo-700 mt-6">${title}</h2>
     `;
 
     const renderSection = (id) => {

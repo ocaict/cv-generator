@@ -163,6 +163,132 @@
             </div>
         </div>
 
+    <% } else if (cv.templateId === 'standard_professional') { %>
+        <!-- Standard Professional Template -->
+        <div class="standard-professional-template max-w-4xl mx-auto bg-white min-h-[1123px] px-16 py-16 text-left" style="font-family: Arial, Helvetica, sans-serif;">
+            <style>
+                .shrink-li-margins ul { list-style-type: disc !important; margin-left: 1.5rem !important; margin-top: 0.25rem !important; }
+                .shrink-li-margins li { margin-bottom: 0.25rem !important; }
+                .shrink-li-margins p { margin-bottom: 0.25rem !important; }
+                .section-header { font-size: 13px; font-weight: 700; border-bottom: 2px solid var(--primary, #4f46e5); padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary, #4f46e5); margin-top: 24px; }
+            </style>
+            
+            <% const fullName = `${cvData.personalInfo.firstName || ''} ${cvData.personalInfo.lastName || ''}`.trim() || 'Your Name'; %>
+            
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-900 uppercase tracking-tight mb-2"><%= fullName %></h1>
+                <p class="text-[11px] text-gray-800 mb-1 flex flex-wrap justify-center gap-2">
+                    <% if (cvData.personalInfo.address) { %><span><%= cvData.personalInfo.address %></span><% } %>
+                    <% if (cvData.personalInfo.city) { %><span><%= cvData.personalInfo.city %></span><% } %>
+                    <% if (cvData.personalInfo.zipCode) { %><span><%= cvData.personalInfo.zipCode %></span><% } %>
+                </p>
+                <p class="text-[11px] text-gray-800 flex flex-wrap justify-center gap-x-3 gap-y-1">
+                    <% if (cvData.personalInfo.phone) { %><span><%= cvData.personalInfo.phone %></span><% } %>
+                    <% if (cvData.personalInfo.phone && cvData.personalInfo.email) { %><span class="text-gray-400">|</span><% } %>
+                    <% if (cvData.personalInfo.email) { %><span><%= cvData.personalInfo.email %></span><% } %>
+                    <% if ((cvData.personalInfo.phone || cvData.personalInfo.email) && (cvData.personalInfo.linkedin || cvData.personalInfo.website)) { %><span class="text-gray-400">|</span><% } %>
+                    <% if (cvData.personalInfo.linkedin) { %><span><%= cvData.personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '') %></span><% } %>
+                    <% if (cvData.personalInfo.website) { %><span class="text-gray-400">|</span><span><%= cvData.personalInfo.website.replace(/^https?:\/\/(www\.)?/, '') %></span><% } %>
+                </p>
+            </div>
+            
+            <div class="text-left space-y-2">
+                <% 
+                const combinedOrder = [...(order.sidebar || []), ...(order.main || [])].filter(id => id !== 'contact');
+                combinedOrder.forEach(sid => { 
+                    if (sectionMap[sid]) { 
+                        if (sid === 'profile') { %>
+                            <section class="section-profile">
+                                <h2 class="section-header">Professional Summary</h2>
+                                <div class="text-[11px] leading-relaxed text-gray-800 quill-content"><%- cvData.personalInfo.summary || '' %></div>
+                            </section>
+                        <% } else if (sid === 'experience') { %>
+                            <section class="section-experience">
+                                <h2 class="section-header">Experience</h2>
+                                <div class="space-y-4">
+                                    <% cvData.experience.forEach(exp => { %>
+                                        <div>
+                                            <div class="flex justify-between items-baseline mb-0.5">
+                                                <span class="text-xs font-bold text-gray-900"><%= exp.jobTitle %></span>
+                                                <% 
+                                                    let duration = "";
+                                                    if (exp.startMonth || exp.startYear) duration += `${exp.startMonth || ''} ${exp.startYear || ''}`.trim();
+                                                    if (duration && (exp.isPresent || exp.endMonth || exp.endYear)) duration += " — ";
+                                                    if (exp.isPresent) { duration += "Present"; } else if (exp.endMonth || exp.endYear) { duration += `${exp.endMonth || ''} ${exp.endYear || ''}`.trim(); }
+                                                %>
+                                                <span class="text-[10px] whitespace-nowrap font-medium text-gray-700"><%= duration %></span>
+                                            </div>
+                                            <p class="text-[11px] font-medium text-gray-800 mb-1"><%= exp.company %></p>
+                                            <div class="text-[11px] text-gray-800 leading-relaxed quill-content shrink-li-margins"><%- exp.responsibilities %></div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </section>
+                        <% } else if (sid === 'education') { %>
+                            <section class="section-education">
+                                <h2 class="section-header">Education</h2>
+                                <div class="space-y-3">
+                                    <% cvData.education.forEach(edu => { %>
+                                        <div>
+                                            <div class="flex justify-between items-baseline mb-0.5">
+                                                <span class="text-xs font-bold text-gray-900"><%= edu.degree %></span>
+                                                <% const eYear = `${edu.endMonth || ''} ${edu.endYear || ''}`.trim(); %>
+                                                <span class="text-[10px] whitespace-nowrap font-medium text-gray-700"><%= eYear %></span>
+                                            </div>
+                                            <p class="text-[11px] text-gray-800"><%= edu.school %></p>
+                                            <% if (edu.description) { %>
+                                                <div class="text-[10px] text-gray-600 leading-relaxed quill-content mt-1 shrink-li-margins"><%- edu.description %></div>
+                                            <% } %>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </section>
+                        <% } else if (sid === 'skills') { %>
+                            <section class="section-skills">
+                                <h2 class="section-header">Skills</h2>
+                                <p class="text-[11px] text-gray-800"><strong>Technical:</strong> <%= cvData.skills?.technical?.join(', ') || '' %></p>
+                                <p class="text-[11px] text-gray-800 mt-1"><strong>Soft Skills:</strong> <%= cvData.skills?.soft?.join(', ') || '' %></p>
+                            </section>
+                        <% } else if (sid === 'details') { %>
+                            <% if (cvData.personalInfo.dateOfBirth || cvData.personalInfo.nationality || cvData.personalInfo.maritalStatus || cvData.personalInfo.drivingLicense) { %>
+                            <section class="section-details">
+                                <h2 class="section-header">Details</h2>
+                                <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-800">
+                                    <% if (cvData.personalInfo.dateOfBirth) { %><li>Birth: <span><%= cvData.personalInfo.dateOfBirth %></span></li><% } %>
+                                    <% if (cvData.personalInfo.nationality) { %><li>Nat: <span><%= cvData.personalInfo.nationality %></span></li><% } %>
+                                    <% if (cvData.personalInfo.maritalStatus) { %><li>Status: <span><%= cvData.personalInfo.maritalStatus %></span></li><% } %>
+                                    <% if (cvData.personalInfo.drivingLicense) { %><li>DL: <span><%= cvData.personalInfo.drivingLicense %></span></li><% } %>
+                                </div>
+                            </section>
+                            <% } %>
+                        <% } else if (sid === 'interests' && cvData.hobbies && cvData.hobbies.length > 0) { %>
+                            <section class="section-interests">
+                                <h2 class="section-header">Interests</h2>
+                                <p class="text-[11px] text-gray-800"><%= cvData.hobbies.join(', ') %></p>
+                            </section>
+                        <% } else if (sid === 'references' && (cvData.referencesOnRequest || (cvData.references && cvData.references.length > 0))) { %>
+                            <section class="section-references">
+                                <h2 class="section-header">References</h2>
+                                <% if (cvData.referencesOnRequest) { %>
+                                    <p class="text-[11px] italic text-gray-600">References available on request</p>
+                                <% } else { %>
+                                    <div class="grid grid-cols-2 gap-4 mt-2">
+                                        <% cvData.references.forEach(ref => { %>
+                                            <div>
+                                                <h4 class="text-[11px] font-bold text-gray-900"><%= ref.name %></h4>
+                                                <p class="text-[10px] text-gray-600 uppercase mb-1"><%= ref.company %></p>
+                                                <p class="text-[10px] text-gray-800"><%= ref.email %></p>
+                                                <% if (ref.phone) { %><p class="text-[10px] text-gray-800"><%= ref.phone %></p><% } %>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } %>
+                            </section>
+                        <% } 
+                    } 
+                }); %>
+            </div>
+        </div>
     <% } else { %>
         <!-- Minimalist Template (Default) -->
         <div class="max-w-4xl mx-auto bg-white min-h-screen px-20 py-20 text-gray-800 font-outfit">
