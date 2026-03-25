@@ -1125,7 +1125,7 @@ function populateTemplateGallery() {
                 radio.name = 'templateId';
                 radio.value = id;
                 radio.className = 'hidden';
-                document.getElementById('cv-form').appendChild(radio);
+                document.getElementById('editor-form').appendChild(radio);
             }
             
             // Clear all other selections to trigger change events
