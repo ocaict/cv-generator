@@ -2842,8 +2842,11 @@ function hexToRgb(hex) {
 }
 
 // Design Step Listeners
-document.querySelectorAll('input[name="themeColor"], input[name="templateId"]').forEach(input => {
-    input.addEventListener('change', () => updatePreview());
+// Use event delegation so dynamically-injected gallery radio inputs also trigger updates
+editorForm.addEventListener('change', (e) => {
+    if (e.target.name === 'themeColor' || e.target.name === 'templateId') {
+        updatePreview();
+    }
 });
 if (document.getElementById('custom-color-picker')) {
     document.getElementById('custom-color-picker').addEventListener('input', (e) => {
