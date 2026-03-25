@@ -809,6 +809,21 @@
                     </div>
                 </div>
 
+                <!-- Competency Heatmap -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Marketability Heatmap (Top 5 Assets)</h4>
+                    <div id="sal-heatmap" class="space-y-3">
+                        <!-- Top Marketable Assets will be injected here -->
+                        <div class="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl animate-pulse">
+                            <div class="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+                            <div class="flex-grow space-y-2">
+                                <div class="h-2 w-24 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                                <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-700/50 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-center space-x-2 pt-4">
                     <button id="salary-rerun-btn" class="text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors flex items-center space-x-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -1751,50 +1766,89 @@
 [EXP: ${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company} (${e.duration || 'N/A'})`).join('; ')}]`;
 
         try {
-            const res = await fetch('/api/ai/generate', {
+            // Task 1: Salary Estimation
+            const salRes = await fetch('/api/ai/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     type: 'salary-estimation',
                     input: profileText,
-                    context: {
-                        jobTitle: cvData.personalInfo?.jobTitle || 'General Professional'
-                    }
+                    context: { jobTitle: cvData.personalInfo?.jobTitle || 'General Professional' }
                 })
             });
 
-            if (!res.ok) throw new Error('API Error');
-            const data = await res.json();
+            // Task 2: Competency Heatmap
+            const heatRes = await fetch('/api/ai/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'competency-heatmap',
+                    input: profileText,
+                    context: { jobTitle: cvData.personalInfo?.jobTitle || 'General Professional' }
+                })
+            });
+
+            if (!salRes.ok || !heatRes.ok) throw new Error('API Error');
             
-            const lines = data.result.split('\n');
-            const getValue = (key) => {
-                const line = lines.find(l => l.startsWith(key));
+            const salData = await salRes.json();
+            const heatData = await heatRes.json();
+            
+            // Parse Salary
+            const salLines = salData.result.split('\n');
+            const getSalValue = (key) => {
+                const line = salLines.find(l => l.startsWith(key));
                 return line ? line.split(':')[1].trim() : 'N/A';
             };
 
-            const lower = getValue('LOWER');
-            const median = getValue('MEDIAN');
-            const upper = getValue('UPPER');
-            const trend = getValue('TREND');
-            const conf = getValue('CONFIDENCE');
-
-            document.getElementById('sal-lower').textContent = lower;
-            document.getElementById('sal-median').textContent = median;
-            document.getElementById('sal-upper').textContent = upper;
-            document.getElementById('sal-trend').textContent = trend;
-            document.getElementById('salary-confidence').textContent = `Confidence: ${conf}`;
+            document.getElementById('sal-lower').textContent = getSalValue('LOWER');
+            document.getElementById('sal-median').textContent = getSalValue('MEDIAN');
+            document.getElementById('sal-upper').textContent = getSalValue('UPPER');
+            document.getElementById('sal-trend').textContent = getSalValue('TREND');
+            document.getElementById('salary-confidence').textContent = `Confidence: ${getSalValue('CONFIDENCE')}`;
             
             // simple bar state
             const fill = document.getElementById('sal-range-fill');
             fill.style.left = '20%'; 
             fill.style.right = '20%';
 
+            // Parse & Render Heatmap
+            const heatContainer = document.getElementById('sal-heatmap');
+            heatContainer.innerHTML = ''; // Clear loading skeleton
+
+            const heatLines = heatData.result.split('\n').filter(l => l.includes('COMP:'));
+            heatLines.forEach(line => {
+                // Format: COMP: [Title] SCORE: [Number] REASON: [Text]
+                const comp = line.match(/COMP: \[(.*?)\]/)?.[1] || 'Competency';
+                const score = parseInt(line.match(/SCORE: \[(.*?)\]/)?.[1]) || 5;
+                const reason = line.match(/REASON: \[(.*?)\]/)?.[1] || 'High market demand.';
+
+                const card = document.createElement('div');
+                card.className = 'group flex items-center space-x-3 p-4 bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/50 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300';
+                
+                // Color based on score
+                const hue = (score / 10) * 120; // 0 (red) to 120 (green)
+                
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg" style="background: hsl(${hue}, 70%, 45%)">
+                        ${score}
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-0.5">
+                            <span class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">${comp}</span>
+                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">${score > 8 ? '🔥 SLAY' : '✅ VITAL'}</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">${reason}</p>
+                    </div>
+                `;
+                heatContainer.appendChild(card);
+            });
+
             salaryLoading.classList.add('hidden');
             salaryResults.classList.remove('hidden');
 
         } catch (err) {
             console.error(err);
-            alert('Salary estimation failed. Please try again.');
+            alert('Market Strategy analysis failed. Please try again.');
             closeSalModal();
         }
     }
