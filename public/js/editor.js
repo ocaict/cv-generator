@@ -1077,14 +1077,195 @@ function applyZoom() {
 
 // --- Template Gallery Logic ---
 const PREMIUM_TEMPLATES = [
-    { id: 'modern', name: 'The Modernist', type: 'Professional', desc: 'Recruiter favorite for 2024' },
-    { id: 'onyx', name: 'Onyx Dark', type: 'Premium', desc: 'High contrast elite design' },
-    { id: 'grid', name: 'The Gridsmith', type: 'Tech', desc: 'Structured for engineers & data' },
-    { id: 'executive_sidebar', name: 'Executive Navy', type: 'Corporate', desc: 'Balanced for leadership roles' },
-    { id: 'minimalist', name: 'Pure Minimal', type: 'Simple', desc: 'Focus on content and clarity' },
-    { id: 'centered_modern', name: 'Centered Elegance', type: 'Modern', desc: 'Artistic and clean symmetry' },
-    { id: 'asymmetric', name: 'Dynamic Flow', type: 'Content Dense', desc: 'Maximize information real estate' },
-    { id: 'creative_banner', name: 'Bold Creator', type: 'Creative', desc: 'Graphic impact for designers' }
+    {
+        id: 'modern', name: 'The Modernist', type: 'Professional', desc: 'Recruiter favorite for 2025',
+        accentColor: '#4f46e5',
+        preview: `<div class="w-full h-full bg-white rounded-xl p-2 flex flex-col overflow-hidden">
+            <div class="flex items-end border-b-2 border-indigo-500 pb-2 mb-2">
+                <div class="flex-1"><div class="h-3 w-16 bg-slate-800 rounded mb-1"></div><div class="h-1.5 w-10 bg-indigo-400 rounded"></div></div>
+                <div class="w-8 h-8 rounded-lg bg-indigo-100 ml-2 flex-shrink-0"></div>
+            </div>
+            <div class="flex gap-2 flex-1 min-h-0">
+                <div class="w-1/3 flex flex-col gap-1.5">
+                    <div class="h-1 w-8 bg-indigo-300 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-4/5 bg-slate-100 rounded"></div>
+                    <div class="mt-1 h-1 w-8 bg-indigo-300 rounded"></div>
+                    <div class="flex gap-0.5 flex-wrap"><div class="h-2 w-5 bg-slate-100 rounded"></div><div class="h-2 w-4 bg-slate-100 rounded"></div><div class="h-2 w-6 bg-slate-100 rounded"></div></div>
+                </div>
+                <div class="flex-1 flex flex-col gap-1.5">
+                    <div class="h-1 w-10 bg-indigo-300 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-3/4 bg-slate-100 rounded"></div>
+                    <div class="mt-1 h-1 w-10 bg-indigo-300 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-4/5 bg-slate-100 rounded"></div>
+                </div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'onyx', name: 'Onyx Dark', type: 'Premium', desc: 'High contrast elite design',
+        accentColor: '#6366f1',
+        preview: `<div class="w-full h-full bg-[#020617] rounded-xl p-2 flex flex-col overflow-hidden">
+            <div class="flex items-end border-b border-indigo-700 pb-2 mb-2">
+                <div class="flex-1"><div class="h-3 w-16 bg-white rounded mb-1"></div><div class="h-1.5 w-10 bg-indigo-400 rounded"></div></div>
+                <div class="w-8 h-8 rounded-lg bg-indigo-900 ml-2 flex-shrink-0"></div>
+            </div>
+            <div class="flex gap-2 flex-1 min-h-0">
+                <div class="w-1/3 flex flex-col gap-1.5">
+                    <div class="h-1 w-8 bg-indigo-500 rounded"></div>
+                    <div class="h-1 w-full bg-slate-800 rounded"></div>
+                    <div class="h-1 w-4/5 bg-slate-800 rounded"></div>
+                    <div class="mt-1 h-1 w-8 bg-indigo-500 rounded"></div>
+                    <div class="flex gap-0.5 flex-wrap"><div class="h-2 w-5 bg-slate-700 rounded"></div><div class="h-2 w-4 bg-slate-700 rounded"></div></div>
+                </div>
+                <div class="flex-1 flex flex-col gap-1.5">
+                    <div class="h-1 w-10 bg-indigo-500 rounded"></div>
+                    <div class="h-1 w-full bg-slate-800 rounded"></div>
+                    <div class="h-1 w-full bg-slate-800 rounded"></div>
+                    <div class="h-1 w-3/4 bg-slate-800 rounded"></div>
+                    <div class="mt-1 h-1 w-10 bg-indigo-500 rounded"></div>
+                    <div class="h-1 w-full bg-slate-800 rounded"></div>
+                </div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'grid', name: 'The Gridsmith', type: 'Tech', desc: 'Structured for engineers & data',
+        accentColor: '#0ea5e9',
+        preview: `<div class="w-full h-full bg-white rounded-xl p-2 flex flex-col overflow-hidden">
+            <div class="text-center border-b border-slate-200 pb-2 mb-2"><div class="h-2.5 w-20 bg-slate-800 rounded mx-auto mb-1"></div><div class="h-1.5 w-12 bg-sky-400 rounded mx-auto"></div></div>
+            <div class="grid grid-cols-2 gap-1.5 flex-1">
+                <div class="flex flex-col gap-1"><div class="h-1 w-8 bg-sky-400 rounded"></div><div class="h-1 w-full bg-slate-100 rounded"></div><div class="h-1 w-4/5 bg-slate-100 rounded"></div><div class="h-1 w-full bg-slate-100 rounded"></div></div>
+                <div class="flex flex-col gap-1"><div class="h-1 w-8 bg-sky-400 rounded"></div><div class="h-1 w-full bg-slate-100 rounded"></div><div class="h-1 w-4/5 bg-slate-100 rounded"></div><div class="h-1 w-full bg-slate-100 rounded"></div></div>
+                <div class="flex flex-col gap-1"><div class="h-1 w-8 bg-sky-400 rounded"></div><div class="flex gap-0.5 flex-wrap"><div class="h-2 w-5 bg-slate-100 rounded"></div><div class="h-2 w-4 bg-slate-100 rounded"></div><div class="h-2 w-6 bg-slate-100 rounded"></div></div></div>
+                <div class="flex flex-col gap-1"><div class="h-1 w-8 bg-sky-400 rounded"></div><div class="h-1 w-full bg-slate-100 rounded"></div><div class="h-1 w-3/4 bg-slate-100 rounded"></div></div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'executive_sidebar', name: 'Executive Navy', type: 'Corporate', desc: 'Balanced for leadership roles',
+        accentColor: '#1e293b',
+        preview: `<div class="w-full h-full rounded-xl overflow-hidden flex">
+            <div class="w-2/5 bg-slate-800 p-2 flex flex-col gap-1.5">
+                <div class="w-8 h-8 rounded-full bg-slate-600 mx-auto mb-1"></div>
+                <div class="h-2 w-12 bg-white rounded mx-auto mb-1"></div>
+                <div class="h-1 w-full bg-slate-600 rounded mx-auto"></div>
+                <div class="mt-2 h-1 w-8 bg-indigo-400 rounded"></div>
+                <div class="h-1 w-full bg-slate-700 rounded"></div>
+                <div class="h-1 w-4/5 bg-slate-700 rounded"></div>
+                <div class="mt-1 h-1 w-8 bg-indigo-400 rounded"></div>
+                <div class="flex gap-0.5 flex-wrap"><div class="h-2 w-5 bg-slate-600 rounded"></div><div class="h-2 w-4 bg-slate-600 rounded"></div></div>
+            </div>
+            <div class="flex-1 bg-white p-2 flex flex-col gap-1.5">
+                <div class="h-1 w-10 bg-slate-800 rounded"></div>
+                <div class="h-1 w-full bg-slate-100 rounded"></div>
+                <div class="h-1 w-full bg-slate-100 rounded"></div>
+                <div class="h-1 w-3/4 bg-slate-100 rounded"></div>
+                <div class="mt-1 h-1 w-10 bg-slate-800 rounded"></div>
+                <div class="h-1 w-full bg-slate-100 rounded"></div>
+                <div class="h-1 w-4/5 bg-slate-100 rounded"></div>
+                <div class="h-1 w-full bg-slate-100 rounded"></div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'minimalist', name: 'Pure Minimal', type: 'Simple', desc: 'Focus on content and clarity',
+        accentColor: '#475569',
+        preview: `<div class="w-full h-full bg-white rounded-xl p-3 flex flex-col overflow-hidden">
+            <div class="mb-3"><div class="h-3 w-20 bg-slate-900 rounded mb-1.5"></div><div class="h-1.5 w-14 bg-slate-400 rounded mb-1.5"></div><div class="flex gap-2"><div class="h-1 w-10 bg-slate-200 rounded"></div><div class="h-1 w-10 bg-slate-200 rounded"></div></div></div>
+            <div class="flex-1 flex flex-col gap-2">
+                <div class="border-b border-slate-200 pb-1"><div class="h-1 w-14 bg-slate-500 rounded mb-1"></div><div class="h-1 w-full bg-slate-100 rounded"></div><div class="h-1 w-4/5 bg-slate-100 rounded mt-0.5"></div></div>
+                <div class="border-b border-slate-200 pb-1"><div class="h-1 w-14 bg-slate-500 rounded mb-1"></div><div class="h-1 w-full bg-slate-100 rounded"></div><div class="h-1 w-3/4 bg-slate-100 rounded mt-0.5"></div></div>
+                <div><div class="h-1 w-14 bg-slate-500 rounded mb-1"></div><div class="flex gap-0.5 flex-wrap"><div class="h-2 w-5 bg-slate-100 rounded"></div><div class="h-2 w-4 bg-slate-100 rounded"></div><div class="h-2 w-6 bg-slate-100 rounded"></div></div></div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'centered_modern', name: 'Centered Elegance', type: 'Modern', desc: 'Artistic and clean symmetry',
+        accentColor: '#4f46e5',
+        preview: `<div class="w-full h-full bg-white rounded-xl p-2 flex flex-col items-center overflow-hidden">
+            <div class="text-center mb-2 w-full border-b-2 border-indigo-400 pb-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 mx-auto mb-1"></div>
+                <div class="h-2.5 w-20 bg-slate-800 rounded mx-auto mb-1"></div>
+                <div class="h-1.5 w-12 bg-indigo-400 rounded mx-auto"></div>
+            </div>
+            <div class="w-full flex flex-col gap-1.5">
+                <div class="h-1 w-12 bg-indigo-300 rounded mx-auto"></div>
+                <div class="h-1 w-full bg-slate-100 rounded"></div>
+                <div class="h-1 w-4/5 bg-slate-100 rounded mx-auto"></div>
+                <div class="h-1 w-12 bg-indigo-300 rounded mx-auto mt-1"></div>
+                <div class="h-1 w-full bg-slate-100 rounded"></div>
+                <div class="h-1 w-full bg-slate-100 rounded"></div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'asymmetric', name: 'Dynamic Flow', type: 'Content Dense', desc: 'Maximize information real estate',
+        accentColor: '#475569',
+        preview: `<div class="w-full h-full bg-white rounded-xl overflow-hidden flex flex-col">
+            <div class="bg-slate-800 p-2 flex items-center gap-2"><div class="w-5 h-5 rounded-full bg-slate-600 flex-shrink-0"></div><div><div class="h-2 w-12 bg-white rounded mb-0.5"></div><div class="h-1 w-8 bg-slate-400 rounded"></div></div></div>
+            <div class="flex gap-1.5 flex-1 p-2">
+                <div class="w-2/5 flex flex-col gap-1">
+                    <div class="h-1 w-8 bg-slate-700 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-4/5 bg-slate-100 rounded"></div>
+                    <div class="mt-1 h-1 w-8 bg-slate-700 rounded"></div>
+                    <div class="flex gap-0.5 flex-wrap"><div class="h-2 w-5 bg-slate-100 rounded"></div><div class="h-2 w-4 bg-slate-100 rounded"></div></div>
+                </div>
+                <div class="flex-1 flex flex-col gap-1">
+                    <div class="h-1 w-10 bg-slate-700 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-3/4 bg-slate-100 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="mt-1 h-1 w-10 bg-slate-700 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                </div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'creative_banner', name: 'Bold Creator', type: 'Creative', desc: 'Graphic impact for designers',
+        accentColor: '#f43f5e',
+        preview: `<div class="w-full h-full bg-white rounded-xl overflow-hidden flex flex-col">
+            <div class="bg-rose-500 p-3 flex justify-between items-end"><div><div class="h-3 w-16 bg-white rounded mb-1"></div><div class="h-1.5 w-10 bg-rose-200 rounded"></div></div><div class="w-7 h-7 rounded-full bg-rose-300 flex-shrink-0"></div></div>
+            <div class="flex gap-1.5 flex-1 p-2">
+                <div class="w-2/5 flex flex-col gap-1 border-r border-slate-100 pr-1.5">
+                    <div class="h-1 w-6 bg-rose-400 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-4/5 bg-slate-100 rounded"></div>
+                    <div class="mt-1 h-1 w-6 bg-rose-400 rounded"></div>
+                    <div class="flex gap-0.5 flex-wrap"><div class="h-2 w-4 bg-rose-100 rounded"></div><div class="h-2 w-5 bg-rose-100 rounded"></div></div>
+                </div>
+                <div class="flex-1 flex flex-col gap-1">
+                    <div class="h-1 w-8 bg-rose-400 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                    <div class="h-1 w-3/4 bg-slate-100 rounded"></div>
+                    <div class="mt-1 h-1 w-8 bg-rose-400 rounded"></div>
+                    <div class="h-1 w-full bg-slate-100 rounded"></div>
+                </div>
+            </div>
+        </div>`
+    },
+    {
+        id: 'standard_professional', name: 'ATS Standard', type: 'ATS', desc: 'Maximum ATS compatibility',
+        accentColor: '#4f46e5',
+        preview: `<div class="w-full h-full bg-white rounded-xl p-2 flex flex-col overflow-hidden">
+            <div class="text-center border-b border-slate-200 pb-2 mb-1.5">
+                <div class="h-2.5 w-20 bg-slate-900 rounded mx-auto mb-1"></div>
+                <div class="h-1 w-28 bg-slate-300 rounded mx-auto mb-0.5"></div>
+                <div class="h-1 w-20 bg-slate-200 rounded mx-auto"></div>
+            </div>
+            <div class="flex flex-col gap-1.5 flex-1">
+                <div><div class="h-1.5 w-full bg-indigo-500 rounded-sm mb-1"></div><div class="h-1 w-full bg-slate-100 rounded"></div><div class="h-1 w-4/5 bg-slate-100 rounded mt-0.5"></div></div>
+                <div><div class="h-1.5 w-full bg-indigo-500 rounded-sm mb-1"></div><div class="flex justify-between"><div class="h-1 w-1/3 bg-slate-800 rounded"></div><div class="h-1 w-10 bg-slate-300 rounded"></div></div><div class="h-1 w-1/2 bg-slate-300 rounded mt-0.5"></div><div class="h-1 w-full bg-slate-100 rounded mt-0.5"></div></div>
+                <div><div class="h-1.5 w-full bg-indigo-500 rounded-sm mb-1"></div><div class="h-1 w-full bg-slate-100 rounded"></div><div class="h-1 w-3/4 bg-slate-100 rounded mt-0.5"></div></div>
+            </div>
+        </div>`
+    }
 ];
 
 function populateTemplateGallery() {
@@ -1092,24 +1273,18 @@ function populateTemplateGallery() {
     
     galleryGrid.innerHTML = PREMIUM_TEMPLATES.map(tmp => `
         <div class="template-gallery-item group cursor-pointer" data-id="${tmp.id}">
-            <div class="aspect-[3/4] rounded-3xl bg-gray-50 border-2 border-gray-100 dark:border-slate-800 p-2 overflow-hidden group-hover:border-indigo-500 group-hover:shadow-2xl group-hover:shadow-indigo-100 transition-all relative">
-                <div class="w-full h-full bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center space-y-2 opacity-80 group-hover:opacity-100">
-                     <!-- Dummy Preview Graphic -->
-                     <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
-                     <div class="w-20 h-1 bg-gray-100 rounded-full"></div>
-                     <div class="w-20 h-1 bg-gray-100 rounded-full"></div>
-                     <div class="mt-4 w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                     </div>
+            <div class="aspect-[3/4] rounded-3xl bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 p-2 overflow-hidden group-hover:border-indigo-500 group-hover:shadow-2xl group-hover:shadow-indigo-100 dark:group-hover:shadow-indigo-900/30 transition-all relative">
+                <div class="w-full h-full rounded-2xl overflow-hidden shadow-sm opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-300">
+                    ${tmp.preview}
                 </div>
-                <div class="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition-colors"></div>
+                <div class="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition-colors rounded-3xl pointer-events-none"></div>
             </div>
             <div class="mt-4 text-left">
                 <div class="flex items-center justify-between mb-1">
-                    <h5 class="text-sm font-black text-gray-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">${tmp.name}</h5>
-                    <span class="text-[8px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full uppercase">${tmp.type}</span>
+                    <h5 class="text-sm font-black text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors uppercase tracking-tight">${tmp.name}</h5>
+                    <span class="text-[8px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 px-1.5 py-0.5 rounded-full uppercase">${tmp.type}</span>
                 </div>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${tmp.desc}</p>
+                <p class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">${tmp.desc}</p>
             </div>
         </div>
     `).join('');
