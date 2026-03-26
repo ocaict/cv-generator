@@ -205,22 +205,63 @@ function fillSampleData() {
 }
 
 function updateSaveStatus(status) {
-    if (!saveStatusText || !saveStatusIndicator) return;
-    
-    if (status === 'saving') {
-        saveStatusIndicator.className = 'w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse';
-        saveStatusText.innerText = 'Saving...';
-    } else if (status === 'saved') {
-        saveStatusIndicator.className = 'w-1.5 h-1.5 rounded-full bg-green-500';
-        saveStatusText.innerText = 'Saved';
-    } else if (status === 'error') {
-        saveStatusIndicator.className = 'w-1.5 h-1.5 rounded-full bg-red-500';
-        saveStatusText.innerText = 'Error';
-    } else if (status === 'unsaved') {
-        saveStatusIndicator.className = 'w-1.5 h-1.5 rounded-full bg-orange-300';
-        saveStatusText.innerText = 'Unsaved';
+    // --- Drive the new state-based indicator ---
+    const states = ['saved', 'saving', 'unsaved', 'error'];
+    states.forEach(s => {
+        const el = document.getElementById(`save-state-${s}`);
+        if (el) el.classList.toggle('hidden', s !== status);
+    });
+
+    // Legacy compat shim (still used by older code paths)
+    if (saveStatusText) saveStatusText.innerText =
+        status === 'saving' ? 'Saving...' : status === 'saved' ? 'Saved' :
+        status === 'error' ? 'Save failed' : 'Unsaved';
+    if (saveStatusIndicator) {
+        saveStatusIndicator.className = `w-1.5 h-1.5 rounded-full ${
+            status === 'saving' ? 'bg-amber-500 animate-pulse' :
+            status === 'saved' ? 'bg-green-500' :
+            status === 'error' ? 'bg-red-500' : 'bg-orange-300'}`;
+    }
+
+    // --- Toast notification ---
+    if (status === 'saved' || status === 'error') {
+        showSaveToast(status);
     }
 }
+
+function showSaveToast(status) {
+    let toast = document.getElementById('save-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'save-toast';
+        toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);transform:translateY(80px);opacity:0;pointer-events:none;';
+        document.body.appendChild(toast);
+    }
+
+    const isSaved = status === 'saved';
+    toast.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:14px;font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 32px rgba(0,0,0,0.15);
+            background:${isSaved ? '#f0fdf4' : '#fef2f2'};border:1.5px solid ${isSaved ? '#86efac' : '#fca5a5'};color:${isSaved ? '#15803d' : '#b91c1c'};">
+            ${isSaved
+                ? `<svg style="width:16px;height:16px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg><span>Changes saved</span>`
+                : `<svg style="width:16px;height:16px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"></path><circle cx="12" cy="12" r="10" stroke-width="2"></circle></svg><span>Save failed — retry?</span>`
+            }
+        </div>`;
+
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    });
+
+    // Animate out after 2.5s
+    clearTimeout(toast._hideTimeout);
+    toast._hideTimeout = setTimeout(() => {
+        toast.style.transform = 'translateY(80px)';
+        toast.style.opacity = '0';
+    }, 2500);
+}
+
 
 // Multi-step Navigation State
 let currentStep = 1;
