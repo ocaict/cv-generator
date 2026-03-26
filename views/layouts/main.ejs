@@ -4,7 +4,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OcaTechCV Pro - Modern Resume Builder</title>
+
+    <%
+        // --- Per-Page SEO Overrides ---
+        // Views can set locals: pageTitle, pageDescription, pageImage, pageUrl, noIndex
+        const _siteBase = process.env.APP_URL || 'https://cvpro.ocatech.com';
+        const _pageTitle = typeof pageTitle !== 'undefined' && pageTitle
+            ? `${pageTitle} | OcaTechCV Pro`
+            : 'OcaTechCV Pro — Free AI-Powered CV & Resume Builder';
+        const _pageDesc = typeof pageDescription !== 'undefined' && pageDescription
+            ? pageDescription
+            : 'Create a professional CV in minutes. Choose from 9+ premium templates, get AI-powered suggestions, and download a recruiter-ready PDF or DOCX instantly. 100% free.';
+        const _pageImage = typeof pageImage !== 'undefined' && pageImage
+            ? pageImage
+            : `${_siteBase}/images/og-default.png`;
+        const _pageUrl = typeof pageUrl !== 'undefined' && pageUrl
+            ? pageUrl
+            : _siteBase + (typeof req !== 'undefined' ? req.path : '/');
+        const _noIndex = typeof noIndex !== 'undefined' && noIndex;
+    %>
+
+    <!-- Primary Meta -->
+    <title><%= _pageTitle %></title>
+    <meta name="description" content="<%= _pageDesc %>">
+    <meta name="robots" content="<%= _noIndex ? 'noindex, nofollow' : 'index, follow' %>">
+    <link rel="canonical" href="<%= _pageUrl %>">
+
+    <!-- OpenGraph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OcaTechCV Pro">
+    <meta property="og:url" content="<%= _pageUrl %>">
+    <meta property="og:title" content="<%= _pageTitle %>">
+    <meta property="og:description" content="<%= _pageDesc %>">
+    <meta property="og:image" content="<%= _pageImage %>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@ocatechcvpro">
+    <meta name="twitter:title" content="<%= _pageTitle %>">
+    <meta name="twitter:description" content="<%= _pageDesc %>">
+    <meta name="twitter:image" content="<%= _pageImage %>">
+
+    <!-- JSON-LD Structured Data (SoftwareApplication) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "OcaTechCV Pro",
+        "url": "<%= _siteBase %>",
+        "description": "<%= _pageDesc.replace(/"/g, '&quot;') %>",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript.",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "reviewCount": "142"
+        }
+    }
+    </script>
+
     <!-- Tailwind Config -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>

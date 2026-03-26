@@ -33,7 +33,10 @@ exports.getDashboard = async (req, res) => {
         res.render('dashboard/index', { 
             cvs: cvsWithTime, 
             user: user || req.session.user,
-            stats
+            stats,
+            pageTitle: 'My CVs — Dashboard',
+            pageDescription: 'Manage all your CVs, track recruiter views, and create new resumes from your personal dashboard.',
+            noIndex: true
         });
     } catch (error) {
         console.error(error);
@@ -95,7 +98,11 @@ const getRelativeTime = (date) => {
 };
 
 exports.getCreateCV = (req, res) => {
-    res.render('cv-editor/create');
+    res.render('cv-editor/create', {
+        pageTitle: 'Create a New CV',
+        pageDescription: 'Start building your professional CV with our AI-powered editor. Choose a template and fill in your details.',
+        noIndex: true
+    });
 };
 
 exports.postCreateCV = async (req, res) => {
@@ -171,7 +178,13 @@ exports.getEditCV = async (req, res) => {
         if (typeof cvData.referencesOnRequest === 'undefined') cvData.referencesOnRequest = false;
         if (!cvData.skills) cvData.skills = { technical: [], soft: [] };
 
-        res.render('cv-editor/editor', { cv, cvData });
+        res.render('cv-editor/editor', {
+            cv,
+            cvData,
+            pageTitle: `Editing: ${cv.title || 'My CV'}`,
+            pageDescription: 'Edit your professional CV with AI suggestions, live preview, and one-click PDF export.',
+            noIndex: true
+        });
     } catch (error) {
         console.error(error);
         res.redirect('/dashboard');
@@ -333,12 +346,19 @@ exports.getPublicCV = async (req, res) => {
         const cvData = JSON.parse(cv.data || '{}');
         
         // Render a public view utilizing the pdf-view EJS layout but with standard HTML wrapper
+        const _fullName = `${cvData.personalInfo?.firstName || ''} ${cvData.personalInfo?.lastName || ''}`.trim();
+        const _jobTitle = cvData.personalInfo?.jobTitle || 'Professional';
+        const _siteBase = process.env.APP_URL || 'https://cvpro.ocatech.com';
         res.render('cv-editor/public-view', { 
             cv, 
             cvData,
             req,
-            fullName: `${cvData.personalInfo?.firstName || ''} ${cvData.personalInfo?.lastName || ''}`.trim(),
-            locationStr: [cvData.personalInfo?.city, cvData.personalInfo?.nationality].filter(Boolean).join(', ')
+            fullName: _fullName,
+            locationStr: [cvData.personalInfo?.city, cvData.personalInfo?.nationality].filter(Boolean).join(', '),
+            pageTitle: `${_fullName} — ${_jobTitle} CV`,
+            pageDescription: `View ${_fullName}'s professional CV and resume for the role of ${_jobTitle}. Created with OcaTechCV Pro.`,
+            pageUrl: `${_siteBase}/p/${cv.publicSlug}`,
+            pageImage: cvData.personalInfo?.photo || `${_siteBase}/images/og-default.png`
         });
     } catch (error) {
         console.error(error);

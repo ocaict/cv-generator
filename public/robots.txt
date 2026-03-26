@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /p/
+
+# Don't index private app pages
+Disallow: /cv-editor/
+Disallow: /dashboard/
+Disallow: /auth/
+
+# Sitemap
+Sitemap: https://cvpro.ocatech.com/sitemap.xml
