@@ -97,30 +97,38 @@ exports.exportDOCX = async (req, res) => {
 
             try {
                 const HTMLtoDOCX = require('html-to-docx');
-                const fs = require('fs');
-                const path = require('path');
 
-                let cssContent = '';
-                try {
-                    const cssPath = path.join(__dirname, '../../public/css/tailwind.css');
-                    cssContent = fs.readFileSync(cssPath, 'utf8');
-                } catch(e) { console.warn("Tailwind CSS missing for DOCX generation:", e.message); }
-                
-                // Add default formatting CSS for docx specific fixes
+                // Essential formatting for DOCX mapping (ignoring Tailwind utilities)
                 const docxStyles = `
-                    body, * { font-family: 'Arial', sans-serif !important; }
-                    .quill-content ul { display: block; margin-left: 20px; list-style-type: square; }
-                    .quill-content li { display: list-item; margin-bottom: 5px; }
+                    body, p, span, div, li { font-family: 'Arial', sans-serif !important; }
+                    h1 { font-size: 28pt; font-weight: bold; margin-bottom: 12pt; }
+                    h2 { font-size: 16pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; color: #333; }
+                    h3 { font-size: 14pt; font-weight: bold; margin-top: 12pt; margin-bottom: 4pt; }
+                    h4 { font-size: 12pt; font-weight: bold; }
+                    .quill-content ul { display: block; margin-left: 20pt; list-style-type: disc; }
+                    .quill-content li { display: list-item; margin-bottom: 4pt; }
+                    .section-header { font-size: 14pt; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-bottom: 10pt; text-transform: uppercase; }
+                    .text-gray-500, .text-gray-600 { color: #666666; }
+                    .font-bold { font-weight: bold; }
+                    .text-sm { font-size: 10pt; }
+                    .text-xs { font-size: 9pt; }
                 `;
 
-                // Wrap HTML with explicit style blocks for html-to-docx to natively parse
+                // Strip out complex EJS artifacts that corrupt html-to-docx parser (Scripts, SVGs, Links, Styles, Images)
+                let cleanHtml = html
+                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')   // Remove all inline styles from EJS
+                    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Remove scripts
+                    .replace(/<link[^>]*>/gi, '')                     // Remove external CSS links
+                    .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')       // SVGs cause XML corruption in DOCX
+                    .replace(/<img[^>]*>/gi, '');                     // Images without rigid dimensions/paths cause corruption
+
+                // Wrap HTML with plain styles
                 const completeHtmlText = `
                     <!DOCTYPE html>
                     <html><head><style>
                         ${docxStyles}
-                        ${cssContent}
                     </style></head><body>
-                        ${html}
+                        ${cleanHtml}
                     </body></html>
                 `;
 
@@ -129,7 +137,7 @@ exports.exportDOCX = async (req, res) => {
                     table: { row: { cantSplit: true } },
                     footer: false,
                     pageNumber: false,
-                    margins: { top: 1000, right: 1000, bottom: 1000, left: 1000 }
+                    margins: { top: 1400, right: 1400, bottom: 1400, left: 1400 } // standard margins in twips
                 });
 
                 // Pack & Send
