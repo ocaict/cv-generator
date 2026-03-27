@@ -81,120 +81,204 @@ exports.exportDOCX = async (req, res) => {
              return res.redirect('/dashboard');
         }
 
+        const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = require('docx');
         const cvData = JSON.parse(cv.data);
-        
-        // Generate pure semantic HTML structure for DOCX parser to prevent Word XML corruption
         const { personalInfo, experience, education, skills, hobbies, references, referencesOnRequest } = cvData;
-        const themeColor = cvData.themeColor || '#4f46e5';
 
-        let docxHtml = `
-            <!DOCTYPE html><html><head><style>
-            body { font-family: 'Arial', sans-serif; font-size: 11pt; color: #222222; }
-            h1 { font-size: 24pt; text-align: left; text-transform: uppercase; margin-bottom: 4pt; color: #111; }
-            h2 { font-size: 13pt; color: ${themeColor}; border-bottom: 1.5px solid ${themeColor}; padding-bottom: 2pt; margin-top: 16pt; margin-bottom: 8pt; text-transform: uppercase; letter-spacing: 1px; }
-            p { margin: 0 0 4pt 0; line-height: 1.4; font-size: 11pt; }
-            .header-info { font-size: 10pt; margin-bottom: 15pt; color: #555; }
-            .job-title { font-weight: bold; font-size: 11pt; color: #111; }
-            .company { font-weight: bold; font-style: italic; color: #444; }
-            .date { font-size: 10pt; color: #666; margin-bottom: 4pt; }
-            ul { margin-top: 2pt; margin-bottom: 8pt; margin-left: 20pt; padding-left: 0; list-style-type: disc; }
-            li { margin-bottom: 3pt; font-size: 11pt; }
-            .content-block { margin-bottom: 12pt; }
-            </style></head><body>
-        `;
+        // Custom HTML Parser for Native DOCX
+        function parseHtmlToDocx(htmlStr) {
+            if (!htmlStr) return [];
+            let str = htmlStr.replace(/\r?\n|\r/g, ''); // Clean linebreaks
+            // Split aggressively by block ends
+            const blocks = str.split(/<\/(?:p|li|h1|h2|h3|h4|div|ul|ol)>/i);
+            const elements = [];
 
-        // Header Info
-        const name = `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`.trim() || 'Your Name';
-        docxHtml += `<h1>${name}</h1>`;
-        
-        let details = [];
-        if (personalInfo.jobTitle) details.push(`<strong>${personalInfo.jobTitle}</strong>`);
-        if (personalInfo.email) details.push(personalInfo.email);
-        if (personalInfo.phone) details.push(personalInfo.phone);
-        if (personalInfo.city || personalInfo.address) details.push([personalInfo.city, personalInfo.address].filter(Boolean).join(', '));
-        if (personalInfo.linkedin) details.push(personalInfo.linkedin);
-        if (personalInfo.website) details.push(personalInfo.website);
-        
-        docxHtml += `<p class="header-info">${details.join("  |  ")}</p>`;
+            blocks.forEach(block => {
+                let cleanBlock = block.trim();
+                // Strip lingering block closing tags
+                cleanBlock = cleanBlock.replace(/<\/(?:ul|ol)>/gi, '');
+                if (!cleanBlock) return;
 
-        // Summary
-        if (personalInfo.summary && personalInfo.summary.trim() !== '') {
-            docxHtml += `<h2>Professional Summary</h2>`;
-            docxHtml += `<div class="content-block">${personalInfo.summary}</div>`;
+                let isList = /<li[^>]*>/i.test(cleanBlock);
+                let isH1 = /<h1[^>]*>/i.test(cleanBlock);
+                let isH2 = /<h2[^>]*>/i.test(cleanBlock);
+                let isH3 = /<h3[^>]*>/i.test(cleanBlock);
+
+                // Strip opening block tags to get inline content
+                let innerHtml = cleanBlock.replace(/<(?:p|li|h1|h2|h3|h4|div|ul|ol)[^>]*>/gi, '');
+                if (!innerHtml.trim()) return;
+
+                const parts = innerHtml.split(/(<[^>]+>)/g);
+                let isBold = false;
+                let isItalic = false;
+                let isUnderline = false;
+                const textRuns = [];
+
+                parts.forEach(part => {
+                    if (/^<(strong|b)>/i.test(part)) isBold = true;
+                    else if (/^<\/(strong|b)>/i.test(part)) isBold = false;
+                    else if (/^<(em|i)>/i.test(part)) isItalic = true;
+                    else if (/^<\/(em|i)>/i.test(part)) isItalic = false;
+                    else if (/^<u>/i.test(part)) isUnderline = true;
+                    else if (/^<\/u>/i.test(part)) isUnderline = false;
+                    else if (/^<br\s*\/?>/i.test(part)) textRuns.push(new TextRun({ break: 1 }));
+                    else if (!part.startsWith('<')) {
+                        // Decode entities
+                        let text = part.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+                        if (text) {
+                            textRuns.push(new TextRun({ text, bold: isBold, italic: isItalic, underline: isUnderline ? {} : undefined, size: 21, font: "Arial" }));
+                        }
+                    }
+                });
+
+                if (textRuns.length > 0) {
+                    elements.push(new Paragraph({
+                        children: textRuns,
+                        bullet: isList ? { level: 0 } : undefined,
+                        heading: isH1 ? HeadingLevel.HEADING_1 : (isH2 ? HeadingLevel.HEADING_2 : (isH3 ? HeadingLevel.HEADING_3 : undefined)),
+                        spacing: { after: 120, before: isList ? 0 : 60 }
+                    }));
+                }
+            });
+            return elements;
         }
 
-        // Experience
+        const children = [];
+
+        // 1. Header (Name & Contact)
+        const fullName = `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`.trim().toUpperCase() || 'YOUR NAME';
+        children.push(
+            new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({ text: fullName, bold: true, size: 36, font: "Arial", color: cvData.themeColor?.replace('#', '') || "111111" })]
+            })
+        );
+
+        if (personalInfo.jobTitle) {
+            children.push(
+                new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: personalInfo.jobTitle.toUpperCase(), size: 24, font: "Arial", color: "555555" })],
+                    spacing: { after: 200 }
+                })
+            );
+        }
+
+        let contactInfo = [];
+        if (personalInfo.email) contactInfo.push(personalInfo.email);
+        if (personalInfo.phone) contactInfo.push(personalInfo.phone);
+        if (personalInfo.city || personalInfo.address) contactInfo.push([personalInfo.address, personalInfo.city].filter(Boolean).join(', '));
+        if (contactInfo.length) {
+            children.push(
+                new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: contactInfo.join("  |  "), size: 20, font: "Arial", color: "666666" })],
+                    spacing: { after: 400 }
+                })
+            );
+        }
+
+        // 2. Summary
+        if (personalInfo.summary && personalInfo.summary.trim()) {
+            children.push(new Paragraph({ text: "PROFESSIONAL PROFILE", heading: HeadingLevel.HEADING_2, spacing: { before: 200, after: 100 } }));
+            children.push(...parseHtmlToDocx(personalInfo.summary));
+        }
+
+        // 3. Experience
         if (experience && experience.length > 0) {
-            docxHtml += `<h2>Experience</h2>`;
+            children.push(new Paragraph({ text: "WORK EXPERIENCE", heading: HeadingLevel.HEADING_2, spacing: { before: 300, after: 100 } }));
             experience.forEach(exp => {
-                const dates = `${exp.startMonth || ''} ${exp.startYear || ''} - ${exp.isPresent ? 'Present' : (exp.endMonth || '') + ' ' + (exp.endYear || '')}`.trim();
-                docxHtml += `<p><span class="job-title">${exp.jobTitle}</span> — <span class="company">${exp.company}</span></p>`;
-                docxHtml += `<p class="date">${dates}</p>`;
-                if (exp.responsibilities) docxHtml += `<div class="content-block">${exp.responsibilities}</div>`;
+                const dateRange = `${exp.startMonth || ''} ${exp.startYear || ''} - ${exp.isPresent ? 'Present' : (exp.endMonth || '') + ' ' + (exp.endYear || '')}`.trim();
+                children.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({ text: exp.jobTitle || 'Role', bold: true, size: 24, font: "Arial" }),
+                            new TextRun({ text: `  -  ${exp.company || 'Company'}`, italic: true, size: 24, font: "Arial", color: "444444" })
+                        ],
+                        spacing: { before: 150 }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: dateRange, size: 20, font: "Arial", color: "777777" })],
+                        spacing: { after: 100 }
+                    })
+                );
+                if (exp.responsibilities) children.push(...parseHtmlToDocx(exp.responsibilities));
             });
         }
 
-        // Education
+        // 4. Education
         if (education && education.length > 0) {
-            docxHtml += `<h2>Education</h2>`;
+            children.push(new Paragraph({ text: "EDUCATION", heading: HeadingLevel.HEADING_2, spacing: { before: 300, after: 100 } }));
             education.forEach(edu => {
-                const dates = `${edu.endMonth || ''} ${edu.endYear || ''}`.trim();
-                docxHtml += `<p><span class="job-title">${edu.degree}</span></p>`;
-                docxHtml += `<p class="company">${edu.school} <span class="date" style="font-weight:normal;">(${dates})</span></p>`;
-                if (edu.description) docxHtml += `<div class="content-block">${edu.description}</div>`;
+                const gradDate = `${edu.endMonth || ''} ${edu.endYear || ''}`.trim();
+                children.push(
+                    new Paragraph({
+                        children: [
+                            new TextRun({ text: edu.degree || 'Degree', bold: true, size: 24, font: "Arial" }),
+                            new TextRun({ text: `  -  ${edu.school || 'School'}`, italic: true, size: 24, font: "Arial", color: "444444" })
+                        ],
+                        spacing: { before: 150 }
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: gradDate, size: 20, font: "Arial", color: "777777" })],
+                        spacing: { after: 100 }
+                    })
+                );
+                if (edu.description) children.push(...parseHtmlToDocx(edu.description));
             });
         }
 
-        // Skills
+        // 5. Skills
         if (skills && (skills.technical?.length > 0 || skills.soft?.length > 0)) {
-            docxHtml += `<h2>Skills</h2><div class="content-block">`;
-            if (skills.technical?.length > 0) docxHtml += `<p><strong>Technical:</strong> ${skills.technical.join(', ')}</p>`;
-            if (skills.soft?.length > 0) docxHtml += `<p><strong>Soft Skills:</strong> ${skills.soft.join(', ')}</p>`;
-            docxHtml += `</div>`;
+            children.push(new Paragraph({ text: "SKILLS", heading: HeadingLevel.HEADING_2, spacing: { before: 300, after: 100 } }));
+            if (skills.technical?.length > 0) {
+                children.push(new Paragraph({ children: [new TextRun({ text: "Technical: ", bold: true, size: 21, font: "Arial" }), new TextRun({ text: skills.technical.join(', '), size: 21, font: "Arial" })], spacing: { after: 60 } }));
+            }
+            if (skills.soft?.length > 0) {
+                children.push(new Paragraph({ children: [new TextRun({ text: "Soft Skills: ", bold: true, size: 21, font: "Arial" }), new TextRun({ text: skills.soft.join(', '), size: 21, font: "Arial" })], spacing: { after: 60 } }));
+            }
         }
-        
-        // Hobbies
+
+        // 6. Interests
         if (hobbies && hobbies.length > 0) {
-            docxHtml += `<h2>Interests</h2>`;
-            docxHtml += `<p class="content-block">${hobbies.join(', ')}</p>`;
+            children.push(new Paragraph({ text: "INTERESTS", heading: HeadingLevel.HEADING_2, spacing: { before: 300, after: 100 } }));
+            children.push(new Paragraph({ children: [new TextRun({ text: hobbies.join(', '), size: 21, font: "Arial" })] }));
         }
-        
-        // References
+
+        // 7. References
         if (referencesOnRequest || (references && references.length > 0)) {
-            docxHtml += `<h2>References</h2>`;
+            children.push(new Paragraph({ text: "REFERENCES", heading: HeadingLevel.HEADING_2, spacing: { before: 300, after: 100 } }));
             if (referencesOnRequest) {
-                docxHtml += `<p><em>References available upon request.</em></p>`;
+                children.push(new Paragraph({ text: "References available upon request.", italic: true, size: 21, font: "Arial" }));
             } else {
                 references.forEach(ref => {
-                    docxHtml += `<div class="content-block"><p><strong>${ref.name}</strong> — ${ref.company}</p>`;
-                    docxHtml += `<p>${ref.email} | ${ref.phone}</p></div>`;
+                    children.push(
+                        new Paragraph({ children: [new TextRun({ text: ref.name, bold: true, size: 21, font: "Arial" }), new TextRun({ text: ` - ${ref.company}`, italic: true, size: 21, font: "Arial" })] }),
+                        new Paragraph({ children: [new TextRun({ text: `${ref.email} | ${ref.phone}`, size: 20, font: "Arial", color: "555555" })], spacing: { after: 150 } })
+                    );
                 });
             }
         }
 
-        docxHtml += `</body></html>`;
+        // Generate the strict DOCX buffer using native engine
+        const doc = new Document({
+            sections: [{
+                properties: { page: { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
+                children: children,
+            }],
+        });
 
         try {
-            const HTMLtoDOCX = require('html-to-docx');
-            // Construct DOCX document via natively parsed semantic HTML
-            const fileBuffer = await HTMLtoDOCX(docxHtml, null, {
-                table: { row: { cantSplit: true } },
-                footer: false,
-                pageNumber: false,
-                margins: { top: 1440, right: 1440, bottom: 1440, left: 1440 } // Set to 1-inch (1440 twips)
-            });
-
-            // Pack & Send
+            const buffer = await Packer.toBuffer(doc);
             res.set({
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'Content-Disposition': `attachment; filename="${cv.title.replace(/\s+/g, '_')}.docx"`,
-                'Content-Length': fileBuffer.length
+                'Content-Length': buffer.length
             });
-
-            res.send(fileBuffer);
+            res.send(buffer);
         } catch (docxErr) {
-            console.error(docxErr);
-            res.status(500).send('DOCX Engine Error: ' + docxErr.message);
+            console.error('Packer Error:', docxErr);
+            res.status(500).send('DOCX Packer Error');
         }
     } catch (dbError) {
         console.error(dbError);
