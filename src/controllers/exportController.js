@@ -97,34 +97,38 @@ exports.exportDOCX = async (req, res) => {
 
             try {
                 const HTMLtoDOCX = require('html-to-docx');
-                const juice = require('juice');
                 const fs = require('fs');
                 const path = require('path');
 
-                // Read standard tailwind CSS output so we can juice it
-                // html-to-docx reads standard inline styles, not external sheets
                 let cssContent = '';
                 try {
                     const cssPath = path.join(__dirname, '../../public/css/tailwind.css');
                     cssContent = fs.readFileSync(cssPath, 'utf8');
                 } catch(e) { console.warn("Tailwind CSS missing for DOCX generation:", e.message); }
                 
-                // Add default formatting CSS for docx specific
+                // Add default formatting CSS for docx specific fixes
                 const docxStyles = `
                     body, * { font-family: 'Arial', sans-serif !important; }
                     .quill-content ul { display: block; margin-left: 20px; list-style-type: square; }
                     .quill-content li { display: list-item; margin-bottom: 5px; }
                 `;
 
-                // Inline standard styles onto the HTML nodes (so html-to-docx parses colors/fonts)
-                const inlinedHtml = juice(html, { extraCss: docxStyles + cssContent });
+                // Wrap HTML with explicit style blocks for html-to-docx to natively parse
+                const completeHtmlText = `
+                    <!DOCTYPE html>
+                    <html><head><style>
+                        ${docxStyles}
+                        ${cssContent}
+                    </style></head><body>
+                        ${html}
+                    </body></html>
+                `;
 
-                // Construct DOCX document via html-to-docx
-                const fileBuffer = await HTMLtoDOCX(inlinedHtml, null, {
+                // Construct DOCX document via html-to-docx natively
+                const fileBuffer = await HTMLtoDOCX(completeHtmlText, null, {
                     table: { row: { cantSplit: true } },
                     footer: false,
                     pageNumber: false,
-                    // Pass specific layout constraints for standard ATS templates
                     margins: { top: 1000, right: 1000, bottom: 1000, left: 1000 }
                 });
 
