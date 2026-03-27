@@ -81,6 +81,8 @@ exports.exportDOCX = async (req, res) => {
              return res.redirect('/dashboard');
         }
 
+        const cvData = JSON.parse(cv.data);
+        
         // Generate pure semantic HTML structure for DOCX parser to prevent Word XML corruption
         const { personalInfo, experience, education, skills, hobbies, references, referencesOnRequest } = cvData;
         const themeColor = cvData.themeColor || '#4f46e5';
