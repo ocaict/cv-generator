@@ -81,79 +81,119 @@ exports.exportDOCX = async (req, res) => {
              return res.redirect('/dashboard');
         }
 
-        const cvData = JSON.parse(cv.data);
+        // Generate pure semantic HTML structure for DOCX parser to prevent Word XML corruption
+        const { personalInfo, experience, education, skills, hobbies, references, referencesOnRequest } = cvData;
+        const themeColor = cvData.themeColor || '#4f46e5';
+
+        let docxHtml = `
+            <!DOCTYPE html><html><head><style>
+            body { font-family: 'Arial', sans-serif; font-size: 11pt; color: #222222; }
+            h1 { font-size: 24pt; text-align: left; text-transform: uppercase; margin-bottom: 4pt; color: #111; }
+            h2 { font-size: 13pt; color: ${themeColor}; border-bottom: 1.5px solid ${themeColor}; padding-bottom: 2pt; margin-top: 16pt; margin-bottom: 8pt; text-transform: uppercase; letter-spacing: 1px; }
+            p { margin: 0 0 4pt 0; line-height: 1.4; font-size: 11pt; }
+            .header-info { font-size: 10pt; margin-bottom: 15pt; color: #555; }
+            .job-title { font-weight: bold; font-size: 11pt; color: #111; }
+            .company { font-weight: bold; font-style: italic; color: #444; }
+            .date { font-size: 10pt; color: #666; margin-bottom: 4pt; }
+            ul { margin-top: 2pt; margin-bottom: 8pt; margin-left: 20pt; padding-left: 0; list-style-type: disc; }
+            li { margin-bottom: 3pt; font-size: 11pt; }
+            .content-block { margin-bottom: 12pt; }
+            </style></head><body>
+        `;
+
+        // Header Info
+        const name = `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`.trim() || 'Your Name';
+        docxHtml += `<h1>${name}</h1>`;
         
-        // Render the exact HTML used for PDF parity
-        req.app.render('cv-editor/pdf-view', { 
-            cv, 
-            cvData, 
-            layout: false,
-            req // Need this to pass the APP_URL base if referenced
-        }, async (err, html) => {
-            if (err) {
-                 console.error(err);
-                 return res.status(500).send('Render Error');
-            }
+        let details = [];
+        if (personalInfo.jobTitle) details.push(`<strong>${personalInfo.jobTitle}</strong>`);
+        if (personalInfo.email) details.push(personalInfo.email);
+        if (personalInfo.phone) details.push(personalInfo.phone);
+        if (personalInfo.city || personalInfo.address) details.push([personalInfo.city, personalInfo.address].filter(Boolean).join(', '));
+        if (personalInfo.linkedin) details.push(personalInfo.linkedin);
+        if (personalInfo.website) details.push(personalInfo.website);
+        
+        docxHtml += `<p class="header-info">${details.join("  |  ")}</p>`;
 
-            try {
-                const HTMLtoDOCX = require('html-to-docx');
+        // Summary
+        if (personalInfo.summary && personalInfo.summary.trim() !== '') {
+            docxHtml += `<h2>Professional Summary</h2>`;
+            docxHtml += `<div class="content-block">${personalInfo.summary}</div>`;
+        }
 
-                // Essential formatting for DOCX mapping (ignoring Tailwind utilities)
-                const docxStyles = `
-                    body, p, span, div, li { font-family: 'Arial', sans-serif !important; }
-                    h1 { font-size: 28pt; font-weight: bold; margin-bottom: 12pt; }
-                    h2 { font-size: 16pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; color: #333; }
-                    h3 { font-size: 14pt; font-weight: bold; margin-top: 12pt; margin-bottom: 4pt; }
-                    h4 { font-size: 12pt; font-weight: bold; }
-                    .quill-content ul { display: block; margin-left: 20pt; list-style-type: disc; }
-                    .quill-content li { display: list-item; margin-bottom: 4pt; }
-                    .section-header { font-size: 14pt; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-bottom: 10pt; text-transform: uppercase; }
-                    .text-gray-500, .text-gray-600 { color: #666666; }
-                    .font-bold { font-weight: bold; }
-                    .text-sm { font-size: 10pt; }
-                    .text-xs { font-size: 9pt; }
-                `;
+        // Experience
+        if (experience && experience.length > 0) {
+            docxHtml += `<h2>Experience</h2>`;
+            experience.forEach(exp => {
+                const dates = `${exp.startMonth || ''} ${exp.startYear || ''} - ${exp.isPresent ? 'Present' : (exp.endMonth || '') + ' ' + (exp.endYear || '')}`.trim();
+                docxHtml += `<p><span class="job-title">${exp.jobTitle}</span> — <span class="company">${exp.company}</span></p>`;
+                docxHtml += `<p class="date">${dates}</p>`;
+                if (exp.responsibilities) docxHtml += `<div class="content-block">${exp.responsibilities}</div>`;
+            });
+        }
 
-                // Strip out complex EJS artifacts that corrupt html-to-docx parser (Scripts, SVGs, Links, Styles, Images)
-                let cleanHtml = html
-                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')   // Remove all inline styles from EJS
-                    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Remove scripts
-                    .replace(/<link[^>]*>/gi, '')                     // Remove external CSS links
-                    .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')       // SVGs cause XML corruption in DOCX
-                    .replace(/<img[^>]*>/gi, '');                     // Images without rigid dimensions/paths cause corruption
+        // Education
+        if (education && education.length > 0) {
+            docxHtml += `<h2>Education</h2>`;
+            education.forEach(edu => {
+                const dates = `${edu.endMonth || ''} ${edu.endYear || ''}`.trim();
+                docxHtml += `<p><span class="job-title">${edu.degree}</span></p>`;
+                docxHtml += `<p class="company">${edu.school} <span class="date" style="font-weight:normal;">(${dates})</span></p>`;
+                if (edu.description) docxHtml += `<div class="content-block">${edu.description}</div>`;
+            });
+        }
 
-                // Wrap HTML with plain styles
-                const completeHtmlText = `
-                    <!DOCTYPE html>
-                    <html><head><style>
-                        ${docxStyles}
-                    </style></head><body>
-                        ${cleanHtml}
-                    </body></html>
-                `;
-
-                // Construct DOCX document via html-to-docx natively
-                const fileBuffer = await HTMLtoDOCX(completeHtmlText, null, {
-                    table: { row: { cantSplit: true } },
-                    footer: false,
-                    pageNumber: false,
-                    margins: { top: 1400, right: 1400, bottom: 1400, left: 1400 } // standard margins in twips
+        // Skills
+        if (skills && (skills.technical?.length > 0 || skills.soft?.length > 0)) {
+            docxHtml += `<h2>Skills</h2><div class="content-block">`;
+            if (skills.technical?.length > 0) docxHtml += `<p><strong>Technical:</strong> ${skills.technical.join(', ')}</p>`;
+            if (skills.soft?.length > 0) docxHtml += `<p><strong>Soft Skills:</strong> ${skills.soft.join(', ')}</p>`;
+            docxHtml += `</div>`;
+        }
+        
+        // Hobbies
+        if (hobbies && hobbies.length > 0) {
+            docxHtml += `<h2>Interests</h2>`;
+            docxHtml += `<p class="content-block">${hobbies.join(', ')}</p>`;
+        }
+        
+        // References
+        if (referencesOnRequest || (references && references.length > 0)) {
+            docxHtml += `<h2>References</h2>`;
+            if (referencesOnRequest) {
+                docxHtml += `<p><em>References available upon request.</em></p>`;
+            } else {
+                references.forEach(ref => {
+                    docxHtml += `<div class="content-block"><p><strong>${ref.name}</strong> — ${ref.company}</p>`;
+                    docxHtml += `<p>${ref.email} | ${ref.phone}</p></div>`;
                 });
-
-                // Pack & Send
-                res.set({
-                    'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'Content-Disposition': `attachment; filename="${cv.title.replace(/\s+/g, '_')}.docx"`,
-                    'Content-Length': fileBuffer.length
-                });
-
-                res.send(fileBuffer);
-
-            } catch (docxErr) {
-                console.error(docxErr);
-                res.status(500).send('DOCX Engine Error: ' + docxErr.message);
             }
-        });
+        }
+
+        docxHtml += `</body></html>`;
+
+        try {
+            const HTMLtoDOCX = require('html-to-docx');
+            // Construct DOCX document via natively parsed semantic HTML
+            const fileBuffer = await HTMLtoDOCX(docxHtml, null, {
+                table: { row: { cantSplit: true } },
+                footer: false,
+                pageNumber: false,
+                margins: { top: 1440, right: 1440, bottom: 1440, left: 1440 } // Set to 1-inch (1440 twips)
+            });
+
+            // Pack & Send
+            res.set({
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'Content-Disposition': `attachment; filename="${cv.title.replace(/\s+/g, '_')}.docx"`,
+                'Content-Length': fileBuffer.length
+            });
+
+            res.send(fileBuffer);
+        } catch (docxErr) {
+            console.error(docxErr);
+            res.status(500).send('DOCX Engine Error: ' + docxErr.message);
+        }
     } catch (dbError) {
         console.error(dbError);
         res.status(500).send('DOCX Database Error');
