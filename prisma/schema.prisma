@@ -10,11 +10,13 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
+  username  String?  @unique
   password  String
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   cvs       CV[]
+  leads     Lead[]
 }
 
 model CV {
@@ -52,8 +54,10 @@ model CVView {
 
 model Lead {
   id        Int      @id @default(autoincrement())
-  cvId      Int
-  cv        CV       @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  cvId      Int?
+  userId    Int?
+  cv        CV?      @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   email     String
   company   String?

@@ -33,32 +33,59 @@
         }
         @page {
             margin: 0;
-            padding: 0;
             size: A4;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 210mm;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
         body {
             font-family: var(--font-body);
             background-color: white;
-            margin: 0;
-            padding: 0;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            color: #111827;
+            font-variant-ligatures: common-ligatures;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            image-rendering: -webkit-optimize-contrast;
         }
-        h1, h2, h3, h4, .font-heading { font-family: var(--font-heading); }
+        
+        /* Perfection: Page Break Controls */
+        section, .cv-section {
+            page-break-inside: auto;
+            break-inside: auto;
+        }
+        h2, h3, .section-title {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+        .experience-item, .education-item, .skill-group, .reference-item {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 1rem;
+        }
+
+        h1, h2, h3, h4, .font-heading { font-family: var(--font-heading); line-height: 1.2; }
         .section-mb { margin-bottom: var(--section-margin); }
         .page-p { padding: var(--page-padding); }
         
         /* Dynamic Theme Overrides */
         .text-indigo-600, .text-indigo-700 { color: var(--primary) !important; }
-        .bg-indigo-50 { background-color: color-mix(in srgb, var(--primary), white 92%) !important; }
+        .bg-indigo-50 { background-color: color-mix(in srgb, var(--primary), white 93%) !important; }
         .bg-indigo-600, .bg-indigo-700 { background-color: var(--primary) !important; }
         .border-indigo-600, .border-indigo-700 { border-color: var(--primary) !important; }
 
-        .quill-content p { margin-bottom: 0.5rem; }
+        .quill-content p { margin-bottom: 0.4rem; line-height: 1.6; }
         .quill-content p:last-child { margin-bottom: 0; }
         .quill-content ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
         .quill-content ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.5rem; }
-        .quill-content, .quill-content *, #preview-content, #preview-content * { color: #111827 !important; }
+        .quill-content, .quill-content *, #preview-content, #preview-content * { color: #1e293b !important; }
+
+        /* Template Specific PDF Fixes */
+        .grid-cols-3 { gap: 2rem !important; }
+        aside { min-height: 297mm; }
     </style>
 </head>
 <body>
@@ -73,7 +100,9 @@
         contact: { path: 'contact', data: { personalInfo: cvData.personalInfo } },
         details: { path: 'details', data: { personalInfo: cvData.personalInfo } },
         interests: { path: 'interests', data: { hobbies: cvData.hobbies } },
-        references: { path: 'references', data: { references: cvData.references, referencesOnRequest: cvData.referencesOnRequest } }
+        references: { path: 'references', data: { references: cvData.references, referencesOnRequest: cvData.referencesOnRequest } },
+        salary: { path: 'salary', data: { salary: cvData.salaryEstimation } },
+        strategy: { path: 'strategy', data: { strategy: cvData.marketStrategy } }
     };
 
     // Default order if none exists
@@ -82,10 +111,24 @@
         sidebar: ['contact', 'details', 'skills', 'education']
     };
 
+    // Auto-append AI sections if they exist but aren't in order
+    if (cvData.salaryEstimation && !order.main.includes('salary') && !order.sidebar.includes('salary')) {
+        order.main.push('salary');
+    }
+    if (cvData.marketStrategy && !order.main.includes('strategy') && !order.sidebar.includes('strategy')) {
+        order.main.push('strategy');
+    }
+
     // Filter out dynamically hidden sections
     if (cvData.sectionVisibility) {
         Object.keys(cvData.sectionVisibility).forEach(key => {
             if (cvData.sectionVisibility[key] === false) {
+                // Remove from both main and sidebar if hidden
+                const mIdx = order.main.indexOf(key);
+                if (mIdx > -1) order.main.splice(mIdx, 1);
+                const sIdx = order.sidebar.indexOf(key);
+                if (sIdx > -1) order.sidebar.splice(sIdx, 1);
+                
                 delete sectionMap[key];
             }
         });

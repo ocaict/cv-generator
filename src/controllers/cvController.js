@@ -7,7 +7,7 @@ exports.getDashboard = async (req, res) => {
         // Fetch user info for personalization
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, email: true }
+            select: { id: true, name: true, email: true, username: true }
         });
 
         const cvs = await prisma.cV.findMany({
@@ -451,5 +451,138 @@ exports.postPublicLead = async (req, res) => {
     } catch (error) {
         console.error("Lead creation failed:", error);
         res.status(500).json({ success: false, error: 'Failed to send message' });
+    }
+};
+
+exports.getPublicPortfolio = async (req, res) => {
+    const { username } = req.params;
+
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { username: username },
+                    { id: isNaN(parseInt(username)) ? -1 : parseInt(username) }
+                ]
+            },
+            include: {
+                cvs: {
+                    where: { isPublic: true },
+                    orderBy: { updatedAt: 'desc' },
+                    include: {
+                        _count: {
+                            select: { views: true }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            return res.status(404).render('errors/404', { message: 'Portfolio not found' });
+        }
+
+        const cvsWithTime = user.cvs.map(cv => ({
+            ...cv,
+            relativeTime: getRelativeTime(cv.updatedAt),
+            strengthScore: calculateProfileStrength(cv.data),
+            viewCount: cv._count.views
+        }));
+
+        let displayName = user.name;
+        if (!displayName && cvsWithTime.length > 0) {
+            try {
+                const latestCvData = JSON.parse(cvsWithTime[0].data || '{}');
+                if (latestCvData.personalInfo && latestCvData.personalInfo.firstName) {
+                    displayName = `${latestCvData.personalInfo.firstName} ${latestCvData.personalInfo.lastName || ''}`.trim();
+                }
+            } catch (e) {}
+        }
+        displayName = displayName || user.username || user.email.split('@')[0];
+        
+        // Expose a formatted display name string attached to the user object, specifically for the view
+        user.displayName = displayName;
+
+        res.render('portfolio/show', {
+            portfolioUser: user,
+            cvs: cvsWithTime,
+            pageTitle: `${displayName} — Career Portfolio`,
+            layout: false
+        });
+    } catch (error) {
+        console.error("Portfolio retrieval failed:", error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+exports.postUserLead = async (req, res) => {
+    const { userId } = req.params;
+    const { name, email, company, message } = req.body;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: parseInt(userId) }
+        });
+
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        // Save the lead (associated with User directly)
+        await prisma.lead.create({
+            data: {
+                userId: user.id,
+                name,
+                email,
+                company,
+                message
+            }
+        });
+
+        res.json({ success: true, message: 'Message sent successfully' });
+    } catch (error) {
+        console.error("User lead creation failed:", error);
+        res.status(500).json({ success: false, error: 'Failed to send message' });
+    }
+};
+
+exports.postUserSettings = async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        let { username } = req.body;
+        
+        username = username ? username.trim().toLowerCase() : null;
+
+        if (username && !/^[a-z0-9-]+$/.test(username)) {
+            return res.status(400).json({ success: false, error: 'Invalid handle format. Use only letters, numbers, and hyphens.' });
+        }
+
+        if (username && username.length < 3) {
+            return res.status(400).json({ success: false, error: 'Handle must be at least 3 characters long.' });
+        }
+
+        if (username) {
+            const existingUser = await prisma.user.findFirst({
+                where: { username, NOT: { id: userId } }
+            });
+            if (existingUser) {
+                return res.status(400).json({ success: false, error: 'This handle is already taken. Please try another.' });
+            }
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { username }
+        });
+
+        req.session.user.username = username;
+        
+        req.session.save((err) => {
+            if (err) throw err;
+            res.json({ success: true, message: 'Settings updated' });
+        });
+    } catch (error) {
+        console.error("Settings update failed:", error);
+        res.status(500).json({ success: false, error: 'Failed to update settings' });
     }
 };

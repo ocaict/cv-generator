@@ -17,7 +17,10 @@ router.get('/cv-editor/:id/export', ensureAuthenticated, exportController.export
 router.get('/cv-editor/:id/export/docx', ensureAuthenticated, exportController.exportDOCX);
 router.post('/cv-editor/:id/public', ensureAuthenticated, cvController.togglePublic);
 router.get('/p/:slug', cvController.getPublicCV);
+router.get('/u/:username', cvController.getPublicPortfolio);
 router.post('/api/leads/:id', cvController.postPublicLead);
+router.post('/api/user-leads/:userId', cvController.postUserLead);
+router.post('/api/user/settings', ensureAuthenticated, cvController.postUserSettings);
 router.post('/cv-editor/:id/cover-letter/export/pdf', ensureAuthenticated, exportController.exportCoverLetterPDF);
 router.post('/cv-editor/:id/cover-letter/export/docx', ensureAuthenticated, exportController.exportCoverLetterDOCX);
 

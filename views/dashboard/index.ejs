@@ -14,12 +14,21 @@
             <p class="text-gray-500 dark:text-slate-400 font-medium text-lg">Your professional portfolio is looking sharp. Keep it updated!</p>
         </div>
         
-        <a href="/cv-editor/create" class="flex items-center space-x-2 bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-indigo-100 dark:shadow-none uppercase tracking-widest text-xs">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            <span>Create New CV</span>
-        </a>
+        <div class="flex items-center space-x-3">
+            <button onclick="openSettingsModal()" class="w-12 h-12 flex items-center justify-center bg-white border border-gray-100 text-gray-400 rounded-2xl hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm active:scale-95" title="Profile Settings">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+            <button onclick="copyShareLink('/u/<%= user.username || user.id %>')" class="flex items-center space-x-2 bg-indigo-50 text-indigo-600 px-6 py-4 rounded-2xl font-bold hover:bg-indigo-600 hover:text-white transition-all shadow-sm uppercase tracking-widest text-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                <span>Share Portfolio</span>
+            </button>
+            <a href="/cv-editor/create" class="flex items-center space-x-2 bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-indigo-100 dark:shadow-none uppercase tracking-widest text-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Create New CV</span>
+            </a>
+        </div>
     </div>
 
     <!-- Quick Stats Bar (Premium Glassmorphism) -->
@@ -224,6 +233,35 @@
     <% } %>
 </div>
 
+<!-- Settings Modal UI -->
+<div id="settings-modal" class="fixed inset-0 z-[60] hidden">
+    <div id="settings-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div id="settings-content" class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] shadow-2xl transition-all duration-300 scale-95 opacity-0 overflow-hidden border border-white/20">
+            <div class="px-8 pt-8 pb-6 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white relative">
+                <button onclick="closeSettingsModal()" class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <h3 class="text-xl font-black uppercase tracking-tight mb-1">Portfolio Settings</h3>
+                <p class="text-white/80 text-[10px] font-bold uppercase tracking-widest">Digital Branding</p>
+            </div>
+            <form id="settings-form" class="p-8">
+                <div class="mb-6">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Custom Portfolio URL</label>
+                    <div class="flex items-center bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                        <span class="pl-4 pr-2 text-sm font-bold text-gray-400">unicate.com/u/</span>
+                        <input type="text" name="username" value="<%= user.username || '' %>" placeholder="your-name" class="w-full py-3 pr-4 bg-transparent outline-none text-sm font-medium text-slate-900 dark:text-white" pattern="[a-zA-Z0-9-]+" title="Only letters, numbers, and hyphens allowed">
+                    </div>
+                    <p class="text-[9px] text-gray-400 mt-2 font-medium">Use only letters, numbers, and hyphens. No special characters.</p>
+                </div>
+                <button type="submit" id="settings-submit" class="w-full bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl transition-all flex items-center justify-center space-x-3">
+                    <span>Save Handle</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     document.getElementById('cv-search')?.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
@@ -253,5 +291,59 @@
             alert('✨ Share link copied to clipboard!');
         });
     }
+
+    /* Settings Modal Logic */
+    function openSettingsModal() {
+        document.getElementById('settings-modal').classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('settings-backdrop').classList.add('opacity-100');
+            document.getElementById('settings-content').classList.remove('scale-95', 'opacity-0');
+            document.getElementById('settings-content').classList.add('scale-100', 'opacity-100');
+        }, 10);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSettingsModal() {
+        document.getElementById('settings-backdrop').classList.remove('opacity-100');
+        document.getElementById('settings-content').classList.remove('scale-100', 'opacity-100');
+        document.getElementById('settings-content').classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            document.getElementById('settings-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 300);
+    }
+
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('settings-submit');
+        const ogText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Saving...';
+
+        try {
+            const formData = new FormData(e.target);
+            const username = formData.get('username');
+            
+            const res = await fetch('/api/user/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                alert('✨ Profile handle successfully updated!');
+                window.location.reload();
+            } else {
+                throw new Error(data.error || 'Failed to update handle');
+            }
+        } catch(err) {
+            alert('❌ ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = ogText;
+        }
+    });
+
+    document.getElementById('settings-backdrop').addEventListener('click', closeSettingsModal);
 </script>
 

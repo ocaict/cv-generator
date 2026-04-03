@@ -1,0 +1,28 @@
+<!-- views/templates/partials/strategy.ejs -->
+<% if (typeof strategy !== 'undefined' && strategy && strategy.heatmap && strategy.heatmap.length > 0) { %>
+<section class="<%= template === 'modern' ? 'mb-10 animate-fade-in' : 
+                 template === 'classic' ? 'mb-8 border-t border-gray-200 pt-6' : 
+                 'mb-12 border-b border-gray-100 pb-8 last:border-0' %> section-strategy">
+    <% 
+    const headerClass = template === 'modern' ? 'text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4' : 
+                        template === 'classic' ? 'text-xs font-bold border-b border-gray-200 pb-1 mb-3 uppercase tracking-widest text-gray-900 font-outfit' : 
+                        'text-[10px] font-black text-indigo-600 uppercase tracking-[0.35em] mb-6 border-b border-gray-100 pb-3';
+    %>
+    <h2 class="<%= headerClass %>">Core Competency Analysis</h2>
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <% strategy.heatmap.forEach(item => { %>
+            <div class="bg-gray-50/50 p-2.5 rounded-xl border <%= item.level === 'Legendary' ? 'border-amber-200 bg-amber-50/10' : 
+                                                               item.level === 'High Growth' ? 'border-emerald-100 bg-emerald-50/10' : 
+                                                               'border-gray-50' %> flex items-center justify-between group transition-all">
+                <span class="text-[10px] font-bold text-gray-800 tracking-tight leading-none"><%= item.skill %></span>
+                <span class="text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md shadow-sm border border-white <%= 
+                    item.level === 'Legendary' ? 'text-amber-600 bg-white' : 
+                    item.level === 'High Growth' ? 'text-emerald-600 bg-white' : 'text-gray-400 bg-white' 
+                %>">
+                    <%= item.level %>
+                </span>
+            </div>
+        <% }) %>
+    </div>
+</section>
+<% } %>
