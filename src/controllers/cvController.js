@@ -20,7 +20,8 @@ exports.getDashboard = async (req, res) => {
             total: cvs.length,
             publicCount: cvs.filter(cv => cv.isPublic).length,
             templateCount: [...new Set(cvs.map(cv => cv.templateId))].length,
-            totalViews: cvs.reduce((sum, cv) => sum + cv._count.views, 0)
+            totalViews: cvs.reduce((sum, cv) => sum + cv._count.views, 0),
+            totalLeads: await prisma.lead.count({ where: { cv: { userId } } })
         };
 
         const cvsWithTime = cvs.map(cv => ({
@@ -30,8 +31,16 @@ exports.getDashboard = async (req, res) => {
             viewCount: cv._count.views
         }));
 
+        const leads = await prisma.lead.findMany({
+            where: { cv: { userId } },
+            include: { cv: { select: { title: true, publicSlug: true } } },
+            orderBy: { createdAt: 'desc' },
+            take: 10
+        });
+
         res.render('dashboard/index', { 
             cvs: cvsWithTime, 
+            leads,
             user: user || req.session.user,
             stats,
             pageTitle: 'My CVs — Dashboard',
@@ -411,5 +420,36 @@ exports.getAnalytics = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
+    }
+};
+
+exports.postPublicLead = async (req, res) => {
+    const { id } = req.params;
+    const { name, email, company, message } = req.body;
+
+    try {
+        const cv = await prisma.cV.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!cv) {
+            return res.status(404).json({ success: false, error: 'CV not found' });
+        }
+
+        // Save the lead
+        await prisma.lead.create({
+            data: {
+                cvId: cv.id,
+                name,
+                email,
+                company,
+                message
+            }
+        });
+
+        res.json({ success: true, message: 'Message sent successfully' });
+    } catch (error) {
+        console.error("Lead creation failed:", error);
+        res.status(500).json({ success: false, error: 'Failed to send message' });
     }
 };

@@ -72,10 +72,7 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Market Strategy</span>
                 </button>
-                <button id="translate-cv-btn" class="bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-xs font-black shadow-sm hover:shadow-md hover:border-indigo-400 transition-all flex items-center space-x-2">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
-                    <span>Translate CV</span>
-                </button>
+
             </div>
             <!-- Status & QR row -->
             <div class="flex items-center space-x-4">
@@ -114,6 +111,13 @@
                     <label class="flex items-center space-x-2 cursor-pointer group">
                         <input type="checkbox" id="show-qr-toggle" class="w-3.5 h-3.5 rounded border-gray-300 text-violet-600 focus:ring-violet-500" <%= cvData.showQrCode ? 'checked' : '' %>>
                         <span class="text-[10px] font-bold text-gray-400 group-hover:text-violet-600 uppercase tracking-widest transition-colors">QR on CV</span>
+                    </label>
+                </div>
+                <!-- Hire Me Status (Public Only) -->
+                <div id="hire-me-panel" class="<%= cv.isPublic ? '' : 'hidden' %> flex items-center space-x-2 pl-3 border-l border-gray-100 dark:border-slate-800">
+                    <label class="flex items-center space-x-2 cursor-pointer group" title="Allow recruiters to contact you through your public profile">
+                        <input type="checkbox" id="hire-me-toggle" class="w-3.5 h-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" <%= cvData.hireMe ? 'checked' : '' %>>
+                        <span class="text-[10px] font-bold text-gray-400 group-hover:text-emerald-500 uppercase tracking-widest transition-colors">Hire Me</span>
                     </label>
                 </div>
             </div>
@@ -879,15 +883,18 @@
                         <div class="flex justify-between items-end mb-6">
                             <div class="text-center">
                                 <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Floor</p>
-                                <span id="sal-lower" class="text-xl font-black text-slate-900 dark:text-white">$80k</span>
+                                <span id="sal-lower" class="text-xl font-black text-slate-900 dark:text-white">$---</span>
                             </div>
                             <div class="text-center pb-2">
-                                <p class="text-[10px] font-black text-indigo-600 uppercase mb-1">Median Market Value</p>
-                                <span id="sal-median" class="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">$115k</span>
+                                <div class="flex items-center justify-center space-x-2">
+                                    <p class="text-[10px] font-black text-indigo-600 uppercase mb-1">Median Market Value</p>
+                                    <span id="sal-currency-label" class="text-[8px] font-black px-1.5 py-0.5 bg-slate-900 text-white rounded-md uppercase tracking-widest hidden">USD</span>
+                                </div>
+                                <span id="sal-median" class="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">$---</span>
                             </div>
                             <div class="text-center">
                                 <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Ceiling</p>
-                                <span id="sal-upper" class="text-xl font-black text-slate-900 dark:text-white">$145k</span>
+                                <span id="sal-upper" class="text-xl font-black text-slate-900 dark:text-white">$---</span>
                             </div>
                         </div>
                         <!-- Range Bar Visualization -->
@@ -918,13 +925,13 @@
                 <!-- Competency Heatmap -->
                 <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
                     <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Marketability Heatmap (Top 5 Assets)</h4>
-                    <div id="sal-heatmap" class="space-y-3">
+                    <div id="sal-heatmap" class="space-y-2.5">
                         <!-- Top Marketable Assets will be injected here -->
-                        <div class="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl animate-pulse">
-                            <div class="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
-                            <div class="flex-grow space-y-2">
+                        <div class="flex items-center space-x-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl animate-pulse">
+                            <div class="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+                            <div class="flex-grow space-y-1.5">
                                 <div class="h-2 w-24 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
-                                <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-700/50 rounded-full"></div>
+                                <div class="h-1 w-full bg-slate-100 dark:bg-slate-700/50 rounded-full"></div>
                             </div>
                         </div>
                     </div>
@@ -1017,62 +1024,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- Translation Modal                                           -->
-<!-- ============================================================ -->
-<div id="translate-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div id="translate-backdrop" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
-    <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col">
-        <div class="px-8 py-8">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-xl font-black text-gray-900 dark:text-white font-outfit tracking-tight">Global Translation</h2>
-                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">International Career Bridge</p>
-                </div>
-                <button id="translate-close-btn" class="w-10 h-10 rounded-2xl bg-gray-50 dark:bg-slate-800 text-gray-400 hover:text-red-500 transition-all flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
 
-            <div id="translate-selection">
-                <p class="text-sm text-gray-600 dark:text-slate-300 mb-6 leading-relaxed">
-                    Translate your entire CV instantly. Our AI preserves professional terminology and maintains your layout structure perfectly.
-                </p>
-                
-                <div class="grid grid-cols-2 gap-3 mb-8">
-                    <button onclick="runTranslation('French')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
-                        <span class="block text-2xl mb-2">🇫🇷</span>
-                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">French</span>
-                    </button>
-                    <button onclick="runTranslation('Spanish')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
-                        <span class="block text-2xl mb-2">🇪🇸</span>
-                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">Spanish</span>
-                    </button>
-                    <button onclick="runTranslation('German')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
-                        <span class="block text-2xl mb-2">🇩🇪</span>
-                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">German</span>
-                    </button>
-                    <button onclick="runTranslation('Portuguese')" class="group p-4 bg-gray-50 dark:bg-slate-800 border-2 border-transparent hover:border-indigo-400 rounded-3xl transition-all text-left">
-                        <span class="block text-2xl mb-2">🇵🇹</span>
-                        <span class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">Portuguese</span>
-                    </button>
-                </div>
-
-                <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800">
-                    <p class="text-[10px] text-indigo-700 dark:text-indigo-400 font-bold leading-relaxed">
-                        ⚠️ Note: This will overwrite your current content. We recommend saving or duplicating your CV first.
-                    </p>
-                </div>
-            </div>
-
-            <div id="translate-loading" class="hidden py-12 flex flex-col items-center justify-center space-y-4">
-                <div class="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-                <p class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] animate-pulse">Translating Documents...</p>
-                <p class="text-[10px] text-gray-400 font-medium">This may take up to 30 seconds</p>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- ============================================================ -->
 <!-- Cover Letter Modal                                          -->
@@ -1383,6 +1335,9 @@
         if (slug) renderMiniQr(slug);
     }
 
+    const hireMeToggle = document.getElementById('hire-me-toggle');
+    const hireMePanel  = document.getElementById('hire-me-panel');
+
     if (qrToggle) {
         qrToggle.addEventListener('change', async () => {
             const enabled = qrToggle.checked;
@@ -1398,12 +1353,23 @@
         });
     }
 
+    if (hireMeToggle) {
+        hireMeToggle.addEventListener('change', () => {
+            cvData.hireMe = hireMeToggle.checked;
+            updatePreview();
+            triggerAutoSave();
+        });
+    }
+
     const shareBtnEl = document.getElementById('share-btn');
     if (shareBtnEl) {
         const observer = new MutationObserver(() => {
             const isShared = shareBtnEl.dataset.public === 'true';
             if (qrTogglePanel) {
                 isShared ? qrTogglePanel.classList.remove('hidden') : qrTogglePanel.classList.add('hidden');
+            }
+            if (hireMePanel) {
+                isShared ? hireMePanel.classList.remove('hidden') : hireMePanel.classList.add('hidden');
             }
         });
         observer.observe(shareBtnEl, { attributes: true, attributeFilter: ['data-public'] });
@@ -1781,79 +1747,7 @@
         }
     });
 
-    // ============================================================
-    // Translation Modal Logic
-    // ============================================================
-    const transModal    = document.getElementById('translate-modal');
-    const transBackdrop = document.getElementById('translate-backdrop');
-    const transOpenBtn  = document.getElementById('translate-cv-btn');
-    const transCloseBtn = document.getElementById('translate-close-btn');
-    const transLoading  = document.getElementById('translate-loading');
-    const transSelection = document.getElementById('translate-selection');
 
-    function openTransModal() {
-        transModal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        transSelection.classList.remove('hidden');
-        transLoading.classList.add('hidden');
-    }
-    function closeTransModal() {
-        transModal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    async function runTranslation(targetLang) {
-        if (!confirm(`Are you sure? This will translate all content to ${targetLang} and overwrite your current entries.`)) return;
-        
-        transSelection.classList.add('hidden');
-        transLoading.classList.remove('hidden');
-
-        try {
-            const res = await fetch('/api/ai/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type: 'translate',
-                    input: JSON.stringify(cvData),
-                    context: { targetLanguage: targetLang }
-                })
-            });
-
-            if (!res.ok) throw new Error('Translation failed');
-            const data = await res.json();
-            
-            // Expected result is a JSON string or object
-            let translatedData;
-            try {
-                translatedData = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-            } catch (e) {
-                // If it failed to parse, maybe it's just the text? 
-                // But we requested JSON. Hard error for now.
-                throw new Error('AI returned invalid data format');
-            }
-
-            // Update the global cvData
-            Object.assign(cvData, translatedData);
-            
-            // Force re-render of all inputs and preview
-            syncDataToInputs();
-            updatePreview();
-            saveCV(); // Auto-save after translation
-            
-            alert(`Succesfully translated to ${targetLang}!`);
-            closeTransModal();
-
-        } catch (err) {
-            console.error(err);
-            alert('Translation failed. Please try again.');
-            transSelection.classList.remove('hidden');
-            transLoading.classList.add('hidden');
-        }
-    }
-
-    transOpenBtn?.addEventListener('click', openTransModal);
-    transCloseBtn?.addEventListener('click', closeTransModal);
-    transBackdrop?.addEventListener('click', closeTransModal);
 
     // ============================================================
     // CV Review Modal Logic
@@ -2029,82 +1923,92 @@
         salaryResults.classList.add('hidden');
 
         const profileText = `[TITLE: ${cvData.personalInfo?.jobTitle || 'General'}]
-[SKILLS: ${(cvData.skills?.technical || []).join(', ')}]
-[EXP: ${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company} (${e.duration || 'N/A'})`).join('; ')}]`;
+        [SKILLS: ${(cvData.skills?.technical || []).join(', ')}]
+        [EXP: ${(cvData.experience || []).map(e => `${e.jobTitle} at ${e.company} (${e.duration || 'N/A'})`).join('; ')}]`;
 
         try {
-            // Task 1: Salary Estimation
-            const salRes = await fetch('/api/ai/generate', {
+            const res = await fetch('/api/ai/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    type: 'salary-estimation',
+                    type: 'market-strategy',
                     input: profileText,
                     context: { jobTitle: cvData.personalInfo?.jobTitle || 'General Professional' }
                 })
             });
 
-            // Task 2: Competency Heatmap
-            const heatRes = await fetch('/api/ai/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type: 'competency-heatmap',
-                    input: profileText,
-                    context: { jobTitle: cvData.personalInfo?.jobTitle || 'General Professional' }
-                })
-            });
-
-            if (!salRes.ok || !heatRes.ok) throw new Error('API Error');
+            if (!res.ok) throw new Error('Market Strategy API Error');
             
-            const salData = await salRes.json();
-            const heatData = await heatRes.json();
+            const data = await res.json();
+            const resultText = data.result;
             
-            // Parse Salary
-            const salLines = salData.result.split('\n');
-            const getSalValue = (key) => {
-                const line = salLines.find(l => l.startsWith(key));
-                return line ? line.split(':')[1].trim() : 'N/A';
+            const lines = resultText.split('\n');
+            const getValue = (key) => {
+                const line = lines.find(l => l.startsWith(key));
+                return line ? line.split(':')[1].trim().replace(/[\[\]]/g, '') : 'N/A';
             };
 
-            document.getElementById('sal-lower').textContent = getSalValue('LOWER');
-            document.getElementById('sal-median').textContent = getSalValue('MEDIAN');
-            document.getElementById('sal-upper').textContent = getSalValue('UPPER');
-            document.getElementById('sal-trend').textContent = getSalValue('TREND');
-            document.getElementById('salary-confidence').textContent = `Confidence: ${getSalValue('CONFIDENCE')}`;
+            document.getElementById('sal-lower').textContent = getValue('LOWER');
+            document.getElementById('sal-median').textContent = getValue('MEDIAN');
+            document.getElementById('sal-upper').textContent = getValue('UPPER');
+            document.getElementById('sal-trend').textContent = getValue('TREND');
+            document.getElementById('salary-confidence').textContent = `Confidence: ${getValue('CONFIDENCE')}`;
             
-            // simple bar state
+            const currencyCode = getValue('CURRENCY');
+            const currencyEl = document.getElementById('sal-currency-label');
+            if (currencyCode && currencyCode !== 'N/A') {
+                currencyEl.textContent = currencyCode;
+                currencyEl.classList.remove('hidden');
+            }
+            
             const fill = document.getElementById('sal-range-fill');
             fill.style.left = '20%'; 
             fill.style.right = '20%';
 
-            // Parse & Render Heatmap
             const heatContainer = document.getElementById('sal-heatmap');
-            heatContainer.innerHTML = ''; // Clear loading skeleton
+            heatContainer.innerHTML = ''; 
 
-            const heatLines = heatData.result.split('\n').filter(l => l.includes('COMP:'));
-            heatLines.forEach(line => {
-                // Format: COMP: [Title] SCORE: [Number] REASON: [Text]
-                const comp = line.match(/COMP: \[(.*?)\]/)?.[1] || 'Competency';
-                const score = parseInt(line.match(/SCORE: \[(.*?)\]/)?.[1]) || 5;
-                const reason = line.match(/REASON: \[(.*?)\]/)?.[1] || 'High market demand.';
+            const heatLines = lines.filter(l => l.includes('COMP:'));
+            heatLines.forEach((line, index) => {
+                const comp = line.match(/COMP: \[(.*?)\]/)?.[1] || line.match(/COMP: (.*?) SCORE:/)?.[1] || 'Competency';
+                const score = parseInt(line.match(/SCORE: \[(.*?)\]/)?.[1]) || parseInt(line.match(/SCORE: (\d+)/)?.[1]) || 5;
+                const reason = line.match(/REASON: \[(.*?)\]/)?.[1] || line.match(/REASON: (.*)$/)?.[1] || 'High market demand.';
 
                 const card = document.createElement('div');
-                card.className = 'group flex items-center space-x-3 p-4 bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/50 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300';
+                card.style.animationDelay = `${index * 100}ms`;
+                card.className = 'group relative flex flex-col space-y-2 py-3 px-4 bg-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-2xl hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 animate-fade-in-up';
                 
-                // Color based on score
-                const hue = (score / 10) * 120; // 0 (red) to 120 (green)
+                let tier = 'Stable';
+                let tierClass = 'text-slate-400 bg-slate-50';
+                let color = 'indigo';
                 
+                if (score >= 9) {
+                    tier = 'Legendary';
+                    tierClass = 'text-amber-600 bg-amber-50 border-amber-100';
+                    color = 'amber';
+                } else if (score >= 7) {
+                    tier = 'High Growth';
+                    tierClass = 'text-emerald-600 bg-emerald-50 border-emerald-100';
+                    color = 'emerald';
+                }
+
                 card.innerHTML = `
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs text-white shadow-lg" style="background: hsl(${hue}, 70%, 45%)">
-                        ${score}
-                    </div>
-                    <div class="flex-grow">
-                        <div class="flex items-center justify-between mb-0.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[10px] text-white shadow-lg bg-gradient-to-br from-${color}-500 to-${color}-700">
+                                ${score}
+                            </div>
                             <span class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">${comp}</span>
-                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">${score > 8 ? '🔥 SLAY' : '✅ VITAL'}</span>
                         </div>
+                        <span class="text-[7px] font-black px-1.5 py-0.5 rounded-full border uppercase tracking-widest ${tierClass}">${tier}</span>
+                    </div>
+                    
+                    <div class="space-y-2">
                         <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">${reason}</p>
+                        
+                        <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-${color}-400 to-${color}-600 rounded-full transition-all duration-1000 delay-300" style="width: ${score * 10}%"></div>
+                        </div>
                     </div>
                 `;
                 heatContainer.appendChild(card);

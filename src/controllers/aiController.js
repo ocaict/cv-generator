@@ -40,14 +40,19 @@ exports.generate = async (req, res) => {
             
             Target Position: ${safeJobTitle || 'General Professional'}
             
-            Return ONLY a valid JSON object with these exact keys:
-            {
-                "score": [Overall score 1-100],
-                "strengths": [Array of 3 specific, impressive strengths],
-                "weaknesses": [Array of 3 direct, fixable weaknesses],
-                "suggestions": [Array of 3 high-impact improvement suggestions],
-                "analysis": "A single-paragraph summary of the profile's current market value and first impression as an expert recruiter."
-            }`;
+            Respond in this EXACT format (no other text):
+            SCORE: [Overall score 1-100]
+            LEVEL: [Junior | Mid-Level | Senior | Expert]
+            VERDICT: [A single-sentence first impression of the profile]
+            STRENGTH_1: [Specific strength 1]
+            STRENGTH_2: [Specific strength 2]
+            STRENGTH_3: [Specific strength 3]
+            WEAKNESS_1: [Direct weakness 1]
+            WEAKNESS_2: [Direct weakness 2]
+            WEAKNESS_3: [Direct weakness 3]
+            ACTION_1: [Specific, high-impact improvement suggestion 1]
+            ACTION_2: [Specific, high-impact improvement suggestion 2]
+            ACTION_3: [Specific, high-impact improvement suggestion 3]`;
             break;
 
         case 'headline':
@@ -100,60 +105,37 @@ RULES:
 - Return ONLY the Q:, A:, T: blocks. No other text.`;
             break;
 
-        case 'competency-heatmap':
-            prompt = `Analyze this candidate's CV and identify the top 5 most "marketable" competencies (skills or specific experiences) that carry the highest value in the current global job market for the role of ${safeJobTitle || 'their target position'}.
+        case 'market-strategy':
+            prompt = `As an elite compensation analyst and talent strategist, perform a dual analysis of this CV.
             
             CV Data:
             ${safeInput}
             
-            Evaluate each competency based on:
-            1. Scarcity/Demand.
-            2. Impact potential.
-            3. Transferability.
+            Target Market: ${safeJobTitle || 'Global / Remote'}
+            
+            Task 1: Salary Estimation
+            - Analyze experience level, tech stack demand, and responsibility scope.
+            - Provide LOWER, MEDIAN, and UPPER annual salary estimates.
+            
+            Task 2: Competency Heatmap
+            - Identify top 5 most marketable assets/skills.
+            - Score each 1-10 based on scarcity and impact potential.
             
             Respond in this EXACT format (no other text):
-            COMP: [Title 1] SCORE: [1-10] REASON: [Short reason why this is a high-value asset]
-            COMP: [Title 2] SCORE: [1-10] REASON: [Short reason why this is a high-value asset]
-            COMP: [Title 3] SCORE: [1-10] REASON: [Short reason why this is a high-value asset]
-            COMP: [Title 4] SCORE: [1-10] REASON: [Short reason why this is a high-value asset]
-            COMP: [Title 5] SCORE: [1-10] REASON: [Short reason why this is a high-value asset]`;
+            LOWER: [e.g. $80,000]
+            MEDIAN: [e.g. $100,000]
+            UPPER: [e.g. $130,000]
+            CURRENCY: [e.g. USD]
+            TREND: [One sentence market trend]
+            CONFIDENCE: [Low | Medium | High]
+            COMP: [Skill 1] SCORE: [1-10] REASON: [Short reason]
+            COMP: [Skill 2] SCORE: [1-10] REASON: [Short reason]
+            COMP: [Skill 3] SCORE: [1-10] REASON: [Short reason]
+            COMP: [Skill 4] SCORE: [1-10] REASON: [Short reason]
+            COMP: [Skill 5] SCORE: [1-10] REASON: [Short reason]`;
             break;
 
-        case 'salary-estimation':
-            prompt = `As an expert compensation analyst and senior recruiter, estimate the annual salary range for a candidate with the following CV data.
-            Candidate Profile:
-            ${safeInput}
-            
-            Contextual Market: ${safeJobTitle || 'Global / Remote'}
-            
-            Analyze:
-            1. Experience level (Junior, Mid, Senior, Lead/Exec).
-            2. Tech stack / Skill demand.
-            3. Responsibility scope.
-            
-            Respond in this EXACT format (no other text):
-            LOWER: [minimum annual salary e.g. $80,000]
-            MEDIAN: [median annual salary e.g. $100,000]
-            UPPER: [maximum annual salary e.g. $130,000]
-            CURRENCY: [ISO currency code e.g. USD]
-            TREND: [One sentence explaining if this role is in Growing, Stable, or Declining demand]
-            CONFIDENCE: [Low | Medium | High] based on input clarity.`;
-            break;
 
-        case 'translate':
-            const targetLang = sanitizeField(context?.targetLanguage || 'English', 50);
-            prompt = `Translate the following CV document from its current language into ${targetLang}.
-            
-            CV Data (JSON):
-            ${safeInput}
-            
-            CRITICAL INSTRUCTIONS:
-            1. Maintain the EXACT same JSON structure.
-            2. Translate all content: Summary, Job Titles, Responsibilities, Degrees, descriptions, etc.
-            3. DO NOT translate technical terms that are globally standard (e.g., "React", "Node.js", "SQL").
-            4. Ensure the tone remains professional and appropriate for the target culture.
-            5. Return ONLY the translated JSON object. No preamble, no chatter.`;
-            break;
 
         case 'ats':
             const jdInput = sanitizeInput(context?.jobDescription || '', 4000);
@@ -212,14 +194,22 @@ CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subje
 
     try {
         const isStreaming = req.body.stream === true;
+        // Increase max_tokens for cover letters
+        const tokens = (type === 'cover-letter') ? 3000 : 1000;
+
+        // Use 8B model for high-token tasks to avoid TPM limits
+        const targetModel = (type === 'translate' || type === 'cover-letter' || type === 'market-strategy') 
+            ? "llama-3.1-8b-instant" 
+            : "llama-3.3-70b-versatile";
+
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: prompt }
             ],
-            model: "llama-3.3-70b-versatile",
+            model: targetModel,
             temperature: 0.65,
-            max_tokens: 800,
+            max_tokens: tokens,
             top_p: 1,
             stream: isStreaming,
         });
@@ -241,14 +231,22 @@ CRITICAL RULES: Output ONLY the letter body starting from the greeting. NO subje
 
         const raw = chatCompletion.choices[0]?.message?.content || "No content generated";
 
-        const cleanResult = raw
-            .replace(/^[\"']|[\"']$/g, '')
+        let cleanResult = raw
             .replace(/^Certainly!.*?\n/i, '')
             .replace(/^Here is.*?\n/i, '')
             .replace(/^Sure[,!].*?\n/i, '')
             .replace(/\nNote:.*$/is, '')
             .replace(/\nAlternatively:.*$/is, '')
             .trim();
+
+        // New Logic: Extract content from markdown blocks if they exist
+        const blockMatch = cleanResult.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (blockMatch) {
+            cleanResult = blockMatch[1].trim();
+        }
+
+        // Remove leading/trailing quotes if the AI wrapped the pulse response
+        cleanResult = cleanResult.replace(/^[\"']|[\"']$/g, '');
 
         res.json({ result: cleanResult });
 
