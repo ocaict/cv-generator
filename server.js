@@ -30,7 +30,12 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production' } // Set to true if using HTTPS
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    }
 }));
 
 app.use(flash());
@@ -111,6 +116,14 @@ app.get('/sitemap.xml', async (req, res) => {
     }
 });
 
+// 404 handler
+app.use((req, res, next) => {
+    res.status(404).render('errors/404', { 
+        layout: false,
+        message: "The page you're looking for doesn't exist or has been moved."
+    });
+});
+
 // Error handling
 app.use((err, req, res, next) => {
     console.error(`\x1b[31m[ERROR]\x1b[0m ${err.stack}`);
@@ -119,9 +132,30 @@ app.use((err, req, res, next) => {
         ? 'Internal Server Error' 
         : err.message || 'Something broke!';
     
-    res.status(statusCode).send(message);
+    if (req.originalUrl.startsWith('/api/') || req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(statusCode).json({ error: message });
+    }
+    
+    res.status(statusCode).render('errors/500', {
+        layout: false,
+        message: message,
+        statusCode: statusCode
+    });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`\x1b[32m[Server]\x1b[0m CV Generator is running on http://localhost:${PORT}`);
 });
+
+// Graceful shutdown
+const gracefulShutdown = async (signal) => {
+    console.log(`\x1b[33m[${signal}]\x1b[0m Shutting down gracefully...`);
+    const prisma = require('./src/config/db');
+    await prisma.$disconnect();
+    server.close(() => {
+        console.log('\x1b[32m[Server]\x1b[0m Closed.');
+        process.exit(0);
+    });
+};
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

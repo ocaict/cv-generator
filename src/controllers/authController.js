@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const { hashPassword, comparePassword } = require('../utils/auth');
 const supabase = require('../config/supabase');
+const crypto = require('crypto');
 
 exports.getRegister = (req, res) => {
     res.render('auth/register');
@@ -119,7 +120,7 @@ exports.supabaseCallback = async (req, res) => {
             localUser = await prisma.user.create({
                 data: {
                     email,
-                    password: 'oauth_user', // Fixed placeholder for OAuth accounts
+                    password: await hashPassword(crypto.randomBytes(32).toString('hex')),
                     name: supabaseUser.user_metadata.full_name || ''
                 }
             });
@@ -162,7 +163,7 @@ exports.supabaseVerify = async (req, res) => {
             localUser = await prisma.user.create({
                 data: {
                     email,
-                    password: 'oauth_user',
+                    password: await hashPassword(crypto.randomBytes(32).toString('hex')),
                     name: user.user_metadata.full_name || ''
                 }
             });

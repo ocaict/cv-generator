@@ -89,7 +89,6 @@ exports.exportDOCX = async (req, res) => {
              return res.redirect('/dashboard');
         }
 
-        const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = require('docx');
         const cvData = JSON.parse(cv.data);
         const { personalInfo, experience, education, skills, hobbies, references, referencesOnRequest } = cvData;
 
